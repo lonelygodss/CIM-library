@@ -1,3 +1,82 @@
+---
+slug: pimeva
+title: "PIMeval / PIMbench: Architectural Modeling and Benchmarking for Digital DRAM PIM"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "IISWC 2024"
+authors_or_group: "University of Virginia LavaLab / Siddique et al."
+summary: >-
+  **PIMeval / PIMbench** contributes a public modeling and benchmarking stack for **digital DRAM-PIM**, centered on a C++ PIM API, a configurable performance/energy model, and a benchmark suite spanning vector, linear algebra, graph, image, security, machine-learning, and DNN inference kernels. The demonstrated hardware scope covers three DRAM-PIM styles: DRAM-AP-style subarray bit-serial PIM, Fulcrum-style subarray bit-parallel PIM, and bank-level bit-parallel PIM. Its strongest contribution to a CIM compiler/IR corpus is not an explicit compiler IR, but a reusable evaluation boundary: PIM data objects, layout choices, target device configs, PIM API commands, and command-level timing/energy accounting. For compiler/IR research, PIMeval is useful as a backend-facing reference model and benchmark harness that exposes the kinds of objects a future CIM IR would need to preserve when lowering higher-level tensor or graph programs into digital DRAM-PIM execution. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "digital-PIM"
+  - "subarray-PIM"
+  - "bank-level-PIM"
+workloads:
+  - "vector-addition"
+  - "AXPY"
+  - "GEMV"
+  - "GEMM"
+  - "radix-sort"
+  - "AES"
+  - "triangle-count"
+  - "filter-by-key"
+  - "histogram"
+  - "image-processing"
+  - "KNN"
+  - "linear-regression"
+  - "k-means"
+  - "VGG-inference"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A6, A3]
+axis_B: [B1, B4, B5, B7]
+axis_C_first_class_objects:
+  - "PIM_device"
+  - "PIM_core"
+  - "PIM_data_object_id"
+  - "DRAM_rank_bank_subarray_row_column_hierarchy"
+  - "allocation_layout_vertical_horizontal"
+  - "PIM_API_command"
+  - "PIM_command_statistics"
+  - "data_type"
+  - "bit_slice_index"
+  - "row_register_micro_ops"
+axis_D_rewrite_objects:
+  - "API_command_stream"
+  - "allocation_layout_state"
+  - "target_specific_command_cost_lowering"
+  - "bit_serial_microprogram_expansion"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/UVA-LavaLab/PIMeval-PIMbench"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Best classified as simulator/cost-model plus benchmark/API framework for digital DRAM-PIM."
+  - "API calls and PimObjId operands function as an implicit command abstraction."
+  - "Hardware configs are the clearest serialized backend contract."
+  - "No standalone compiler IR or graph/tensor lowering pipeline found in checked public sources."
+  - "Useful backend target for evaluating future CIM IR mapping and value-trajectory designs."
+takeaways: []
+---
+
 # PIMeval / PIMbench — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -249,31 +328,7 @@ The paper assumes a PIM memory module physically separate from the host and mode
 **Integration effort estimate: Medium.**  
 Integration would be most direct through a small adapter that emits PIMeval C++ API calls and config files from a higher-level compiler IR. The cost-model and benchmark reuse are low-friction because the artifact is public and MIT-licensed, but a robust compiler integration would need additional serialization for mapping, schedule, command traces, and source-op provenance.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PIMeval provides useful ingredients for a value-trajectory IR, especially **object identity, layout choice, bit-slice APIs, device hierarchy, data movement accounting, and command-level statistics**. The closest approximation to trajectory semantics is the path from host memory to PIM object, through PIM API execution on a chosen device target, and back through data movement and command-stat reports. ([GitHub](https://github.com/UVA-LavaLab/PIMeval-PIMbench/wiki/PIM-API))
-
-**Does the paper name the path a value takes through CIM resources?**  
-Partially. It names host/PIM transfers, PIM objects, PIM cores, subarray/bank resources, local/global row buffers, GDLs, walkers, ALUs, and bit-slices in the architecture/model description. These are not assembled into a first-class per-value path object. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf))
-
-**Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-For this digital DRAM-PIM scope, analog partial sums and ADC/DAC sensing are not applicable. Value identity is preserved at the PIM object level through `PimObjId`, and reductions/bit-slice operations can be named through APIs. Fine-grained identity across every row-buffer transfer, micro-op register, partial accumulation stage, and reconstruction path is not exposed as a trajectory type in the checked sources. ([GitHub](https://github.com/UVA-LavaLab/PIMeval-PIMbench/blob/main/libpimeval/src/libpimeval.h))
-
-**Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-The artifact exposes data types, allocation layout, bit-index arguments for bit-slice extraction/insertion, and device hierarchy. Placement is represented through allocation/resource-manager state and hardware config, while channel bandwidth and data movement are modeled in the cost layer. A type-like system that carries bit significance, placement, and transition stage through every operation would be an extension. ([GitHub](https://github.com/UVA-LavaLab/PIMeval-PIMbench/blob/main/libpimeval/src/libpimeval.h))
-
-**Could the representation express trajectory rewrites?**
-
-- **Fusing reconstruction with downstream reduction:** Partially approachable through API fusion hooks and reduction APIs, but a trajectory-level representation would need explicit reconstruction and reduction-tree nodes. The header marks API fusion as experimental. ([GitHub](https://github.com/UVA-LavaLab/PIMeval-PIMbench/blob/main/libpimeval/src/libpimeval.h))  
-- **Delaying or retiming ADC conversion:** Not applicable to the demonstrated digital DRAM-PIM targets.  
-- **Carrying bit-sliced partial sums across operator boundaries:** The bit-slice APIs and vertical layout give useful ingredients, but cross-operator bit-slice lifetime would need an added abstraction for bit-sliced values and their valid storage locations. ([GitHub](https://github.com/UVA-LavaLab/PIMeval-PIMbench/blob/main/libpimeval/src/libpimeval.h))  
-- **Changing reduction tree structure:** The current API can request reductions, and the model implements target-specific reduction handling; exposing alternate reduction trees would require a schedule/path representation. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf))  
-- **Routing values through alternative peripheral paths:** The model costs local row buffers, global row buffers, GDL, and ALU-style components, but route choice is not exposed as a general path rewrite. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf))  
-- **Co-optimizing data movement and numeric reconstruction:** PIMeval already separates data movement and kernel time, making it a helpful cost backend; co-optimization would benefit from attaching movement, layout, bit-slice, and accumulation metadata to values in a higher-level IR. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf))  
-
-A trajectory-level extension would likely attach **layout, bit significance, PIM object identity, hardware resource path, accumulation/reduction stage, and host/PIM residency** to each value or buffer region, then lower those annotations into PIMeval API calls and configs for evaluation.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -284,7 +339,7 @@ A trajectory-level extension would likely attach **layout, bit significance, PIM
 | **MultiPIM** | Simulation of multiple PIM systems. | The paper describes MultiPIM as assuming the same ISA for PIM and host, while PIMeval models API calls over different DRAM-PIM organizations. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf)) | MultiPIM is useful for system-level ISA-uniform studies; PIMeval is useful for comparing heterogeneous DRAM-PIM backend models. |
 | **DRAMsim3 / Ramulator** | DRAM timing simulation. | The paper positions these as DRAM protocol simulators that do not directly support PIM-specific simulation, while PIMeval models PIM commands, data movement, and energy at an architectural level. ([University of Virginia Computer Science](https://www.cs.virginia.edu/~skadron/Papers/PIMbench_PIMeval_iiswc2024.pdf)) | DRAMsim3/Ramulator are lower-level memory-simulation baselines; PIMeval is a PIM-aware modeling layer that could later integrate cycle-accurate DRAM timing. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - **Real contribution:** PIMeval/PIMbench is a public simulator-backed benchmarking and cost-modeling stack for digital DRAM-PIM, not an explicit compiler IR stack.  
 - **Strongest reusable layer:** The reusable boundary is the C++ PIM API plus hardware config files and command/statistics reporting.  
@@ -294,80 +349,3 @@ A trajectory-level extension would likely attach **layout, bit significance, PIM
 - **Artifact/reproducibility:** Public MIT-licensed artifact found, with GitHub repository, Zenodo DOI, configs, tests, scripts, benchmarks, wiki docs, and v1.0.0 IISWC release.  
 - **Integration role:** Best suited as a backend cost model, simulator wrapper, and benchmark suite for future CIM compiler/IR projects.  
 - **Value-trajectory relevance:** Medium: it provides object/layout/bit-slice/device ingredients, but trajectory-level rewrites would require explicit value-path, schedule, and hardware-path abstractions.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIMeval / PIMbench: Architectural Modeling and Benchmarking for Digital DRAM PIM"
-year: 2024
-venue: "IISWC 2024"
-authors_or_group: "University of Virginia LavaLab / Siddique et al."
-technology:
-  - DRAM-PIM
-  - digital-CIM
-  - digital-PIM
-  - subarray-PIM
-  - bank-level-PIM
-workloads:
-  - vector-addition
-  - AXPY
-  - GEMV
-  - GEMM
-  - radix-sort
-  - AES
-  - triangle-count
-  - filter-by-key
-  - histogram
-  - image-processing
-  - KNN
-  - linear-regression
-  - k-means
-  - VGG-inference
-axis_A:
-  primary: A2_simulator_cost_model
-  secondary:
-    - A6_programming_runtime_benchmark
-    - A3_mapping_scheduling_DSE_light
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B5_instruction_meta_op_API
-  - B7_runtime_state_abstraction
-axis_C_first_class_objects:
-  - PIM_device
-  - PIM_core
-  - PIM_data_object_id
-  - DRAM_rank_bank_subarray_row_column_hierarchy
-  - allocation_layout_vertical_horizontal
-  - PIM_API_command
-  - PIM_command_statistics
-  - data_type
-  - bit_slice_index
-  - row_register_micro_ops
-axis_D_rewrite_objects:
-  - API_command_stream
-  - allocation_layout_state
-  - target_specific_command_cost_lowering
-  - bit_serial_microprogram_expansion
-artifact:
-  status: public_artifact_found
-  url: "https://github.com/UVA-LavaLab/PIMeval-PIMbench"
-  identifier: "Zenodo DOI 10.5281/zenodo.13243685"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as simulator/cost-model plus benchmark/API framework for digital DRAM-PIM."
-  - "API calls and PimObjId operands function as an implicit command abstraction."
-  - "Hardware configs are the clearest serialized backend contract."
-  - "No standalone compiler IR or graph/tensor lowering pipeline found in checked public sources."
-  - "Useful backend target for evaluating future CIM IR mapping and value-trajectory designs."
-```

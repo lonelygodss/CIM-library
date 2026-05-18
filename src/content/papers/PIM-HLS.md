@@ -1,3 +1,72 @@
+---
+slug: pim-hls
+title: "PIM-HLS: An Automatic Hardware Generation Tool for Heterogeneous Processing-In-Memory-based Neural Network Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "DAC 2023"
+authors_or_group: "Yu Zhu, Zhenhua Zhu, Guohao Dai, Fengbin Tu, Hanbo Sun, Kwang-Ting Cheng, Huazhong Yang, Yu Wang"
+summary: >-
+  **PIM-HLS** is a DAC 2023 tool paper that frames heterogeneous SRAM/RRAM PIM accelerator generation as an area-constrained mapping, scheduling, and hardware-parameter optimization problem for CNN inference. Its clearest contribution is not a general-purpose CIM compiler IR, but a hardware-aware optimization flow: a manually written NN description is parsed into a DFG, MNSIM-derived latency/area choices are used to rank SRAM/RRAM and array/interface options, layers are grouped and remapped under area constraints, bottleneck layers can be split or duplicated, and Verilog-style hardware templates plus module-level control/instruction information are generated. The demonstrated scope is static VGG-8 and ResNet-18 CNN inference over simulated SRAM/RRAM PIM configurations, with the most reusable compiler insight lying in the mapping state: layer groups, device binding, tile-set allocation, weight remapping cost, and area/latency-driven hardware choice. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/fab6156a-f133-4b35-929a-b0e65c7387ad.pdf)) |
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "digital-CIM"
+  - "heterogeneous"
+workloads:
+  - "VGG-8 CNN inference"
+  - "ResNet-18 CNN inference"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5, A2]
+axis_B: [B2, B4, B1, B5]
+axis_C_first_class_objects:
+  - "DFG_node"
+  - "layer"
+  - "layer_group"
+  - "SRAM_or_RRAM_binding"
+  - "tile"
+  - "tile_set"
+  - "crossbar_size"
+  - "ADC_DAC_choice_and_count"
+  - "area_latency_choice"
+  - "weight_split_factor"
+  - "duplicated_bottleneck_layer"
+  - "MNSIM_hardware_config"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "runtime_weight_schedule"
+  - "layer_grouping"
+  - "array_binding"
+  - "device_mode_selection"
+  - "hardware_parameter_choice"
+  - "HDL_template_instantiation"
+artifact:
+  status: "public artifact found; partial"
+  url: "https://github.com/Hazuyuki/PIM-HLS"
+  license: "Unknown / not found in checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: low
+notes:
+  - "Best understood as a mapping/scheduling and hardware-DSE flow rather than a general CIM compiler IR."
+  - "The effective IR is distributed across simple NN .ir files, DFG/search state, MNSIM choice tables, config generation, and Verilog templates."
+  - "Useful for value-trajectory IR work as evidence for resource metadata and analog/digital transition parameters, especially ADC/DAC and Sub_Position fields."
+takeaways: []
+---
+
 # PIM-HLS — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -284,22 +353,7 @@ The demonstrated workloads are VGG-8 and ResNet-18 CNNs; the paper states that o
 
 **Integration effort estimate: Medium to High.** Integration would be most direct through the config/cost-model boundary: generate PIM-HLS-style layer choices and feed them into a rewritten scheduler. Effort rises because the public artifact exposes useful scripts and examples but not a documented, packaged CLI or complete reproduction bundle. A small adapter should extract `.ir` parsing, choice-table schema, layer-group schedule, and hardware-config emission into explicit JSON/YAML or MLIR-like artifacts.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially hardware-resource metadata and domain-transition parameters. It names device type, crossbar size, ADC/DAC choices, ADC/DAC counts, analog/digital PIM type, positive/negative crossbar polarity, and whether subtraction occurs in the analog domain or after ADC quantization. These are precisely the kinds of backend facts a value-trajectory IR would want to attach to values, partial sums, and reconstruction paths. ([GitHub](https://github.com/Hazuyuki/PIM-HLS/blob/main/config_gene.py))
-
-The paper’s demonstrated abstraction centers on **where weights and layers reside over time**, rather than on preserving value identity through analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. The closest approximation to trajectory semantics is the combination of layer-to-tile mapping, tile-set resource parameters, ADC/DAC interface counts, and `Sub_Position`. A trajectory-level extension would likely attach domain, precision stage, bit significance, accumulation state, and reconstruction state to each tensor edge or partial-sum edge in the DFG.
-
-For the listed trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** Not directly represented; would need explicit reconstruction/reduction nodes.
-- **Delaying or retiming ADC conversion:** Partially suggested by ADC configuration and analog/digital subtraction position, but retiming would require a value-stage abstraction.
-- **Carrying bit-sliced partial sums across operator boundaries:** Precision is parameterized, but bit-sliced partial-sum identity is not carried across graph edges.
-- **Changing reduction tree structure:** Tile adders and shift registers are configurable, but reduction-tree topology is not a rewrite object.
-- **Routing values through alternative peripheral paths:** Peripheral fields are costed/configured; path alternatives would need explicit resource-path nodes.
-- **Co-optimizing data movement and numeric reconstruction:** PIM-HLS co-optimizes weight remapping and hardware parameters; numeric reconstruction/data-movement co-optimization would require additional semantics for partial sums, conversion, and storage.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -310,7 +364,7 @@ For the listed trajectory rewrites:
 | **DeepBurning / AutoDNNchip** | HLS-style NN accelerator generation | These are CMOS/FPGA/ASIC NN HLS references in the paper’s related work; PIM-HLS adapts the HLS idea to PIM-specific layer binding, remapping, and tile-level constraints. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/fab6156a-f133-4b35-929a-b0e65c7387ad.pdf)) | Useful as non-CIM HLS contrast: their first-class objects are accelerator schedule/resources, but not PIM array residency and remapping. |
 | **PRIME and SRAM/RRAM PIM accelerator baselines** | PIM accelerator architecture for neural networks | PIM-HLS uses homogeneous SRAM/RRAM PIM designs as baselines and seeks to generate heterogeneous designs under area limits. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/fab6156a-f133-4b35-929a-b0e65c7387ad.pdf)) | Treat architecture papers as hardware baselines; PIM-HLS belongs in the compiler/mapping corpus because it manipulates mappings and schedules over such hardware templates. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIM-HLS’s core contribution is an area-constrained mapping/scheduling/DSE flow for heterogeneous SRAM/RRAM PIM CNN accelerators.
 - The strongest reusable stack layer is the mapping state: layer groups, SRAM/RRAM binding, split/duplication factors, tile-set allocation, and latency/area choice tables.
@@ -320,69 +374,3 @@ For the listed trajectory rewrites:
 - Artifact status: public artifact found, but the checked repository appears partial: examples and scripts are visible, while license, README/workflow, releases, choice tables, and figure reproduction scripts were not found.
 - Integration is most promising through a wrapper around the scheduler/cost-model boundary, rather than by adopting the frontend as a general compiler IR.
 - For value-trajectory IR work, PIM-HLS is useful as evidence for resource and domain-transition metadata, but trajectory rewrites would need additional first-class value-flow, numeric-stage, and reconstruction abstractions.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIM-HLS: An Automatic Hardware Generation Tool for Heterogeneous Processing-In-Memory-based Neural Network Accelerators"
-year: 2023
-venue: "DAC 2023"
-authors_or_group: "Yu Zhu, Zhenhua Zhu, Guohao Dai, Fengbin Tu, Hanbo Sun, Kwang-Ting Cheng, Huazhong Yang, Yu Wang"
-technology:
-  - SRAM-CIM
-  - RRAM-CIM
-  - analog-CIM
-  - digital-CIM
-  - heterogeneous
-workloads:
-  - VGG-8 CNN inference
-  - ResNet-18 CNN inference
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A5_narrow_end_to_end_codesign
-    - A2_simulator_cost_model_dependent
-axis_B:
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B1_config_as_IR
-  - B5_instruction_meta_op_partial
-axis_C_first_class_objects:
-  - DFG_node
-  - layer
-  - layer_group
-  - SRAM_or_RRAM_binding
-  - tile
-  - tile_set
-  - crossbar_size
-  - ADC_DAC_choice_and_count
-  - area_latency_choice
-  - weight_split_factor
-  - duplicated_bottleneck_layer
-  - MNSIM_hardware_config
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - runtime_weight_schedule
-  - layer_grouping
-  - array_binding
-  - device_mode_selection
-  - hardware_parameter_choice
-  - HDL_template_instantiation
-artifact:
-  status: "public artifact found; partial"
-  url: "https://github.com/Hazuyuki/PIM-HLS"
-  license: "Unknown / not found in checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best understood as a mapping/scheduling and hardware-DSE flow rather than a general CIM compiler IR."
-  - "The effective IR is distributed across simple NN .ir files, DFG/search state, MNSIM choice tables, config generation, and Verilog templates."
-  - "Useful for value-trajectory IR work as evidence for resource metadata and analog/digital transition parameters, especially ADC/DAC and Sub_Position fields."
-```

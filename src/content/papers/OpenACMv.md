@@ -1,3 +1,68 @@
+---
+slug: openacmv
+title: "OpenACMv2: An Accuracy-Constrained Co-Optimization Framework for Approximate DCiM"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "DAC 2026 / arXiv preprint"
+authors_or_group: "Yiqi Zhou, Yue Yuan, Yikai Wang, Bohao Liu, Qinxin Mei, Zhuohua Liu, Shan Shen, Wei Xing, Daying Sun, Li Li, Guozhu Liu"
+summary: >-
+  OpenACMv2 contributes an accuracy-constrained architecture–circuit co-optimization flow for approximate digital SRAM-based compute-in-memory processing elements. Its strongest reusable layer is the design-space exploration and cost-model boundary: Level-I encodes approximate multiplier choices and SRAM macro parameters as optimizer states, evaluates multiplier error/PPA through PEA-GNN, and selects Pareto candidates under MRED/NMED budgets; Level-II refines selected compressor cells and SRAM bitcells through SPICE/PVT/Monte Carlo-style transistor sizing. The demonstrated workloads are image blending for 8-bit multipliers and CIFAR-10 inference for 16-bit multipliers, with hardware evidence centered on 8/16-bit approximate multipliers, SRAM macro configurations, FreePDK45/Nangate45-style cells, OpenROAD/OpenSTA/VCS evaluation, and Xyce/SPICE-style sizing. For CIM compiler/IR research, the paper is most useful as a concrete example of making approximate arithmetic choices, SRAM macro parameters, and circuit-validity constraints first-class optimization objects, while high-level workload ingestion, tensor IR, instruction lowering, and runtime abstractions remain outside the paper’s main demonstrated interface. ([arXiv](https://arxiv.org/pdf/2603.13042))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+  - "approximate-CIM"
+  - "DCiM"
+workloads:
+  - "image blending"
+  - "CIFAR-10 inference"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A5, A1]
+axis_B: [B1, B2, B4, B6]
+axis_C_first_class_objects:
+  - "approximate 4:2 compressor variant"
+  - "compressor slot"
+  - "partial-product column approximation region"
+  - "bit significance"
+  - "multiplier reduction stage"
+  - "SRAM rows / columns / mux ratio / array count"
+  - "6T bitcell transistor width"
+  - "PVT / Monte Carlo condition"
+  - "MRED / NMED accuracy budget"
+axis_D_rewrite_objects:
+  - "hardware configuration"
+  - "numeric approximation choice"
+  - "SRAM macro organization"
+  - "transistor sizing vector"
+  - "accuracy/PPA search trajectory"
+artifact:
+  status: "public artifact found; partial relative to full figure reproduction"
+  url: "https://github.com/ShenShan123/OpenACM"
+  license: "Apache-2.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Most reusable boundary is the ACCO optimization state, not a named compiler IR."
+  - "PEA-GNN provides a compact hardware-flow graph for approximate multiplier error/PPA prediction."
+  - "Level-I selects approximate arithmetic semantics; Level-II preserves selected truth tables while optimizing circuit cost."
+  - "High-level graph ingestion, tensor scheduling, ISA/runtime, and cross-operator value trajectories are outside the demonstrated core."
+takeaways: []
+---
+
 # OpenACMv2 — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -233,15 +298,7 @@ Paper figures appear **partially reproducible from the artifact**: the repositor
 
 **Integration effort estimate:** **Medium–High.** Integration would be most direct through DCIM_OPT/SRAM-OPT outputs and generator scripts. A small adapter could extract state vectors, compressor labels, SRAM tuples, and objective values into a corpus schema. Higher effort comes from external EDA/SPICE dependencies, implicit state decoding, and the absence of a single stable IR contract.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-OpenACMv2 provides useful ingredients for a value-trajectory IR, especially bit significance, approximate compressor choice, local reduction-tree structure, and circuit-validity domains. The closest approximation to trajectory semantics is the PEA-GNN compression graph: it names signal-flow edges through compressor stages and attaches bit-level error behavior to hardware nodes. ([arXiv](https://arxiv.org/pdf/2603.13042))
-
-The paper names the path of values inside the approximate multiplier—PP generation, configurable reduction tree, selected approximate compressors, final carry-propagate adder—but value identity is not preserved across a full CIM operator pipeline involving storage, sensing, digital accumulation, reconstruction, reduction, and downstream operator boundaries. Bit significance is represented through PP columns and lower-significance approximation regions; precision stage, channel rate, placement, and domain transition are not represented as type-like information across a stack-level IR.
-
-A trajectory-level extension would likely attach the following to each arithmetic-flow edge or partial-sum object: bit significance, approximation class, compressor truth table, error vector, reduction stage, physical resource binding, predicted MRED/NMED contribution, SRAM macro placement, and backend validity domain. With such an extension, the OpenACMv2 representation could be generalized toward trajectory rewrites such as changing reduction-tree structure, routing values through alternative compressor/peripheral paths, or co-optimizing data movement and numeric reconstruction. Rewrites such as delaying ADC conversion or carrying analog partial sums across operators are less aligned with the demonstrated digital SRAM/DCiM abstraction and would require additional domain-transition objects.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -252,7 +309,7 @@ A trajectory-level extension would likely attach the following to each arithmeti
 | **ARCTIC** | Agile DCIM compiler with parameterized precision and robustness concerns | ARCTIC supports parameterized INT/FP formats and DCIM-friendly BIST; OpenACMv2’s first-class precision object is PP-column/compressor approximation rather than general INT/FP precision modes. ([past.date-conference.com](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf?utm_source=chatgpt.com)) | Useful contrast between precision-format IR and approximate-compressor IR. |
 | **OpenC2** | Open-source end-to-end hardware compiler framework for digital CIM macro | OpenC2 is positioned as a macro hardware compiler framework; OpenACMv2 adds accuracy-constrained approximate arithmetic and transistor-level co-optimization. ([GitHub](https://github.com/OpenC2-official/OpenC2_V1.0?utm_source=chatgpt.com)) | Useful for corpus distinction between open DCIM codegen frameworks and ACCO-style DSE layers. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - OpenACMv2’s real contribution is an accuracy-constrained architecture–circuit DSE flow for approximate digital SRAM-based DCiM PEs.
 - The strongest reusable stack layer is the hardware-aware cost/DSE boundary: compressor assignment, PP-column approximation, SRAM macro tuple, PEA-GNN prediction, and SPICE/PVT sizing.
@@ -262,66 +319,3 @@ A trajectory-level extension would likely attach the following to each arithmeti
 - Artifact status: public artifact found; Apache-2.0; the repository documents front-end generation, DCIM_OPT, SRAM-OPT, quick-start commands, and output files, with full paper-figure reproduction requiring external tool alignment.
 - Integration is most promising as an IR inspiration, DSE plugin, cost-model backend, and approximate-arithmetic benchmark.
 - For value-trajectory IR work, OpenACMv2 is valuable for local bit-significance and approximate-reduction semantics; trajectory-level rewrites would add explicit value identity, domain transitions, reconstruction paths, and cross-operator placement/state objects.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "OpenACMv2: An Accuracy-Constrained Co-Optimization Framework for Approximate DCiM"
-year: 2026
-venue: "DAC 2026 / arXiv preprint"
-authors_or_group: "Yiqi Zhou, Yue Yuan, Yikai Wang, Bohao Liu, Qinxin Mei, Zhuohua Liu, Shan Shen, Wei Xing, Daying Sun, Li Li, Guozhu Liu"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-  - approximate-CIM
-  - DCiM
-workloads:
-  - image blending
-  - CIFAR-10 inference
-axis_A:
-  primary: "A3 Mapping / scheduling / DSE framework"
-  secondary:
-    - "A2 Simulator & cost model"
-    - "A5 Narrow end-to-end co-design"
-    - "A1 Macro / circuit generator"
-axis_B:
-  - "B1 Config-as-IR"
-  - "B2 Graph-as-IR"
-  - "B4 Hardware-resource IR"
-  - "B6 Accuracy / nonideality modeling"
-axis_C_first_class_objects:
-  - approximate 4:2 compressor variant
-  - compressor slot
-  - partial-product column approximation region
-  - bit significance
-  - multiplier reduction stage
-  - SRAM rows / columns / mux ratio / array count
-  - 6T bitcell transistor width
-  - PVT / Monte Carlo condition
-  - MRED / NMED accuracy budget
-axis_D_rewrite_objects:
-  - hardware configuration
-  - numeric approximation choice
-  - SRAM macro organization
-  - transistor sizing vector
-  - accuracy/PPA search trajectory
-artifact:
-  status: "public artifact found; partial relative to full figure reproduction"
-  url: "https://github.com/ShenShan123/OpenACM"
-  license: "Apache-2.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Most reusable boundary is the ACCO optimization state, not a named compiler IR."
-  - "PEA-GNN provides a compact hardware-flow graph for approximate multiplier error/PPA prediction."
-  - "Level-I selects approximate arithmetic semantics; Level-II preserves selected truth tables while optimizing circuit cost."
-  - "High-level graph ingestion, tensor scheduling, ISA/runtime, and cross-operator value trajectories are outside the demonstrated core."
-```

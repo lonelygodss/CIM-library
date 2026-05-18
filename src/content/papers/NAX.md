@@ -1,3 +1,66 @@
+---
+slug: nax
+title: "NAX: Neural Architecture and Memristive Xbar based Accelerator Co-design"
+subtitle: "Scoped CIM stack note"
+year: 2022
+venue: "DAC 2022 / Proceedings of the 59th ACM/IEEE Design Automation Conference"
+authors_or_group: "Shubham Negi, Indranil Chakraborty, Aayush Ankit, Kaushik Roy"
+summary: >-
+  NAX is a hardware-aware neural architecture search framework for CNN inference on memristive crossbar array IMC accelerators. Its main contribution is not a general compiler IR, but a search formulation that makes **per-layer coupling between neural operation choice and crossbar-size binding** explicit: convolution kernels in a ResNet-derived super-network are searched together with crossbar sizes, and the selected architecture is evaluated against accuracy, energy, and area-normalized latency objectives. The stack slice strengthened by the paper is the mapper/DSE layer between a CNN graph and a PUMA-like analog crossbar accelerator model, with nonideality feedback supplied through GENIEx and hardware-efficiency feedback through per-operation lookup-table costs. The demonstrated setting is static CNN inference on CIFAR-10 and Tiny ImageNet using ResNet-20/ResNet-18-derived search spaces, with simulator-backed comparisons against homogeneous-crossbar ResNet baselines. ([arXiv](https://arxiv.org/pdf/2106.12125)) |
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "memristive-crossbar"
+workloads:
+  - "CNN inference"
+  - "CIFAR-10 / ResNet-20-derived search space"
+  - "Tiny ImageNet / ResNet-18-derived search space"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5, A2]
+axis_B: [B2, B4, B6, B1]
+axis_C_first_class_objects:
+  - "crossbar size"
+  - "per-layer operation-to-crossbar binding"
+  - "MVMU utilization"
+  - "ADC precision formula"
+  - "bit stream"
+  - "bit slice"
+  - "Ron/Roff/Vsupply"
+  - "nonideality feedback through GENIEx"
+axis_D_rewrite_objects:
+  - "operator graph"
+  - "hardware mapping"
+  - "array binding"
+  - "accuracy model feedback"
+  - "cost-model ranking"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: 
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Strongest evidence is for per-layer co-search over CNN operation and crossbar size."
+  - "Cost model boundary is a per-operation latency/energy lookup table."
+  - "GENIEx supplies nonideality-aware architecture-update feedback."
+  - "No public NAX code, config schema, generated mapping file, or reproduction script was found in checked sources."
+takeaways: []
+---
+
 # NAX — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -226,17 +289,7 @@ The paper itself describes implementation-level modifications to GENIEx, includi
 
 **Integration effort estimate: Medium to High.** Integration would be most direct through reimplementing the search-space coupling and replacing `F(.)` with a modern backend cost plugin. Effort rises because the NAX-specific artifact, cost-table schema, and GENIEx integration scripts were not found publicly. The most valuable reusable boundary appears to be the per-layer candidate object: convolution operation plus crossbar-size binding plus latency/energy and nonideal-accuracy hooks.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-NAX provides useful ingredients for a value-trajectory IR, especially the recognition that layer shape, crossbar size, peripheral cost, and nonideality must be considered together. The closest approximation to trajectory semantics is the combination of convolution-to-MVMU mapping, bit stream/bit slice parameters, ADC precision as a function of crossbar size, and GENIEx’s functional simulation of nonideal MVM behavior. ([arXiv](https://arxiv.org/pdf/2106.12125))
-
-The paper names the path at a resource level—flattened convolution weights to MVMUs/crossbars, bit-serial compute in GENIEx, and custom conv2d/linear libraries—but the demonstrated abstraction centers on selecting operation/crossbar candidates rather than preserving value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. ([arXiv](https://arxiv.org/pdf/2106.12125))
-
-Bit significance and precision stage are present as parameters, not as type-like information attached to values. A trajectory-level extension would likely attach fields such as `domain = analog/digital`, `bit_slice`, `bit_weight`, `partial_sum_id`, `adc_stage`, `array_binding`, `accumulation_path`, and `reconstruction_path` to each candidate edge or tensor value.
-
-For trajectory rewrites, NAX’s current representation is well suited to changing the selected operation and crossbar size. Rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing through alternative peripheral paths would likely require an additional value-flow abstraction below the NAS edge and above the hardware lookup table.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -247,7 +300,7 @@ For trajectory rewrites, NAX’s current representation is well suited to changi
 | PIMCOMP | End-to-end DNN compiler for crossbar-based PIM accelerators. | PIMCOMP includes frontend, backend, verification, and instruction-flow generation; NAX does not expose a comparable compiler interface in the checked artifact trail. ([GitHub](https://github.com/sunxt99/PIMCOMP-NN?utm_source=chatgpt.com)) | Useful contrast between mapping/DSE papers and reusable compiler-stack papers. |
 | XploreNAS / CrossNAS | NAS-style optimization for nonideal or analog-PIM platforms. | These works extend the NAS/co-design family with robustness or cross-layer/circuit/architecture/system search; NAX is an earlier, focused crossbar-size and CNN-kernel co-search. ([arXiv](https://arxiv.org/pdf/2302.07769v2?utm_source=chatgpt.com)) | In the corpus, group these as CIM-aware NAS/DSE, then classify by what resource and fidelity objects are first-class. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - NAX’s real contribution is a differentiable NAS/DSE formulation that couples CNN operation selection with per-layer memristive crossbar-size binding.
 - The strongest reusable stack layer is the mapper/search layer: candidate operation + crossbar size + hardware-efficiency lookup + nonideality-aware accuracy feedback.
@@ -257,63 +310,3 @@ For trajectory rewrites, NAX’s current representation is well suited to changi
 - Artifact status: no public artifact found.
 - Integration is most promising as IR inspiration, mapper logic, and cost-model interface; direct backend reuse would require reconstructing missing scripts/configs.
 - For value-trajectory IR work, NAX motivates resource-aware value modeling but would need added abstractions for analog/digital domain transitions, bit-sliced partial sums, reconstruction, ADC timing, and accumulation paths.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "NAX: Neural Architecture and Memristive Xbar based Accelerator Co-design"
-year: 2022
-venue: "DAC 2022 / Proceedings of the 59th ACM/IEEE Design Automation Conference"
-authors_or_group: "Shubham Negi, Indranil Chakraborty, Aayush Ankit, Kaushik Roy"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-  - memristive-crossbar
-workloads:
-  - CNN inference
-  - CIFAR-10 / ResNet-20-derived search space
-  - Tiny ImageNet / ResNet-18-derived search space
-axis_A:
-  primary: A3 Mapping / scheduling / DSE framework
-  secondary:
-    - A5 Narrow end-to-end co-design
-    - A2 Simulator & cost model
-axis_B:
-  - B2 Graph-as-IR
-  - B4 Hardware-resource IR
-  - B6 Accuracy / nonideality modeling
-  - B1 Config-as-IR
-axis_C_first_class_objects:
-  - crossbar size
-  - per-layer operation-to-crossbar binding
-  - MVMU utilization
-  - ADC precision formula
-  - bit stream
-  - bit slice
-  - Ron/Roff/Vsupply
-  - nonideality feedback through GENIEx
-axis_D_rewrite_objects:
-  - operator graph
-  - hardware mapping
-  - array binding
-  - accuracy model feedback
-  - cost-model ranking
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: null
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest evidence is for per-layer co-search over CNN operation and crossbar size."
-  - "Cost model boundary is a per-operation latency/energy lookup table."
-  - "GENIEx supplies nonideality-aware architecture-update feedback."
-  - "No public NAX code, config schema, generated mapping file, or reproduction script was found in checked sources."
-```

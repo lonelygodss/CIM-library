@@ -1,3 +1,77 @@
+---
+slug: puma
+title: "PUMA: A Programmable Ultra-efficient Memristor-based Accelerator for Machine Learning Inference"
+subtitle: "Scoped CIM stack note"
+year: 2019
+venue: "ASPLOS 2019"
+authors_or_group: "Aayush Ankit, Izzat El Hajj, Sai Rahul Chalamalasetti, Geoffrey Ndu, Martin Foltin, R. Stanley Williams, Paolo Faraboschi, Wen-mei Hwu, John Paul Strachan, Kaushik Roy, Dejan S. Milojicic"
+summary: >-
+  PUMA is an ASPLOS 2019 hardware–software co-design for ML inference on a hybrid CMOS–memristor spatial accelerator. Its core contribution is a concrete, ISA-programmable CIM backend: a core/tile/node microarchitecture with memristor MVM units and digital functional units, a PUMA ISA with MVM, vector, memory, communication, and control instructions, a compiler that builds and partitions a model graph into per-core/per-tile assembly, and PUMAsim for functionality/timing/power evaluation. The demonstrated setting is static, MVM-heavy DNN inference—MLPs, LSTMs, and CNNs—with 16-bit fixed-point operations realized over conservative 2-bit memristor cells via bit-slicing. For CIM compiler/IR research, PUMA is most useful as a concrete example of a narrow end-to-end stack where graph partitioning, resource binding, inter-tile communication, and instruction scheduling are made compiler-visible for one architecture, while a more portable CIM IR would likely factor those internal states into explicit, verifiable, backend-independent objects. ([Izzat El Hajj](https://ielhajj.github.io/publications/paper/paper-puma-asplos19.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "memristor-CIM"
+  - "analog-CIM"
+  - "hybrid-CMOS-memristor"
+workloads:
+  - "MLP inference"
+  - "LSTM inference"
+  - "neural machine translation"
+  - "language modeling"
+  - "CNN inference"
+  - "VGG16"
+  - "VGG19"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A4, A3, A2]
+axis_B: [B2, B4, B5, B1, B6, B7]
+axis_C_first_class_objects:
+  - "MVMU / memristor crossbar"
+  - "core / tile / node hierarchy"
+  - "XbarIn registers"
+  - "XbarOut registers"
+  - "DAC / ADC boundary"
+  - "2-bit cell / 16-bit bit-sliced MVM"
+  - "MVM mask operand"
+  - "filter / stride input-shuffle operands"
+  - "shared-memory valid/count attributes"
+  - "receive FIFO IDs"
+  - "per-core/per-tile PUMA assembly"
+axis_D_rewrite_objects:
+  - "operator graph"
+  - "tensor tiling"
+  - "hardware mapping"
+  - "array/MVMU binding"
+  - "memory layout"
+  - "communication insertion"
+  - "instruction stream"
+  - "register allocation"
+  - "fixed numeric format"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/illinois-impact/puma-compiler"
+  license: ""
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: medium
+notes:
+  - "Best classified as a PUMA-specific ISA/compiler/simulator co-design rather than a portable CIM IR."
+  - "Reusable semantics are clearest in graph partitioning, MVM coalescing, communication insertion, and per-core/per-tile codegen."
+  - "Value-trajectory reuse would require adding explicit metadata for bit-slice, analog/digital domain, reconstruction, and accumulation path."
+takeaways: []
+---
+
 # PUMA — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -230,25 +304,7 @@ The evaluation targets inference, primarily MLPs, LSTMs for NMT/language modelin
 
 **Integration effort estimate:** **Medium–High.** Integration would be most direct through generated `.puma` assembly and PUMAsim configuration, but the environment is Python 2.7-era and the compiler repository is archived. Reuse would benefit from a small adapter that extracts compiler graph/placement/report data into a modern JSON or MLIR-like schema, plus a wrapper that pins simulator config and records provenance for each run.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PUMA provides useful ingredients for a value-trajectory IR, especially because it explicitly names the PUMA hardware path around MVMUs: XbarIn registers, DAC conversion, analog crossbar MVM, ADC conversion, XbarOut registers, general-purpose registers, tile shared memory, receive FIFOs, and send/receive instructions. The closest approximation to trajectory semantics is the combination of graph placement, inserted communication operations, register allocation, and simulator trace/stat output. ([Izzat El Hajj](https://ielhajj.github.io/publications/paper/paper-puma-asplos19.pdf))
-
-The paper does name the physical/digital path a value takes through PUMA resources, but value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage is mostly implicit in instruction sequences and hardware semantics. Bit significance and reconstruction are visible in the architecture diagram and bit-slicing explanation, while compiler-level values mostly see a composite 16-bit MVM. ([Izzat El Hajj](https://ielhajj.github.io/publications/paper/paper-puma-asplos19.pdf))
-
-A trajectory-level extension would likely attach type-like metadata to graph values and instruction operands:
-
-- bit slice / significance group;
-- analog or digital domain;
-- precision stage before/after ADC;
-- placement at MVMU/core/tile/register/memory/FIFO;
-- reconstruction status;
-- accumulation/reduction stage;
-- allowed peripheral path.
-
-With those additions, a future IR could express rewrites such as fusing reconstruction with downstream reduction, delaying or retiming ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction tree structure, routing values through alternative peripheral paths, and co-optimizing data movement with numeric reconstruction. PUMA’s demonstrated abstraction centers on graph-to-ISA lowering for a fixed MVMU contract; trajectory-level rewrites would add an explicit value-flow layer between graph partitioning and PUMA assembly.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -259,7 +315,7 @@ With those additions, a future IR could express rewrites such as fusing reconstr
 | PIMCOMP | End-to-end DNN compiler for PIM accelerators | PIMCOMP is more directly framed as a compiler for PIM deployment and mapping; PUMA is a co-designed architecture/ISA/compiler/simulator stack for one PUMA backend. ([arXiv](https://arxiv.org/html/2411.09159v1?utm_source=chatgpt.com)) | Helps separate architecture-specific ISA stacks from more portable PIM compiler frameworks. |
 | DNN+NeuroSim / CrossSim | CIM simulation, accuracy/PPA modeling | These tools foreground device/circuit/system modeling and accuracy/PPA exploration, whereas PUMA combines compiler-generated instruction streams with architectural timing/power simulation. ([Frontiers](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2021.659060/full?utm_source=chatgpt.com)) | Use as simulator/cost-model neighbors rather than graph-to-assembly compiler neighbors. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PUMA’s real contribution is a narrow but complete hardware–software stack for a specific ISA-programmable hybrid CMOS–memristor inference accelerator.
 - The strongest reusable layer is the graph-to-PUMA-assembly backend path: graph partitioning, MVMU/core/tile placement, communication insertion, scheduling, register allocation, and PUMAsim execution.
@@ -269,81 +325,3 @@ With those additions, a future IR could express rewrites such as fusing reconstr
 - Artifact status is public and useful but partial for modern reproducibility: simulator and compiler source are available, the simulator is MIT-licensed, the compiler is archived/read-only, and the documented workflow relies on older Python/toolchain assumptions.
 - Integration would be most direct by wrapping generated `.puma` assembly plus simulator configuration; broader reuse would benefit from exporting graph/placement/schedule state into a typed intermediate format.
 - For value-trajectory IR work, PUMA supplies concrete path ingredients but would need an added abstraction for value identity, bit significance, reconstruction status, domain transition, and alternative peripheral routes.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PUMA: A Programmable Ultra-efficient Memristor-based Accelerator for Machine Learning Inference"
-year: 2019
-venue: "ASPLOS 2019"
-authors_or_group: "Aayush Ankit, Izzat El Hajj, Sai Rahul Chalamalasetti, Geoffrey Ndu, Martin Foltin, R. Stanley Williams, Paolo Faraboschi, Wen-mei Hwu, John Paul Strachan, Kaushik Roy, Dejan S. Milojicic"
-technology:
-  - RRAM-CIM
-  - memristor-CIM
-  - analog-CIM
-  - hybrid-CMOS-memristor
-workloads:
-  - MLP inference
-  - LSTM inference
-  - neural machine translation
-  - language modeling
-  - CNN inference
-  - VGG16
-  - VGG19
-axis_A:
-  primary: "A5 narrow end-to-end co-design"
-  secondary:
-    - "A4 explicit ISA compiler stack"
-    - "A3 mapping / scheduling / DSE framework"
-    - "A2 simulator & cost model"
-axis_B:
-  - "B2 graph-as-IR"
-  - "B4 hardware-resource IR"
-  - "B5 instruction / meta-op / ISA"
-  - "B1 config-as-IR (partial)"
-  - "B6 accuracy / nonideality modeling (partial)"
-  - "B7 runtime-state abstraction (limited)"
-axis_C_first_class_objects:
-  - MVMU / memristor crossbar
-  - core / tile / node hierarchy
-  - XbarIn registers
-  - XbarOut registers
-  - DAC / ADC boundary
-  - 2-bit cell / 16-bit bit-sliced MVM
-  - MVM mask operand
-  - filter / stride input-shuffle operands
-  - shared-memory valid/count attributes
-  - receive FIFO IDs
-  - per-core/per-tile PUMA assembly
-axis_D_rewrite_objects:
-  - operator graph
-  - tensor tiling
-  - hardware mapping
-  - array/MVMU binding
-  - memory layout
-  - communication insertion
-  - instruction stream
-  - register allocation
-  - fixed numeric format
-artifact:
-  status: "public artifact found"
-  url:
-    - "https://github.com/Aayush-Ankit/puma-simulator"
-    - "https://github.com/illinois-impact/puma-compiler"
-  license:
-    simulator: "MIT"
-    compiler: "University of Illinois / IMPACT permissive license text; standard SPDX name not confirmed"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: "medium"
-trajectory_IR_relevance: "medium"
-notes:
-  - "Best classified as a PUMA-specific ISA/compiler/simulator co-design rather than a portable CIM IR."
-  - "Reusable semantics are clearest in graph partitioning, MVM coalescing, communication insertion, and per-core/per-tile codegen."
-  - "Value-trajectory reuse would require adding explicit metadata for bit-slice, analog/digital domain, reconstruction, and accumulation path."
-```

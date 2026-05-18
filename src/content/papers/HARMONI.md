@@ -1,3 +1,75 @@
+---
+slug: harmoni
+title: "HARMONI"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "ISPASS 2026 inferred from repository PDF/release naming; exact paper metadata not confirmed from extracted PDF text"
+authors_or_group: "LAVAlab / University of Virginia; exact author list unknown from checked sources"
+summary: >-
+  HARMONI is best read as a modeling, mapping, and simulation stack for LLM inference on hierarchical DRAM-PIM / near-memory systems. Its strongest reusable contribution is the combination of a Python-generated Transformer task graph, tensor placement metadata, hierarchical memory/logic-unit binding, and analytic latency/energy/resource modeling. The public artifact demonstrates the stack through configurable LLM model presets, DRAM hierarchy strings, batch/token settings, fusion flags, mapping options, network/GEMM trace generation, and ISPASS artifact-evaluation scripts. For CIM compiler/IR research, HARMONI is most useful as a simulator-backend and benchmark-harness reference: it shows how an LLM task graph can be enriched with placement, phase, communication, and hardware-binding information before being evaluated by a memory-system cost model. ([GitHub](https://github.com/UVA-LavaLab/HARMONI))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "near-memory-computing"
+  - "digital-CIM"
+  - "chiplet/hierarchical-memory-system"
+workloads:
+  - "LLM inference"
+  - "Transformer inference"
+  - "LLaMA-family presets"
+  - "Mistral/Phi/GPT-family presets"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A3, A5]
+axis_B: [B2, B4, B1, B7]
+axis_C_first_class_objects:
+  - "Transformer_DFG_node"
+  - "phase_layer_head_annotation"
+  - "HarmoniTensor"
+  - "tensor_address_offset"
+  - "tensor_memory_location"
+  - "row_column_access_metadata"
+  - "DRAM_channel_rank_chip_bank_hierarchy"
+  - "weight_rank_and_KV_rank_partitioning"
+  - "logic_unit"
+  - "supported_operation_table"
+  - "communication_edge"
+  - "sync_node"
+  - "aggregation_node"
+  - "network_route_or_comm_cost"
+axis_D_rewrite_objects:
+  - "operator_task_graph"
+  - "hardware_mapping"
+  - "tensor_memory_layout"
+  - "task_partitioning"
+  - "aggregation_reduction_structure"
+  - "communication_trace"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/UVA-LavaLab/HARMONI"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: medium
+notes:
+  - "Best classified as simulator/cost-model plus placement-aware graph mapping for LLM inference."
+  - "Artifact exposes DFG construction, tensor allocation, mapping, cost modeling, trace generation, and AE scripts."
+  - "Standalone serialized IR schema and instruction/codegen backend were not found in checked sources."
+  - "ADC/DAC and analog bit-slice objects are not applicable to the demonstrated digital DRAM-PIM abstraction."
+takeaways: []
+---
+
 # HARMONI — scoped CIM stack note
 
 **Source note.** I found the public HARMONI repository, README, scripts, code, license, release metadata, and the paper PDF file in the repository. In this session, the PDF body could not be extracted as a PDF text/screenshot source, so paper-section-level statements are kept conservative and the audit emphasis is on the public artifact/code evidence. The repository names the work “HARMONI: Hierarchical ARchitecture MOdeling for LLMs with Near/In Memory Computing.” ([GitHub](https://github.com/UVA-LavaLab/HARMONI))
@@ -245,17 +317,7 @@ The AE parameter file includes Mistral-7B and LLaMA2-7B cases, BF16 dtype, multi
 **Integration effort estimate: Medium.**  
 Reuse would be most direct through a small adapter that emits HARMONI’s Python DFG, tensor, and hardware-config objects. The effort rises if the upstream stack needs a stable serialized IR, arbitrary model import, formal legality checking, or instruction-level backend integration. The most valuable reusable boundary appears to be the placement-aware graph plus cost-model interface.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-HARMONI provides useful ingredients for a value-trajectory IR, especially tensor identity, tensor location, communication edges, phase-aware graph nodes, and hardware-resource binding. The closest approximation to trajectory semantics is the combination of a DFG edge, a `HarmoniTensor` location list, a producing/consuming logic unit, and a routing/cost record. ([GitHub](https://raw.githubusercontent.com/UVA-LavaLab/HARMONI/main/modeling/core/transformer_dfg.py))
-
-The work names where values are stored and where tasks execute, but the demonstrated abstraction centers on digital tensor placement and task mapping rather than preserving a typed value identity across analog partial sums, sensing, digital reconstruction, and domain transitions. For HARMONI’s DRAM-PIM setting, ADC/DAC retiming and analog reconstruction are not the relevant trajectory objects; the analogous objects are tensor shards, communication edges, reductions, aggregation nodes, and KV-cache placement. ([GitHub](https://raw.githubusercontent.com/UVA-LavaLab/HARMONI/main/modeling/core/task_mapping.py))
-
-Bit significance and precision stages are represented only coarsely through dtype/data-width parameters in the checked artifact. Channel/rank/chip placement is represented concretely. Domain transition is modeled as digital movement and compute cost rather than as an explicit type transition. ([GitHub](https://raw.githubusercontent.com/UVA-LavaLab/HARMONI/main/args.py))
-
-A trajectory-level extension would likely attach a richer value-flow record to each DFG edge or tensor: producing operation, tensor shard, memory rank/chip, logic unit, communication path, reduction/aggregation stage, precision state, residency/lifetime, and consumer operation. That extension could express CIM trajectory rewrites such as changing reduction tree structure, co-optimizing data movement and numeric accumulation, routing values through alternative hierarchy paths, or carrying partially reduced tensor shards across operator boundaries. For analog CIM technologies, additional abstractions would be needed for ADC/DAC stage, bit-slice significance, reconstruction, and analog/digital domain transitions.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -264,7 +326,7 @@ A trajectory-level extension would likely attach a richer value-flow record to e
 | **FACIL** | DRAM address mapping and SoC-PIM cooperation for on-device LLM inference. | FACIL emphasizes flexible address mapping, a user-level library, and a specialized memory controller; HARMONI models tensor allocation, logic-unit mapping, and analytic performance over a hierarchy. ([Seong Hoon Seo](https://seonghoonseo.github.io/files/pdf/research/2025-hpca-facil.pdf?utm_source=chatgpt.com)) | Address mapping can appear either as a hardware/software mechanism or as simulator-visible tensor-placement metadata. |
 | **UM-PIM** | DRAM-based PIM memory-system abstraction and shared memory-space concerns. | UM-PIM focuses on a uniform/shared memory space for DRAM-PIM programming; HARMONI focuses on graph/task mapping and cost modeling over explicit hierarchy. ([Yilong Zhao](https://xiaoke0515.github.io/resume/publications/slides/ISCA24-93-UMPIM.pdf?utm_source=chatgpt.com)) | Distinguish programming model / memory-space abstractions from compiler-visible mapping and cost-model IR. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - HARMONI’s real contribution is a public Python modeling and simulation stack for LLM inference on hierarchical DRAM-PIM / near-memory systems.  
 - The strongest reusable layer is the simulator backend plus placement-aware graph/mapping machinery.  
@@ -274,72 +336,3 @@ A trajectory-level extension would likely attach a richer value-flow record to e
 - Artifact status is strong for code availability: the public repository is MIT-licensed and includes setup instructions, example commands, AE scripts, configs, and model/performance modules. ([GitHub](https://github.com/UVA-LavaLab/HARMONI))  
 - Integration is most natural by wrapping HARMONI as a cost-model/backend target or by borrowing its tensor-placement and hierarchy-mapping abstractions.  
 - For value-trajectory IR research, HARMONI is a useful digital DRAM-PIM reference: it approximates value flow through tensor placement and communication paths, while trajectory-level rewrites would require explicit value-flow/type annotations.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "HARMONI"
-year: 2026
-venue: "ISPASS 2026 inferred from repository PDF/release naming; exact paper metadata not confirmed from extracted PDF text"
-authors_or_group: "LAVAlab / University of Virginia; exact author list unknown from checked sources"
-technology:
-  - DRAM-PIM
-  - near-memory-computing
-  - digital-CIM
-  - chiplet/hierarchical-memory-system
-workloads:
-  - LLM inference
-  - Transformer inference
-  - LLaMA-family presets
-  - Mistral/Phi/GPT-family presets
-axis_A:
-  primary: A2_simulator_cost_model
-  secondary:
-    - A3_mapping_scheduling_DSE
-    - A5_narrow_end_to_end_codesign
-axis_B:
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B1_config_as_IR
-  - B7_runtime_state_abstraction_partial
-axis_C_first_class_objects:
-  - Transformer_DFG_node
-  - phase_layer_head_annotation
-  - HarmoniTensor
-  - tensor_address_offset
-  - tensor_memory_location
-  - row_column_access_metadata
-  - DRAM_channel_rank_chip_bank_hierarchy
-  - weight_rank_and_KV_rank_partitioning
-  - logic_unit
-  - supported_operation_table
-  - communication_edge
-  - sync_node
-  - aggregation_node
-  - network_route_or_comm_cost
-axis_D_rewrite_objects:
-  - operator_task_graph
-  - hardware_mapping
-  - tensor_memory_layout
-  - task_partitioning
-  - aggregation_reduction_structure
-  - communication_trace
-artifact:
-  status: "public artifact found"
-  url: "https://github.com/UVA-LavaLab/HARMONI"
-  license: "MIT"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as simulator/cost-model plus placement-aware graph mapping for LLM inference."
-  - "Artifact exposes DFG construction, tensor allocation, mapping, cost modeling, trace generation, and AE scripts."
-  - "Standalone serialized IR schema and instruction/codegen backend were not found in checked sources."
-  - "ADC/DAC and analog bit-slice objects are not applicable to the demonstrated digital DRAM-PIM abstraction."
-```

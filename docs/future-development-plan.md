@@ -2,154 +2,55 @@
 
 ## Current State
 
-The repository currently contains 62 Markdown paper notes in `src/content/papers/`.
+The repository contains 62 Markdown paper notes in `src/content/papers/`, and all 62 are now valid Astro content entries with YAML frontmatter.
 
-- 27 files are already valid Astro content entries with YAML frontmatter:
-  - `accelcim.md`
-  - `adap-cim.md`
-  - `arctic.md`
-  - `ares.md`
-  - `autodcim.md`
-  - `c4cam.md`
-  - `cima-com.md`
-  - `cimflow.md`
-  - `cim-mlc.md`
-  - `cim-mxu.md`
-  - `cim-prune.md`
-  - `cim-tuner.md`
-  - `ciminus.md`
-  - `cimloop.md`
-  - `cinm.md`
-  - `clear.md`
-  - `cmswitch.md`
-  - `comonm.md`
-  - `count2multiply.md`
-  - `dappa.md`
-  - `declarative-memory-services.md`
-  - `dypim.md`
-  - `efficient-in-memory-acceleration-of-sparse-block-diagonal-llms.md`
-  - `exploiting-the-memory-compute-coupling-feature-for-cim-accelerator-design-optimization.md`
-  - `geniex.md`
-  - `gibbon.md`
-  - `turbo-charged-mapper.md`
-- 35 files are raw long-form corpus notes without YAML frontmatter.
-- The raw notes are valuable source material and should be preserved. Most follow the long corpus-note harness and include `## 12. Suggested metadata entry` with a fenced YAML block near the end.
-- `npm run validate` currently fails on the next raw note, because Astro content entries require frontmatter.
+The raw-note migration milestone is complete:
 
-The next development milestone is to convert the 35 remaining raw notes into schema-valid Astro paper entries without weakening the schema.
+- `npm run validate` passes with `Validated 62 paper metadata file(s).`
+- `npm run check` passes with `0 errors, 0 warnings, 0 hints`.
+- `npm run build` passes and builds 64 static pages into `dist/`.
+- No raw long-form notes remain in `src/content/papers/`.
 
-## Milestone 1 -- Normalize Raw Notes Into Content Entries
+The migration helper `scripts/promote-raw-note.mjs` remains useful for any future imported notes. It promotes the fenced YAML block under `## 12. Suggested metadata entry`, strips obsolete generated migration-only sections, normalizes filenames to slugs, and conservatively coerces schema-sensitive fields.
 
-Goal: every file in `src/content/papers/` has valid frontmatter matching `src/content.config.ts`, a lowercase kebab-case filename, and a body that renders as a public corpus note.
+## Milestone 1 -- Content QA
 
-Recommended workflow:
+Goal: make the now-structured corpus consistent, readable, and trustworthy without changing the descriptive metadata contract.
 
-1. Inventory files into `structured` vs `raw`.
-2. For each raw file, locate `## 12. Suggested metadata entry`.
-3. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` and inspect the planned filenames before writing.
-4. Promote that fenced YAML block to frontmatter with `scripts/promote-raw-note.mjs`.
-5. Normalize the filename to the schema-valid lowercase kebab-case slug.
-6. Inspect helper warnings. The helper conservatively blanks nonnumeric years, blanks non-URL artifact fields, and maps unsupported reproducibility labels to `unknown`; replace those only when the note already contains a checked, schema-valid fact.
-7. On case-insensitive filesystems, Git may show case-only renames as modifications under the old tracked names until staging. Trust the on-disk filenames, then use Git's rename-aware staging later.
-8. Remove the rendered `## 12. Suggested metadata entry` section from the public body after promoting it.
-9. Remove obsolete generated `## 9. Relation to a value-trajectory CIM IR project` sections, then renumber comparison/final-takeaway sections.
-10. Preserve the remaining public note body unless a section is malformed.
-11. Fill missing schema fields conservatively with `unknown`, `[]`, or `null`.
-12. Run a targeted batch metadata check if global validation is still expected to stop on the next raw note.
-13. Run `npm run validate`.
-14. Run `npm run check` only if validation reaches the expected next raw-note blocker or fully passes. Astro's content glob order can surface a different remaining raw note than the sorted validator.
-15. Run `npm run build` only when `npm run check` passes.
+Recommended checks:
 
-Do this in small batches. A good batch size is 5 files while the helper is still being refined, or 8-10 files after dry-run and warning patterns are predictable.
+1. Scan for duplicate slugs and title collisions.
+2. Compare the final corpus count against the legacy atlas count of 62 records.
+3. Check typo-like titles and names such as `LearnCNM2Predic`, `MIREDOW`, `CIM-Prune`, `OpenACMv`, `PIMeva`, and the long `In-MemoryNeural` filename.
+4. Verify all Axis A and Axis B values are from `src/data/taxonomy.json`.
+5. Spot-check high-priority paper and artifact URLs.
+6. Review entries whose migration helper blanked nonnumeric years, blanked non-HTTP(S) artifact values, or mapped unsupported reproducibility labels to `unknown`.
+7. Search for lingering generated-note artifacts such as `Suggested metadata entry`, `trajectory_IR_relevance`, and value-trajectory project prose.
+8. Run `npm run validate`, `npm run check`, and `npm run build` after QA edits.
 
-Batch-local verification snippet:
+Keep QA changes small and evidence-based. Do not invent missing publication facts or artifact links.
 
-```bash
-node - <migrated-files...> <<'NODE'
-const fs = require('fs');
-const path = require('path');
-const taxonomy = JSON.parse(fs.readFileSync('src/data/taxonomy.json', 'utf8'));
-const familyCodes = new Set(Object.keys(taxonomy.families));
-const middleCodes = new Set(Object.keys(taxonomy.middles));
-const files = process.argv.slice(2);
-function frontmatter(markdown, file) {
-  const match = markdown.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) throw new Error(`${file}: missing YAML frontmatter block`);
-  return match[1];
-}
-function getScalar(fm, key) {
-  const match = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
-  return match ? match[1].trim().replace(/^['"]|['"]$/g, '') : '';
-}
-function getBlock(fm, key) {
-  const match = fm.match(new RegExp(`^${key}:\\n([\\s\\S]*?)(?=^[A-Za-z0-9_]+:|\\Z)`, 'm'));
-  return match ? match[1] : '';
-}
-function getInlineList(fm, key) {
-  const match = fm.match(new RegExp(`^${key}:\\s*\\[(.*?)\\]`, 'm'));
-  return match ? match[1].split(',').map((x) => x.trim()).filter(Boolean) : [];
-}
-for (const file of files) {
-  const fm = frontmatter(fs.readFileSync(path.join('src/content/papers', file), 'utf8'), file);
-  for (const key of ['slug', 'title', 'summary', 'axis_A', 'axis_B']) {
-    if (!new RegExp(`^${key}:`, 'm').test(fm)) throw new Error(`${file}: missing required key ${key}`);
-  }
-  const slug = getScalar(fm, 'slug');
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error(`${file}: invalid slug ${slug}`);
-  const primary = getBlock(fm, 'axis_A').match(/^\\s+primary:\\s*(A\\d)/m)?.[1];
-  if (!familyCodes.has(primary)) throw new Error(`${file}: invalid axis_A.primary`);
-  for (const code of getInlineList(fm, 'axis_B')) {
-    if (!middleCodes.has(code)) throw new Error(`${file}: invalid axis_B ${code}`);
-  }
-  console.log(`${file}: ok`);
-}
-NODE
-```
+## Milestone 2 -- Paper Page Polish
 
-## Milestone 2 -- Harden Migration Tooling
-
-After one manual batch proves the rules, add a local migration helper script.
-
-Suggested script: `scripts/promote-raw-note.mjs`
-
-Responsibilities:
-
-- read one raw Markdown file;
-- extract the fenced YAML block under `## 12. Suggested metadata entry`;
-- validate required keys are present;
-- normalize `slug`;
-- prepend frontmatter;
-- strip section 12 from the body;
-- strip obsolete value-trajectory IR project sections and ignore `trajectory_IR_relevance`;
-- write to `src/content/papers/<slug>.md`;
-- refuse to overwrite unrelated files;
-- conservatively coerce schema-sensitive fields: `year` must be blank or an integer, `artifact.url` must be blank or an HTTP(S) URL, and `reproducibility_level` must be one of `high`, `medium`, `low`, or `unknown`;
-- print warnings for any conservative coercion so the batch owner can decide whether checked evidence supports a manual replacement;
-- optionally delete or archive the old raw filename after a successful rename.
-
-Keep this script conservative. It should fail loudly when metadata is ambiguous instead of inventing values.
-
-## Milestone 3 -- Content QA
-
-Once all entries validate:
-
-- scan for duplicate slugs and title collisions;
-- scan for typo-like names such as `LearnCNM2Predic`, `MIREDOW`, `CIM-Prune`, `OpenACMv`, and `PIMeva`;
-- compare the final corpus count against the legacy atlas count of 62 records;
-- check that all Axis A and Axis B values are from `src/data/taxonomy.json`;
-- verify links and artifact status for high-priority entries only.
-
-## Milestone 4 -- UI and Corpus Navigation
-
-Only after content compiles:
+Only after content QA:
 
 - improve individual paper page layout for long notes;
+- tighten typography and spacing for corpus-note sections;
+- add source/provenance affordances if useful;
+- make paper metadata easier to scan on mobile;
+- keep the site static and suitable for personal hosting.
+
+## Milestone 3 -- Atlas and Corpus Navigation
+
+After the paper pages are stable:
+
+- refine `src/components/TaxonomyAtlas.astro` interactions and selected-paper panel behavior;
 - add tag pages if useful;
 - add Axis A / Axis B detail pages if useful;
-- add a migration-status page or source provenance badges if the public site needs them;
-- consider adding search index generation for static hosting.
+- consider a static search index;
+- consider source provenance badges if they improve public trust.
 
-## Milestone 5 -- Research Extensions
+## Milestone 4 -- Research Extensions
 
 Future research-facing improvements:
 
@@ -157,11 +58,23 @@ Future research-facing improvements:
 - add a controlled vocabulary for `integration_roles`;
 - add comparison pages for clusters such as ONNX-to-ISA stacks, UPMEM runtime stacks, macro generators, and simulator/cost-model frameworks.
 
+## Migration Helper Notes
+
+For future imports, use this workflow:
+
+1. Create a stub with `npm run new:paper -- <slug> "<Paper Title>"`, or import a raw long-form note that contains `## 12. Suggested metadata entry`.
+2. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` and inspect planned filenames and warnings.
+3. Promote with `scripts/promote-raw-note.mjs` when the dry-run looks correct.
+4. Restore schema-valid values only when checked evidence is already present in the note or official source material.
+5. Run `npm run validate`.
+
+The helper should remain conservative. It should fail loudly when metadata is ambiguous instead of inventing values.
+
 ## Non-Goals For Now
 
 - Do not add PDF hosting.
 - Do not add a database or backend service.
-- Do not weaken the content schema to accept raw notes permanently.
+- Do not weaken the content schema.
 - Do not introduce a quality score or ranking model.
 - Do not add coverage scores or trajectory-IR relevance metadata unless the project direction changes.
 - Do not automatically rewrite scholarly prose unless the user explicitly asks for editorial cleanup.

@@ -1,3 +1,68 @@
+---
+slug: rescim
+title: "ReSCIM: Variation-Resilient High Weight-Loading Bandwidth In-Memory Computation Based on Fine-Grained Hybrid Integration of Multi-Level ReRAM and SRAM Cells"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "ICCAD 2024"
+authors_or_group: "Xiaomeng Wang, Jingyu He, Kunming Shao, Jiakun Zheng, Fengshi Tian, Tim Kwang-Ting Cheng, Chi-Ying Tsui"
+summary: >-
+  **ReSCIM** contributes a fine-grained hybrid CIM architecture that integrates compact MLC ReRAM storage with SRAM-CIM computation, using local ReRAM-to-SRAM weight loading, differential sensing, and folded weight mapping to improve storage density and variation resilience for DNN inference. Its strongest contribution is at the device/cell/macro/accelerator boundary: the paper names a ReSCIM array segment, embeds a 1T1R ReRAM crossbar with an SRAM cell, supports both analog- and digital-based SRAM-CIM computation, and evaluates accelerator-level energy, latency, area efficiency, and inference accuracy, including AlexNet-reported improvements. For CIM compiler/IR research, ReSCIM is best read as a hardware-software co-design case whose “middle representation” is an implicit combination of weight-placement state, MLC encoding, sensing assumptions, and accelerator simulation parameters rather than an explicit graph/loop/ISA compiler stack. ([ACM Digital Library](https://dl.acm.org/doi/epdf/10.1145/3676536.3676751?utm_source=chatgpt.com))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "digital-CIM"
+  - "hybrid"
+  - "MLC-ReRAM"
+workloads:
+  - "DNN inference"
+  - "AlexNet"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A1, A2]
+axis_B: [B4, B6, B1]
+axis_C_first_class_objects:
+  - "ReSCIM array segment"
+  - "1T1R ReRAM crossbar"
+  - "SRAM compute cell"
+  - "MLC ReRAM weight state"
+  - "differential sensing path"
+  - "ReRAM-to-SRAM weight loading"
+  - "folded weight mapping"
+  - "analog/digital SRAM-CIM compute mode"
+axis_D_rewrite_objects:
+  - "hardware mapping"
+  - "weight mapping"
+  - "numeric storage encoding"
+  - "array binding"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best read as a hardware-software co-design and hybrid CIM backend-contract paper, not as an explicit compiler/IR stack."
+  - "The compiler-relevant object is the local MLC ReRAM storage to SRAM-CIM compute transition."
+  - "Folded weight mapping is the clearest rewrite object."
+  - "Public checked sources did not expose code, simulator configs, mapping scripts, or reproduction workflow."
+takeaways: []
+---
+
 # ReSCIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -202,22 +267,7 @@ A GitHub repository named `Tsinghua-LEMON-Lab/RESCIM` was found, but its README 
 **Integration effort estimate: High.**  
 Integration would be most direct through a small backend model that extracts ReSCIM’s hardware hierarchy, local weight-loading operation, folded MLC mapping, and variation/accuracy assumptions. The effort is high because the reusable boundary is described in the paper rather than exposed as code, schemas, simulator configs, or generated traces.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially the distinction between **persistent MLC ReRAM weight state**, **sensed / loaded SRAM weight state**, and **SRAM-CIM compute state**. The closest approximation to trajectory semantics is the paper’s local path: weights are written into ReRAM during initialization, transferred from local ReRAM to SRAM during runtime, and then consumed by SRAM-CIM MAC computation. ([ACM Digital Library](https://dl.acm.org/doi/epdf/10.1145/3676536.3676751?utm_source=chatgpt.com))
-
-The paper names the path a weight takes through CIM resources more clearly than it names the path of activations, partial sums, reconstruction, and final storage. It does not expose value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage as a type-like object in the checked sources. A trajectory-level extension would likely attach fields such as `{storage_domain: MLC_ReRAM, loaded_domain: SRAM, sensing_mode: differential, compute_mode: analog|digital_SRAM_CIM, variation_model, bit_significance, placement}` to each weight tile or array binding.
-
-For trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** not directly expressed by the demonstrated abstraction; would require explicit reconstruction/reduction nodes.
-- **Delaying or retiming ADC conversion:** partially relevant for analog-CIM variants, but no ADC retiming abstraction was found.
-- **Carrying bit-sliced partial sums across operator boundaries:** not represented in the checked sources; would require bit-slice and partial-sum identity objects.
-- **Changing reduction tree structure:** not exposed as a rewrite object.
-- **Routing values through alternative peripheral paths:** differential sensing is named, but alternative peripheral routing is not represented as a graph of path nodes.
-- **Co-optimizing data movement and numeric reconstruction:** ReSCIM motivates this direction through local weight loading and folded mapping; a future IR would need explicit trajectory and numeric-stage annotations.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -227,7 +277,7 @@ For trajectory rewrites:
 | **AutoDCIM / SynDCIM** | SRAM-CIM / digital CIM macro design automation | AutoDCIM is explicitly a digital CIM compiler; ReSCIM is a hybrid ReRAM–SRAM architecture whose compiler-relevant layer is weight mapping/loading rather than macro synthesis automation. ([Kunming SHAO](https://kunmingshao.github.io/publication/DAC_23?utm_source=chatgpt.com)) | Helps separate “compiler that generates CIM macros” from “architecture whose mapping could become a backend pass.” |
 | **Conventional analog ReRAM-CIM accelerator stacks** | Dense ReRAM storage and CIM acceleration for DNN inference | ReSCIM shifts computation into SRAM-CIM after local ReRAM load, reducing reliance on direct ReRAM analog MAC accuracy. ([ACM Digital Library](https://dl.acm.org/doi/epdf/10.1145/3676536.3676751?utm_source=chatgpt.com)) | Classify by value path: ReRAM-as-compute-array vs ReRAM-as-dense-local-weight-store. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - ReSCIM’s real contribution is a hybrid MLC ReRAM + SRAM CIM architecture with local ReRAM-to-SRAM weight loading, differential sensing, and folded MLC weight mapping.
 - The strongest reusable stack layer is the backend hardware contract: dense nonvolatile weight storage closely coupled to SRAM-CIM execution.
@@ -237,64 +287,3 @@ For trajectory rewrites:
 - Artifact status: no public artifact found.
 - Integration is most plausible as an IR inspiration, backend cost/accuracy model, or validation case rather than a drop-in compiler or simulator.
 - For value-trajectory IR work, ReSCIM is valuable because it makes the ReRAM-storage-to-SRAM-compute transition concrete, even though trajectory rewrites are not exposed as a first-class representation.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "ReSCIM: Variation-Resilient High Weight-Loading Bandwidth In-Memory Computation Based on Fine-Grained Hybrid Integration of Multi-Level ReRAM and SRAM Cells"
-year: 2024
-venue: "ICCAD 2024"
-authors_or_group: "Xiaomeng Wang, Jingyu He, Kunming Shao, Jiakun Zheng, Fengshi Tian, Tim Kwang-Ting Cheng, Chi-Ying Tsui"
-technology:
-  - SRAM-CIM
-  - RRAM-CIM
-  - analog-CIM
-  - digital-CIM
-  - hybrid
-  - MLC-ReRAM
-workloads:
-  - DNN inference
-  - AlexNet
-axis_A:
-  primary: A5 narrow end-to-end co-design
-  secondary:
-    - A1 macro / circuit architecture
-    - A2 simulator & cost model
-axis_B:
-  - B4 hardware-resource IR
-  - B6 accuracy / nonideality modeling
-  - B1 config-as-IR, implicit
-axis_C_first_class_objects:
-  - ReSCIM array segment
-  - 1T1R ReRAM crossbar
-  - SRAM compute cell
-  - MLC ReRAM weight state
-  - differential sensing path
-  - ReRAM-to-SRAM weight loading
-  - folded weight mapping
-  - analog/digital SRAM-CIM compute mode
-axis_D_rewrite_objects:
-  - hardware mapping
-  - weight mapping
-  - numeric storage encoding
-  - array binding
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: unknown
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best read as a hardware-software co-design and hybrid CIM backend-contract paper, not as an explicit compiler/IR stack."
-  - "The compiler-relevant object is the local MLC ReRAM storage to SRAM-CIM compute transition."
-  - "Folded weight mapping is the clearest rewrite object."
-  - "Public checked sources did not expose code, simulator configs, mapping scripts, or reproduction workflow."
-```

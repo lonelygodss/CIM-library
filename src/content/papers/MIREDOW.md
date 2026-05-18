@@ -1,3 +1,75 @@
+---
+slug: miredow
+title: "MIREDO: MIP-Driven Resource-Efficient Dataflow Optimization for Computing-in-Memory Accelerator"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "ASP-DAC 2026"
+authors_or_group: "Xiaolin He, Cenlin Duan, Yingjie Qi, Xiao Ma, Jianlei Yang / Beihang University CI-Lab"
+summary: >-
+  **MIREDO** is best read as a CIM dataflow mapping framework that makes loop-factor placement, operand-specific memory hierarchy use, transfer paths, and buffering decisions explicit inside a Mixed-Integer Programming formulation. The paper’s strongest contribution is not a public compiler IR or instruction stack, but a stall-aware analytical model for SRAM-CIM accelerator mapping: it captures memory-capacity constraints, bus-width-derived transfer latency, single-versus-double buffering, and recursive loop-level latency to select a dataflow for DNN inference. The demonstrated workload setting is primarily INT8 CNN inference, with ResNet-18/ImageNet used as the baseline case and additional DNN/hardware sweeps reported through simulator-backed experiments. For CIM compiler/IR research, MIREDO is valuable as evidence that a useful “hidden IR” for CIM mapping can be a structured optimization state: constants, binary variables, enumerated data-size candidates, loop-factor placements, memory-level bindings, and latency recurrences. ([arXiv](https://arxiv.org/pdf/2510.26463))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+  - "analog-CIM"
+  - "hybrid"
+workloads:
+  - "INT8 CNN inference"
+  - "ResNet-18 on ImageNet"
+  - "representative DNN model sweeps"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A5]
+axis_B: [B3, B4, B1]
+axis_C_first_class_objects:
+  - "hierarchical_CIM_accelerator"
+  - "CIM_core"
+  - "CIM_macro"
+  - "memory_hierarchy_level"
+  - "operand_type_input_weight_output"
+  - "loop_tiling_factor"
+  - "spatial_unrolling_axis"
+  - "temporal_loop_slot"
+  - "operand_specific_memory_mapping"
+  - "direct_transfer_path"
+  - "single_double_buffer_mode"
+  - "bus_width"
+  - "memory_capacity"
+  - "MVM_latency"
+  - "recursive_latency_state"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "tensor_schedule"
+  - "loop_factor_placement"
+  - "array_binding"
+  - "operand_memory_layout"
+  - "transfer_path"
+  - "buffering_mode"
+artifact:
+  status: "no_public_artifact_found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark_partial"
+reproducibility_level: low
+notes:
+  - "Best understood as a mapper/scheduler/cost-model contribution."
+  - "Effective IR is the MIP state, not a public serialized dialect."
+  - "ONNX frontend and complete-dataflow output are claimed; schemas and artifacts were not found."
+  - "Transfer-path and buffering variables are useful ingredients for a future value-trajectory CIM IR."
+takeaways: []
+---
+
 # MIREDO — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -242,25 +314,7 @@ The main setup uses a custom simulator for the Section III architecture, PCACTI 
 **Integration effort estimate: High.**  
 Integration would be most direct through a clean-room reimplementation of the MIP formulation and latency equations. Reuse would benefit from a small adapter that extracts layer loop bounds from ONNX and emits a serializable mapping state containing factor placement, operand memory bindings, transfer paths, and buffering decisions. The most valuable reusable boundary appears to be the mapping/cost-model interface, not an existing public codebase.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-MIREDO provides useful ingredients for a value-trajectory IR, especially operand-specific memory mapping and transfer-path variables. The closest approximation to trajectory semantics is `XN m,m′,λ`, which names direct operand movement between memory levels and constrains bypass behavior. The latency model then attaches transfer and processing cost to loop levels, including output/Psum-specific cases and no-transfer reuse. ([arXiv](https://arxiv.org/pdf/2510.26463))
-
-Against a trajectory-first IR lens:
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names operand transfer paths across memory hierarchy levels, but not a full value path through analog accumulation, sensing, digital reconstruction, reduction, and storage.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** The demonstrated abstraction centers on operand classes and loop-level transfer/processing latency. A value-identity chain across partial sums and reconstruction stages would add metadata beyond the paper’s current mapping variables.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement and operand precision are represented as mapping/cost parameters; bit significance, precision stage, and domain transition are not shown as type-like IR fields.
-- **Could it express fusing reconstruction with downstream reduction?** The current representation is more natural for memory-level and loop-level mapping; this rewrite would likely require explicit reconstruction and reduction nodes.
-- **Could it express delaying or retiming ADC conversion?** A trajectory-level extension would attach domain-transition timing and ADC state to macro/peripheral path nodes.
-- **Could it carry bit-sliced partial sums across operator boundaries?** That would require first-class bit-slice and partial-sum value types across layers.
-- **Could it change reduction tree structure?** The current model includes accumulation costs and output transfer cases; explicit reduction-tree rewrites would require a reduction-topology abstraction.
-- **Could it route values through alternative peripheral paths?** The transfer-path variable is a promising starting point, but routing through peripheral alternatives would require path nodes below the memory-level abstraction.
-- **Could it co-optimize data movement and numeric reconstruction?** MIREDO co-optimizes data movement and latency/locality; adding numeric reconstruction would require explicit reconstruction state, precision-stage types, and legality rules.
-
-A trajectory-level extension would likely attach `{operand role, loop tile, memory level, precision stage, domain, partial-sum status, buffer mode, transfer path}` to each value or tile. MIREDO’s MIP framework could then optimize trajectory rewrites using the same constrained-optimization style.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -271,7 +325,7 @@ A trajectory-level extension would likely attach `{operand role, loop tile, memo
 | NeuroSpector | Dataflow scheduling and data-movement impact | NeuroSpector analyzes dataflow scheduling for DNN accelerators; MIREDO focuses on SRAM-CIM-specific dataflow constraints and stall modeling. ([arXiv](https://arxiv.org/pdf/2510.26463)) | Use as a broader accelerator dataflow baseline, not a CIM-stack IR peer. |
 | PIMCOMP | End-to-end compilation for crossbar-based PIM DNN accelerators | PIMCOMP is closer to compiler-stack classification; MIREDO is more focused on MIP dataflow optimization and cost modeling. ([arXiv](https://arxiv.org/pdf/2510.26463)) | Helps separate “compiler flow” papers from “mapper/cost-model layer” papers. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - MIREDO’s real contribution is a **MIP-based dataflow mapper** for SRAM-CIM accelerators, with a strong stall-aware analytical latency model.
 - The strongest reusable stack layer is **mapping/scheduling plus cost modeling**, not a public IR dialect, ISA, or released backend.
@@ -281,71 +335,3 @@ A trajectory-level extension would likely attach `{operand role, loop tile, memo
 - Artifact status: **no public artifact found** for MIREDO as of 2026-05-15.
 - Integration would be most useful through a **clean-room reimplementation** of the MIP formulation and latency model as a mapper plugin.
 - For value-trajectory IR work, MIREDO is relevant as a **memory-path and buffering abstraction**, but trajectory-level value identity, precision-stage typing, and reconstruction semantics would need an added layer.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "MIREDO: MIP-Driven Resource-Efficient Dataflow Optimization for Computing-in-Memory Accelerator"
-year: 2026
-venue: "ASP-DAC 2026"
-authors_or_group: "Xiaolin He, Cenlin Duan, Yingjie Qi, Xiao Ma, Jianlei Yang / Beihang University CI-Lab"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-  - analog-CIM
-  - hybrid
-workloads:
-  - INT8 CNN inference
-  - ResNet-18 on ImageNet
-  - representative DNN model sweeps
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A2_simulator_cost_model
-    - A5_narrow_end_to_end_co_design_trait
-axis_B:
-  - B3_loop_tensor_schedule_IR
-  - B4_hardware_resource_IR
-  - B1_config_as_IR_partial
-axis_C_first_class_objects:
-  - hierarchical_CIM_accelerator
-  - CIM_core
-  - CIM_macro
-  - memory_hierarchy_level
-  - operand_type_input_weight_output
-  - loop_tiling_factor
-  - spatial_unrolling_axis
-  - temporal_loop_slot
-  - operand_specific_memory_mapping
-  - direct_transfer_path
-  - single_double_buffer_mode
-  - bus_width
-  - memory_capacity
-  - MVM_latency
-  - recursive_latency_state
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - tensor_schedule
-  - loop_factor_placement
-  - array_binding
-  - operand_memory_layout
-  - transfer_path
-  - buffering_mode
-artifact:
-  status: no_public_artifact_found
-  url: null
-  license: unknown
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark_partial
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best understood as a mapper/scheduler/cost-model contribution."
-  - "Effective IR is the MIP state, not a public serialized dialect."
-  - "ONNX frontend and complete-dataflow output are claimed; schemas and artifacts were not found."
-  - "Transfer-path and buffering variables are useful ingredients for a future value-trajectory CIM IR."
-```

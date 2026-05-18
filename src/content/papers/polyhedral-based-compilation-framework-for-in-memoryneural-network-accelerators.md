@@ -1,3 +1,71 @@
+---
+slug: polyhedral-based-compilation-framework-for-in-memoryneural-network-accelerators
+title: "Polyhedral-Based Compilation Framework for In-Memory Neural Network Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2021
+venue: "ACM Journal on Emerging Technologies in Computing Systems"
+authors_or_group: "Jianhui Han, Xiang Fei, Zhaolin Li, Youhui Zhang"
+summary: >-
+  **Polyhedral-Based Compilation Framework for In-Memory Neural Network Accelerators** presents PolyXB, a source-to-source compiler that uses the polyhedral model to recognize affine C loop nests implementing NN operators and rewrite them into calls or generated schedule regions for memristor-based neural-network accelerators. Its most relevant contribution for CIM compiler/IR research is the shift from single-kernel MV/MM offload toward a narrow vertical flow that also recognizes convolution, pooling, and fused initialization/activation patterns, then optionally forms a pipeline and allocates PE resources across matched operators. The demonstrated stack slice is static C/PET/ISL compilation for dense, affine NN inference kernels, with paper-level evaluation over synthetic kernels and NN benchmarks and case studies for ISAAC- and FPSA-like architectures; the public artifact exposes the compiler, options, tests, and benchmark kernels, while the reusable IR boundary is clearest in the schedule-tree marks, `ast_info` metadata, tiling options, and emitted accelerator API calls. ([CRAFT Lab](https://craft.cs.tsinghua.edu.cn/publication/polyhedral-based-compilation-framework-for-in-memory-neural-network-accelerators/))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "memristor-CIM"
+  - "analog-CIM"
+workloads:
+  - "static NN inference kernels"
+  - "MV"
+  - "MM"
+  - "CONV"
+  - "pooling"
+  - "fused init/activation kernels"
+  - "synthetic kernels"
+  - "paper-level NN benchmarks"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5, A4]
+axis_B: [B3, B4, B1]
+axis_C_first_class_objects:
+  - "schedule_node_marks"
+  - "xbblas_operator_calls"
+  - "tile_sizes"
+  - "PE_count"
+  - "PE_allocation"
+  - "pipeline_stage"
+  - "activation_function_id"
+  - "array_view_metadata"
+axis_D_rewrite_objects:
+  - "loop_nest"
+  - "schedule_tree"
+  - "source_call_region"
+  - "operator_pattern"
+  - "hardware_mapping_state"
+  - "pipeline_stage_schedule"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/Jianhui-Han/polyxb"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "benchmark"
+  - "backend_wrapper"
+reproducibility_level: medium
+notes:
+  - "Reusable semantics are distributed across ISL schedule marks, affine access templates, ast_info metadata, and generated C calls."
+  - "Public artifact supports source-to-source compiler tests; full paper performance reproduction scripts were not found in the checked repository."
+  - "VGG16 and ResNet50 files are present in the benchmark directory but are 0-byte placeholders in the checked GitHub snapshot."
+takeaways: []
+---
+
 # Polyhedral-Based Compilation Framework for In-Memory Neural Network Accelerators — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -232,15 +300,7 @@ The demonstrated compiler frontend is C with SCoP regions; the example benchmark
 
 **Integration effort estimate: Medium.** Integration would be most direct through the generated C-call boundary or by reusing the matcher logic inside another ISL-based compiler. Effort rises if the target stack expects graph IR, MLIR dialects, serialized mapping manifests, or explicit analog precision/resource-path objects, because those concepts are currently distributed across C structs, pass order, and generated calls.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially its recovery of operator identity from affine loops, its stage-level pipeline generation, and its resource metadata for PE allocation. The closest approximation to trajectory semantics is the generated pipeline stage: values flow through matched operator calls in a staged source loop, guarded by stage timing and separated by `fence()`. ([GitHub](https://raw.githubusercontent.com/Jianhui-Han/polyxb/main/src/build.c))
-
-The paper’s demonstrated abstraction centers on operator-region rewriting rather than preserving value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. Bit significance, channel rate, precision stage, placement, and domain transition appear as architectural background assumptions rather than as type-like compiler fields. ([ACM Digital Library](https://dl.acm.org/doi/fullHtml/10.1145/3469847?utm_source=chatgpt.com))
-
-A trajectory-level extension would likely attach the following to each schedule mark or generated call: input domain (`digital`, `analog-voltage`, `analog-current`, `digital-sensed`), precision/bit-slice fields, crossbar/ADC/DAC binding, partial-sum lifetime, reconstruction operator, and storage location. That extension would make it possible to express rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing through alternative peripheral paths. PolyXB’s `ast_info` and pipeline-stage fields are a practical starting point, but trajectory rewrites would need an additional abstraction for intra-operator value path and numeric reconstruction state.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -250,7 +310,7 @@ A trajectory-level extension would likely attach the following to each schedule 
 | **FPSA** | ReRAM NN accelerator stack with software mapping and placement/routing. ([arXiv](https://arxiv.org/abs/1901.09904?utm_source=chatgpt.com)) | FPSA is a full architecture/software stack with neural synthesizer, temporal-to-spatial mapper, and placement/routing; PolyXB is a compiler framework that can target FPSA-like invocation granularity. | FPSA is a backend/hardware-stack comparator; PolyXB is a frontend/mapping layer that could wrap such backends. |
 | **IBM computational-memory NN compiler prototype** | Pipeline/dataflow execution across computational-memory cores. ([arXiv](https://arxiv.org/pdf/2003.04293?utm_source=chatgpt.com)) | IBM’s work emphasizes control logic for data dependencies in a CM dataflow accelerator; PolyXB emphasizes loop-kernel detection and source-to-source rewriting for memristor NN accelerators. | Both are relevant to pipeline IR; PolyXB contributes operator recovery, while IBM-style work contributes control/dataflow interface ideas. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PolyXB is best classified as a **polyhedral CIM mapping/scheduling compiler**, not as a circuit generator, simulator, or explicit ISA stack.
 - Its strongest reusable layer is the **loop/schedule matcher** that converts affine NN kernels into accelerator API calls.
@@ -260,67 +320,3 @@ A trajectory-level extension would likely attach the following to each schedule 
 - The public artifact is available under MIT and supports building/running PolyXB tests, while full paper-figure reproduction scripts were not found in the checked repository.
 - Integration is most direct as a **frontend/matcher or source-to-source backend wrapper** for static affine NN inference kernels.
 - For a value-trajectory IR project, PolyXB is a useful stage/operator-recovery precedent; trajectory-level rewrites would add explicit value path, domain, precision, and reconstruction metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Polyhedral-Based Compilation Framework for In-Memory Neural Network Accelerators"
-year: 2021
-venue: "ACM Journal on Emerging Technologies in Computing Systems"
-authors_or_group: "Jianhui Han, Xiang Fei, Zhaolin Li, Youhui Zhang"
-technology:
-  - RRAM-CIM
-  - memristor-CIM
-  - analog-CIM
-workloads:
-  - static NN inference kernels
-  - MV
-  - MM
-  - CONV
-  - pooling
-  - fused init/activation kernels
-  - synthetic kernels
-  - paper-level NN benchmarks
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A5_narrow_end_to_end_codesign
-    - A4_internal_compiler_stack
-axis_B:
-  - B3_loop_tensor_schedule_IR
-  - B4_hardware_resource_IR
-  - B1_config_as_IR_weak
-axis_C_first_class_objects:
-  - schedule_node_marks
-  - xbblas_operator_calls
-  - tile_sizes
-  - PE_count
-  - PE_allocation
-  - pipeline_stage
-  - activation_function_id
-  - array_view_metadata
-axis_D_rewrite_objects:
-  - loop_nest
-  - schedule_tree
-  - source_call_region
-  - operator_pattern
-  - hardware_mapping_state
-  - pipeline_stage_schedule
-artifact:
-  status: public_artifact_found
-  url: "https://github.com/Jianhui-Han/polyxb"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR_inspiration
-  - mapper_scheduler
-  - benchmark
-  - backend_wrapper
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Reusable semantics are distributed across ISL schedule marks, affine access templates, ast_info metadata, and generated C calls."
-  - "Public artifact supports source-to-source compiler tests; full paper performance reproduction scripts were not found in the checked repository."
-  - "VGG16 and ResNet50 files are present in the benchmark directory but are 0-byte placeholders in the checked GitHub snapshot."
-```

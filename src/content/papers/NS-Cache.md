@@ -1,3 +1,71 @@
+---
+slug: ns-cache
+title: "NS-Cache — Optimization and Benchmarking of Monolithically Stackable Gain Cell Memory for Last-Level Cache"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IEEE Transactions on Computers; arXiv preprint also available"
+authors_or_group: "Faaiq Waqar, Jungyoun Kwak, Junmo Lee, Minji Shon, Mohammadhosein Gholamrezaei, Kevin Skadron, Shimeng Yu"
+summary: >-
+  **NS-Cache**, formally *Optimization and Benchmarking of Monolithically Stackable Gain Cell Memory for Last-Level Cache*, contributes a public early-exploration framework for advanced last-level-cache memory technologies, especially monolithically stacked amorphous-oxide-semiconductor 2T gain-cell memories for large LLCs. Its strongest reusable layer is the backend cache/device/circuit PPA model: bank–subarray–mat hierarchy, peripheral and interconnect cost modeling, M3D/TSV-like stacking parameters, access-mode choices, refresh timing, and a Gem5/Ruby benchmarking bridge. The demonstrated workload setting is CPU multicore LLC evaluation using Rodinia and PARSEC/Splash2x benchmarks with Gem5 statistics and NS-Cache-derived cache timing/energy parameters, rather than a neural operator graph or CIM tensor compiler. For a CIM compiler/IR corpus, NS-Cache is most useful as a **cost-model and backend-contract case study**: the first-class object is an advanced cache-memory configuration and its timing/energy consequences, while tensor-CIM scheduling, ISA lowering, analog partial-sum semantics, and value-trajectory rewrites remain outside the demonstrated abstraction. ([arXiv](https://arxiv.org/pdf/2503.06304))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "other: \"AOS 2T gain-cell LLC\""
+  - "M3D-memory"
+  - "SRAM-cache"
+  - "eDRAM-cache"
+  - "STT-MRAM-cache"
+  - "FinFET"
+  - "nanosheet"
+workloads:
+  - "Rodinia"
+  - "PARSEC/Splash2x"
+  - "CPU multicore LLC benchmarking"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A3, A5]
+axis_B: [B1, B4, B6, B7]
+axis_C_first_class_objects:
+  - "cache hierarchy: bank/subarray/mat"
+  - "memory cell model"
+  - "tag/data bank organization"
+  - "cache access mode"
+  - "peripheral circuits"
+  - "local/global wires"
+  - "TSV/MIV-like vertical interconnect"
+  - "refresh timing and refresh energy"
+  - "Gem5 quantized latency parameters"
+axis_D_rewrite_objects:
+  - "hardware mapping"
+  - "cache organization"
+  - "array binding"
+  - "access-mode selection"
+  - "wire/interconnect selection"
+  - "stack-layer configuration"
+  - "cost-model objective selection"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/neurosim/NS-Cache"
+  license: "Creative Commons Attribution-NonCommercial 4.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Best treated as a CIM-adjacent backend/cache-memory modeling entry rather than an explicit tensor-CIM compiler."
+  - "Config files and C++ search state function as the practical intermediate boundary."
+  - "Gem5 bridge is valuable for modeling refresh/access timing effects from backend cache parameters."
+takeaways: []
+---
+
 # NS-Cache — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -250,20 +318,7 @@ The evaluation compares modeled 7 nm SRAM, 1T1C eDRAM, STT-MRAM, and IWO 2T-GC L
 
 **Integration effort estimate: Medium.** Integration would be most direct through a small adapter that emits `.cfg`/`.cell` files and parses NS-Cache summaries or CSV outputs. Deeper integration would require making search choices and cost components accessible through a stable API rather than relying on source-level objects/macros. Gem5 reproduction adds setup cost because the paper’s architectural workflow depends on benchmark compilation, modified Ruby/SLICC behavior, and workload-specific statistics.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-NS-Cache provides useful ingredients for a value-trajectory IR, especially its decomposition of a cache transaction into named hardware resources and its coupling of per-resource timing/energy to architecture-level simulation. The closest approximation to trajectory semantics is the cache-line/tag transaction path: address enters I/O/control, control signals traverse interconnect, predecoders activate subarrays/mats, tag/data banks determine hit/miss behavior, and Gem5 receives quantized latency/refresh effects. ([arXiv](https://arxiv.org/pdf/2503.06304))
-
-For a trajectory IR lens:
-
-- **Does the paper name the path a value takes through CIM resources?** It names cache transaction paths through memory hierarchy and peripherals, not CIM arithmetic paths through MAC arrays, ADCs, digital accumulation, and reconstruction.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** The preserved identity is a cache transaction/cache line, with hit/miss/write/refresh statistics. Analog partial-sum identity and reconstruction identity are outside the demonstrated scope.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement-like and timing-like information appears for cache hierarchy, access mode, stack layers, and refresh/access latency. Bit significance, precision stage, and analog/digital domain transition are not represented as type-like fields because the modeled operation is cache storage/access.
-- **Could the representation express trajectory rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction trees, routing values through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction?** The representation is well suited to routing/access alternatives within cache hierarchy, such as tag/data access mode and TAU organization. Trajectory-level CIM rewrites would likely attach value identity, bit significance, precision stage, domain, and accumulation/reconstruction obligations to a resource path object rather than to a cache configuration alone.
-
-A trajectory-level extension would likely attach a structured `value_path` object to the existing hardware hierarchy: `storage_cell → bitline/wordline → sense/peripheral → digital buffer/cache line → simulator event`, and for CIM workloads extend that path with `partial_sum`, `ADC/sense`, `shift-add/reconstruction`, `reduction`, and `writeback` stages.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -274,7 +329,7 @@ A trajectory-level extension would likely attach a structured `value_path` objec
 | **Gem5/Ruby** | System-level timing and architectural benchmarking | Gem5 provides the runtime/cache-statistics and protocol simulation substrate; NS-Cache supplies cache latency/refresh/energy parameters. ([arXiv](https://arxiv.org/pdf/2503.06304)) | Backend contracts can be simulator parameters rather than generated instructions. |
 | **AMD V-Cache-style LLC modeling** | Large LLC organization, 3D stacking, interconnect/parasitic effects | NS-Cache models a V-Cache-like organization as a comparison point and evaluates a bandwidth-optimized AOS design within the same footprint assumptions. ([arXiv](https://arxiv.org/pdf/2503.06304)) | Comparison should focus on hierarchy/stacking object, not compiler IR richness. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - NS-Cache’s real contribution is a public advanced-node cache-memory PPA exploration framework plus a Gem5/Ruby timing bridge for LLC refresh/access benchmarking.
 - The strongest reusable stack layer is the backend cost model: device/cell → mat/subarray/bank → cache timing/energy/area → Gem5 cycles/statistics.
@@ -284,68 +339,3 @@ A trajectory-level extension would likely attach a structured `value_path` objec
 - Artifact status: public artifact found; the repository includes source, configs, modified Gem5, licenses, and example output, while full paper-figure reproduction scripts and TCAD/HFSS inputs were not found in the checked sources.
 - Best integration role for a CIM compiler/IR stack: backend cost-model plugin or simulator-parameter backend, with a config/report adapter.
 - Relevance to value-trajectory IR is medium: the paper models transaction paths through named memory resources, but trajectory-level CIM semantics would add value identity, bit significance, domain transitions, partial-sum/reconstruction stages, and cross-operator movement.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "NS-Cache — Optimization and Benchmarking of Monolithically Stackable Gain Cell Memory for Last-Level Cache"
-year: 2025
-venue: "IEEE Transactions on Computers; arXiv preprint also available"
-authors_or_group: "Faaiq Waqar, Jungyoun Kwak, Junmo Lee, Minji Shon, Mohammadhosein Gholamrezaei, Kevin Skadron, Shimeng Yu"
-technology:
-  - other: "AOS 2T gain-cell LLC"
-  - M3D-memory
-  - SRAM-cache
-  - eDRAM-cache
-  - STT-MRAM-cache
-  - FinFET
-  - nanosheet
-workloads:
-  - Rodinia
-  - PARSEC/Splash2x
-  - CPU multicore LLC benchmarking
-axis_A:
-  primary: A2
-  secondary:
-    - A3
-    - A5
-axis_B:
-  - B1 Config-as-IR
-  - B4 Hardware-resource IR
-  - B6 Accuracy/nonideality modeling
-  - B7 Runtime-state abstraction, limited to cache refresh/statistics
-axis_C_first_class_objects:
-  - cache hierarchy: bank/subarray/mat
-  - memory cell model
-  - tag/data bank organization
-  - cache access mode
-  - peripheral circuits
-  - local/global wires
-  - TSV/MIV-like vertical interconnect
-  - refresh timing and refresh energy
-  - Gem5 quantized latency parameters
-axis_D_rewrite_objects:
-  - hardware mapping
-  - cache organization
-  - array binding
-  - access-mode selection
-  - wire/interconnect selection
-  - stack-layer configuration
-  - cost-model objective selection
-artifact:
-  status: public artifact found
-  url: "GitHub: neurosim/NS-Cache"
-  license: "Creative Commons Attribution-NonCommercial 4.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best treated as a CIM-adjacent backend/cache-memory modeling entry rather than an explicit tensor-CIM compiler."
-  - "Config files and C++ search state function as the practical intermediate boundary."
-  - "Gem5 bridge is valuable for modeling refresh/access timing effects from backend cache parameters."
-```

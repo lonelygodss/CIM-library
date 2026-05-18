@@ -1,3 +1,81 @@
+---
+slug: hybrid-pim-for-attention-free-llm
+title: "Towards Floating Point-Based Attention-Free LLM: Hybrid PIM with Non-Uniform Data Format and Reduced Multiplications"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "ICCAD 2024"
+authors_or_group: "Lidong Guo, Zhenhua Zhu, Tengxuan Liu, Xuefei Ning, Shiyao Li, Guohao Dai, Huazhong Yang, Wangyang Fu, Yu Wang"
+summary: >-
+  This paper contributes a hardware-software co-design for attention-free LLM inference that makes the MVM/EWM split in Mamba and RWKV the central optimization boundary. Its clearest CIM-stack contribution is a precision-and-arithmetic layer: PN, a PIM-oriented exponent-free non-uniform weight format that preserves bit-sliced analog RRAM MVM execution, and a multiplication-free approximate FP16 EWM implementation mapped onto a proposed 3D-SRAM digital PIM array. The demonstrated path is not a general compiler IR, but it does expose useful compiler/IR ingredients: a named numeric representation, a group-wise offline parameter-search algorithm, an operator-to-hardware mapping rule, a PN shift configuration boundary, conversion units between INT and FP stages, and simulator/synthesis-backed hardware evaluation for Mamba/RWKV families. The work is therefore best placed as a narrow end-to-end co-design with a strong isolated precision/mapping abstraction, relevant to CIM compiler research as evidence for treating bit significance, scaling-factor propagation, operator sensitivity, and domain transition as first-class lowering state. ([NIC SEFC](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/3b18c2b6-a7c4-439d-9fa8-d6276749f085.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "SRAM-CIM"
+  - "3D-SRAM-CIM"
+  - "analog-CIM"
+  - "digital-CIM"
+  - "hybrid"
+workloads:
+  - "Mamba-130M"
+  - "Mamba-370M"
+  - "Mamba-1.4B"
+  - "Mamba-2.8B"
+  - "RWKV-169M"
+  - "RWKV-430M"
+  - "RWKV-1.5B"
+  - "RWKV-3B"
+  - "HellaSwag"
+  - "PIQA"
+  - "Arc-Easy"
+  - "Winogrande"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3]
+axis_B: [B1, B4, B6, B7]
+axis_C_first_class_objects:
+  - "PN_scaling_factors"
+  - "weight_groups"
+  - "bit_sliced_RRAM_crossbars"
+  - "ADC_DAC_path"
+  - "PN_shift_config_register"
+  - "barrel_shifter_add_reconstruction"
+  - "3D_SRAM_EWM_array"
+  - "INT_FP_conversion_units"
+  - "nonlinear_LUT"
+  - "hidden_state_buffer"
+axis_D_rewrite_objects:
+  - "numeric_format"
+  - "operator_to_architecture_mapping"
+  - "array_binding"
+  - "arithmetic_approximation"
+  - "scale_propagation"
+  - "reconstruction_path"
+artifact:
+  status: "public artifact found; partial for full paper reproduction"
+  url: "https://github.com/gld17/PN"
+  license: "unknown / not found in checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best classified as a hardware-software co-design demo rather than a general compiler stack."
+  - "Strongest reusable boundary is PN precision/reconstruction metadata for bit-sliced RRAM MVMs."
+  - "Public artifact appears focused on PN parameter search and quantized CNN examples; full Mamba/RWKV hardware evaluation flow was not found."
+  - "Useful for value-trajectory IR design because it exposes bit significance, reconstruction, domain conversion, and buffer-mediated EWM state as optimization-relevant objects."
+takeaways: []
+---
+
 # Towards Floating Point-Based Attention-Free LLM: Hybrid PIM with Non-Uniform Data Format and Reduced Multiplications — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -246,17 +324,7 @@ The performance evaluation compares GPU, an RRAM PIM baseline, and a hybrid base
 **Integration effort estimate: Medium to High.**  
 Integration would be most direct through the PN precision layer: extract PN parameter search, serialize `{Sy, I}`, and attach it to weight tensors in an existing compiler. Reusing the full hybrid PIM backend would require additional adapters or reimplementation for MNSIM 2.0 configuration, 3D-SRAM EWM modeling, conversion-unit costs, and source-op-to-resource provenance. The most valuable reusable boundary appears to be the precision-and-reconstruction contract rather than an end-to-end compiler pipeline.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially the explicit split between analog bit-sliced MVM, digital reconstruction, format conversion, EWM execution, nonlinear LUTs, and buffer-resident hidden state. It names parts of the path a value takes through CIM resources: RRAM crossbars, ADC output, barrel shifter/add, router, buffer, INT/FP converters, 3D-SRAM EWM array, and nonlinear LUT. The closest approximation to trajectory semantics is Figure 7’s data path plus Equations 6–16’s arithmetic path. ([NIC SEFC](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/3b18c2b6-a7c4-439d-9fa8-d6276749f085.pdf))
-
-The paper preserves value semantics at the level of arithmetic equivalence and approximation: bit-sliced partial sums reconstruct a PN MVM result, and approximate FP multiplication estimates EWM results. It does not expose a separate value identity object that follows a tensor element or partial sum across analog current accumulation, ADC sensing, shift-add reconstruction, conversion, EWM, and storage. A trajectory-level extension would likely attach fields such as `domain = analog_current | digital_int | fp16_approx`, `bit_slice`, `scale_ref`, `adc_precision`, `reconstruction_stage`, `buffer_location`, and `consumer_op` to MVM/EWM values.
-
-For type-like information, the paper explicitly represents bit significance and precision stage through PN factors, INT activation assumptions, FP16 EWM arithmetic, ADC precision, and conversion units. Placement is represented at resource-class level rather than as a per-value placement type. Channel rate and exact routing are implicit in hardware parameters, NoC/router description, and simulator setup.
-
-Trajectory rewrites that this paper suggests but does not formalize include fusing PN reconstruction with downstream reduction, delaying shared scale application, selecting where INT/FP conversion occurs, and routing intermediate values through buffer/LUT/EWM paths. Rewrites such as delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction tree topology, or co-optimizing data movement with numeric reconstruction would likely require a new trajectory abstraction over bit-slice partial sums, ADC events, digital reconstruction nodes, and buffer-resident runtime state.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -266,7 +334,7 @@ Trajectory rewrites that this paper suggests but does not formalize include fusi
 | **PRIME / ISAAC-style RRAM accelerators** | Analog RRAM crossbar MVM acceleration | These are analog MVM accelerators; this paper focuses on making non-uniform numeric format compatible with bit-sliced analog accumulation and adding a digital EWM substrate. ([NIC SEFC](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/3b18c2b6-a7c4-439d-9fa8-d6276749f085.pdf)) | Keep analog-CIM architecture papers separate from works that introduce an explicit precision/reconstruction abstraction. |
 | **LLM-FP4 / NF-style quantization work** | Non-uniform low-bit formats for LLMs | These motivate non-uniform representation, while this paper modifies the format to preserve analog PIM bit-slice accumulation. ([NIC SEFC](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/3b18c2b6-a7c4-439d-9fa8-d6276749f085.pdf)) | For corpus tagging, separate “quantization format for accuracy” from “quantization format as backend-executable CIM object.” |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - The paper’s real CIM-stack contribution is a precision/arithmetic co-design layer for attention-free LLM inference, centered on PN for RRAM MVMs and approximate FP16 EWM arithmetic for 3D-SRAM digital PIM.
 - The strongest reusable stack object is the PN parameter/reconstruction contract: group-wise scaling factors, INT-mode alignment, delayed shared scale, and shift-add backend configuration.
@@ -276,78 +344,3 @@ Trajectory rewrites that this paper suggests but does not formalize include fusi
 - Artifact status: public artifact found, but partial for this paper; the repository exposes PN search/quantization examples rather than the full Mamba/RWKV + MNSIM + Synopsys/CACTI reproduction flow.
 - Integration is most direct as IR inspiration or a precision-lowering plugin; using it as a full backend would require reconstructing simulator configs, scheduling/resource traces, and hardware cost adapters.
 - For a value-trajectory CIM IR, the paper supplies strong ingredients for representing bit significance, reconstruction path, conversion boundaries, and buffer-mediated runtime state, while trajectory-level rewrites would need an additional explicit value-flow abstraction.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Towards Floating Point-Based Attention-Free LLM: Hybrid PIM with Non-Uniform Data Format and Reduced Multiplications"
-year: 2024
-venue: "ICCAD 2024"
-authors_or_group: "Lidong Guo, Zhenhua Zhu, Tengxuan Liu, Xuefei Ning, Shiyao Li, Guohao Dai, Huazhong Yang, Wangyang Fu, Yu Wang"
-technology:
-  - RRAM-CIM
-  - SRAM-CIM
-  - 3D-SRAM-CIM
-  - analog-CIM
-  - digital-CIM
-  - hybrid
-workloads:
-  - Mamba-130M
-  - Mamba-370M
-  - Mamba-1.4B
-  - Mamba-2.8B
-  - RWKV-169M
-  - RWKV-430M
-  - RWKV-1.5B
-  - RWKV-3B
-  - HellaSwag
-  - PIQA
-  - Arc-Easy
-  - Winogrande
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A2_simulator_cost_model
-    - A3_operator_mapping_specialized
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B6_accuracy_arithmetic_modeling
-  - B7_runtime_state_abstraction_implicit
-axis_C_first_class_objects:
-  - PN_scaling_factors
-  - weight_groups
-  - bit_sliced_RRAM_crossbars
-  - ADC_DAC_path
-  - PN_shift_config_register
-  - barrel_shifter_add_reconstruction
-  - 3D_SRAM_EWM_array
-  - INT_FP_conversion_units
-  - nonlinear_LUT
-  - hidden_state_buffer
-axis_D_rewrite_objects:
-  - numeric_format
-  - operator_to_architecture_mapping
-  - array_binding
-  - arithmetic_approximation
-  - scale_propagation
-  - reconstruction_path
-artifact:
-  status: "public artifact found; partial for full paper reproduction"
-  url: "gld17/PN"
-  license: "unknown / not found in checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation
-reproducibility_level: medium_low
-trajectory_IR_relevance: medium_high
-notes:
-  - "Best classified as a hardware-software co-design demo rather than a general compiler stack."
-  - "Strongest reusable boundary is PN precision/reconstruction metadata for bit-sliced RRAM MVMs."
-  - "Public artifact appears focused on PN parameter search and quantized CNN examples; full Mamba/RWKV hardware evaluation flow was not found."
-  - "Useful for value-trajectory IR design because it exposes bit significance, reconstruction, domain conversion, and buffer-mediated EWM state as optimization-relevant objects."
-```

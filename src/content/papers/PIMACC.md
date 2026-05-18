@@ -1,3 +1,77 @@
+---
+slug: pimacc
+title: "PIMACC"
+subtitle: "Scoped CIM stack note"
+year: 
+venue: "Unknown / artifact and toolchain documentation found"
+authors_or_group: "Haocheng Han; Xiaoming Chen group / PIMCOMP-NN toolchain"
+summary: >-
+  PIMACC is best understood as a CIM/PIM neural-network **accuracy simulation backend** coupled to the PIMCOMP-NN compiler flow. The public artifact demonstrates a workflow in which PIMCOMP-NN compiles an ONNX neural network, emits verification/mapping/instruction information, and PIMACC replays the compiled computation while injecting CIM nonidealities such as quantization effects, conductance variation, IR-drop approximations, and stuck-at faults. Its strongest contribution to a CIM compiler/IR corpus is not a new IR syntax, but a concrete backend contract: a generated verification state plus a hardware/nonideality configuration that connects high-level network nodes to crossbar-level numeric behavior. For compiler/IR research, PIMACC is valuable as evidence that accuracy verification needs its own lower-level representation of bit significance, signed decomposition, cell precision, DAC/ADC-related parameters, fault masks, and mapping provenance. ([GitHub](https://github.com/HertzHan/PIMACC-simulator/blob/main/README.md))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "crossbar-based PIM"
+workloads:
+  - "DNN inference"
+  - "CNN inference"
+  - "ONNX models"
+  - "ResNet-18 example"
+  - "CIFAR-10-oriented verification workflow"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A5, A3, A4]
+axis_B: [B6, B1, B5, B4, B2]
+axis_C_first_class_objects:
+  - "crossbar_size"
+  - "xbar_array_count"
+  - "core_count"
+  - "cell_precision"
+  - "DAC_resolution"
+  - "ADC_fields"
+  - "conductance_state"
+  - "R_ratio"
+  - "bitline_wordline_conductance"
+  - "variation"
+  - "stuck_at_fault_masks"
+  - "bit_sliced_inputs"
+  - "bit_sliced_weights"
+  - "positive_negative_signed_arrays"
+  - "AG_mapping_state"
+  - "PIMCOMP_instruction_information"
+axis_D_rewrite_objects:
+  - "numeric_format"
+  - "accuracy_model"
+  - "bit_sliced_physical_arrays"
+  - "hardware_mapping_consumed"
+  - "instruction_stream_consumed"
+  - "value_trajectory_approximated"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/HertzHan/PIMACC-simulator"
+  license: "Apache-2.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Most useful as a compiler-coupled accuracy simulator backend."
+  - "Generated VerificationInfo.json is the key handoff object, but a full public schema was not found."
+  - "config.json acts as a hardware and nonideality environment."
+  - "Bit slicing, signed decomposition, and physical MVM code provide concrete ingredients for value-trajectory IR design."
+takeaways: []
+---
+
 # PIMACC — scoped CIM stack note
 
 **Scope note.** I found a public PIMACC simulator artifact and official toolchain documentation, but I did **not** find a standalone public PIMACC paper in the checked sources. The note below therefore treats the artifact, README, code, configuration files, PIM-Toolchain description, and the upstream PIMCOMP-NN paper as the auditable evidence base. The strongest public evidence is that PIMACC is an accuracy-simulation backend consuming PIMCOMP-NN mapping/instruction outputs, rather than a standalone compiler/IR proposal. ([GitHub](https://github.com/HertzHan/PIMACC-simulator/blob/main/README.md))
@@ -253,22 +327,7 @@ The documented example uses an ONNX ResNet-18 model and CIFAR-10-oriented verifi
 **Integration effort estimate: Medium.**  
 Integration would be most direct through an adapter that emits PIMCOMP/PIMACC-style verification metadata and hardware config. The artifact’s simulator logic is public and inspectable, but the absence of a fully documented generated-file schema means an integrator would likely need to read `verification.py` and mirror its expected JSON structure. The most valuable reusable boundary appears to be the accuracy backend, not the frontend or scheduler.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PIMACC provides useful ingredients for a value-trajectory IR, especially its explicit handling of bit slicing, signed decomposition, cell precision, DAC-resolution chunks, conductance states, stuck-at masks, and IR-drop-related physical scaling. The closest approximation to trajectory semantics is the simulator path implemented in `physical_mvm()` and `physical_xbar()`: quantized activation and weight tensors are split into signed and bit-sliced physical components, passed through crossbar MVM, perturbed by nonidealities, accumulated with bit-significance factors, normalized, and reconstructed. ([GitHub](https://github.com/HertzHan/PIMACC-simulator/blob/main/verification/verification.py))
-
-The demonstrated abstraction centers on simulator execution state rather than a named value-flow object. Value identity is partially preserved through ONNX node names, generated compilation metadata, mapping state, and simulator memory structures, but analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage are mostly encoded as procedural backend behavior. A trajectory-level extension would likely attach type-like metadata to PIMCOMP instruction operands or AG/mapping entries: `domain = digital/analog`, `bit_range`, `sign_part`, `scale`, `cell_slice`, `dac_chunk`, `adc_stage`, `xbar_location`, `accumulation_stage`, and `reconstruction_stage`.
-
-For the specific rewrites:
-
-- **Fusing reconstruction with downstream reduction:** The current simulator reconstructs within physical MVM behavior; representing this rewrite would benefit from explicit reconstruction-stage nodes.
-- **Delaying or retiming ADC conversion:** ADC/DAC fields exist, but conversion timing is not surfaced as a rewriteable path decision.
-- **Carrying bit-sliced partial sums across operator boundaries:** Bit slices are internal physical arrays; carrying them across op boundaries would require value identity for bit-sliced partial sums.
-- **Changing reduction tree structure:** Shift/reconstruction behavior is parameter-backed and procedural; alternative reduction trees would need an explicit accumulation-path abstraction.
-- **Routing values through alternative peripheral paths:** Peripheral blocks are config parameters, not path nodes; routing would need resource-edge or path-node modeling.
-- **Co-optimizing data movement and numeric reconstruction:** PIMACC’s mapping provenance and numeric decomposition are promising inputs, but a unified trajectory object would be needed to rewrite them together.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -279,7 +338,7 @@ For the specific rewrites:
 | **DNN+NeuroSim** | DNN-level CIM simulation with device/circuit/algorithm considerations | DNN+NeuroSim is a broader device/circuit/algorithm evaluation framework; PIMACC is more tightly coupled to PIMCOMP-generated mapping/instruction state. ([GitHub](https://github.com/In-Memory-Computing/DNN_NeuroSim?utm_source=chatgpt.com)) | Separate circuit/device exploration frameworks from compiler-generated execution-state verifiers. |
 | **PyTorX / crossbar nonideality frameworks** | Neural-network mapping/evaluation under crossbar nonideal effects | PyTorX-style frameworks emphasize training/mapping/evaluation under nonidealities; PIMACC’s distinctive feature is its attachment to a PIM compiler’s task/data mapping and instruction information. ([GitHub](https://github.com/elliothe/pytorx?utm_source=chatgpt.com)) | Tag PIMACC as compiler-coupled accuracy verification rather than generic crossbar robustness evaluation. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIMACC’s evidenced contribution is a public CIM/PIM **accuracy simulation backend** for neural-network inference under configurable nonidealities.
 - Its strongest reusable stack layer is the backend contract between PIMCOMP-NN’s generated mapping/instruction state and a simulator that models quantization, conductance variation, stuck-at faults, and IR-drop-related effects.
@@ -289,76 +348,3 @@ For the specific rewrites:
 - Artifact status is strong enough for code-level audit: public repository, Apache-2.0 license, inspectable config and simulator code; a standalone PIMACC paper and full generated-file schema were not found.
 - Integration would be most direct by wrapping PIMACC as an accuracy backend or by writing an adapter from a future CIM IR into PIMACC-style verification metadata.
 - For value-trajectory IR work, PIMACC is a useful case study because it encodes trajectory-relevant facts—bit significance, sign, precision, placement, nonideality, and reconstruction—but keeps them mostly inside backend procedures rather than a rewriteable IR.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIMACC"
-year: "Unknown / no standalone PIMACC publication found in checked sources"
-venue: "Unknown / artifact and toolchain documentation found"
-authors_or_group: "Haocheng Han; Xiaoming Chen group / PIMCOMP-NN toolchain"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-  - crossbar-based PIM
-workloads:
-  - DNN inference
-  - CNN inference
-  - ONNX models
-  - ResNet-18 example
-  - CIFAR-10-oriented verification workflow
-axis_A:
-  primary: "A2 Simulator & cost model"
-  secondary:
-    - "A5 Narrow end-to-end co-design"
-    - "A3 Mapping / scheduling / DSE framework, inherited through PIMCOMP-NN"
-    - "A4 Instruction / pseudo-ISA compiler stack, consumed through PIMCOMP-NN"
-axis_B:
-  - "B6 Accuracy / nonideality modeling"
-  - "B1 Config-as-IR"
-  - "B5 Instruction / meta-op / ILA, consumed"
-  - "B4 Hardware-resource IR, parameter-level"
-  - "B2 Graph-as-IR, inherited through ONNX/PIMCOMP"
-axis_C_first_class_objects:
-  - crossbar_size
-  - xbar_array_count
-  - core_count
-  - cell_precision
-  - DAC_resolution
-  - ADC_fields
-  - conductance_state
-  - R_ratio
-  - bitline_wordline_conductance
-  - variation
-  - stuck_at_fault_masks
-  - bit_sliced_inputs
-  - bit_sliced_weights
-  - positive_negative_signed_arrays
-  - AG_mapping_state
-  - PIMCOMP_instruction_information
-axis_D_rewrite_objects:
-  - numeric_format
-  - accuracy_model
-  - bit_sliced_physical_arrays
-  - hardware_mapping_consumed
-  - instruction_stream_consumed
-  - value_trajectory_approximated
-artifact:
-  status: "public artifact found"
-  url: "HertzHan/PIMACC-simulator"
-  license: "Apache-2.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: "medium"
-trajectory_IR_relevance: "medium"
-notes:
-  - "Most useful as a compiler-coupled accuracy simulator backend."
-  - "Generated VerificationInfo.json is the key handoff object, but a full public schema was not found."
-  - "config.json acts as a hardware and nonideality environment."
-  - "Bit slicing, signed decomposition, and physical MVM code provide concrete ingredients for value-trajectory IR design."
-```

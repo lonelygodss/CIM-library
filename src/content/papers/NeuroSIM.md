@@ -1,3 +1,78 @@
+---
+slug: neurosim
+title: "NeuroSIM / DNN+NeuroSim"
+subtitle: "Scoped CIM stack note"
+year: 2018
+venue: "IEEE TCAD,IEDM"
+authors_or_group: "Shimeng Yu group / NeuroSim authors"
+summary: >-
+  **NeuroSIM / DNN+NeuroSim** is best classified as a CIM **device–circuit–architecture simulator with a narrow DNN-to-CIM evaluation flow**. The original NeuroSim contribution is a C++ macro model that estimates area, latency, energy, leakage, and accuracy for SRAM and emerging-memory CIM designs using a bottom-up hierarchy of device, array, peripheral, and architecture models; DNN+NeuroSim then wraps this backend with PyTorch/TensorFlow or PyTorch workflows that extract network topology, weights, activations, and training traces, map them onto a fixed chip/tile/PE/synaptic-array organization, and report accuracy and hardware metrics. ([NSF Public Access Repository](https://par.nsf.gov/servlets/purl/10109970)) For CIM compiler/IR research, the work is most useful as a **backend contract and cost-model reference**: it exposes concrete CIM resources, precision fields, ADC/sensing assumptions, device nonidealities, and layer-wise hardware reports, while the reusable compiler boundary is mainly expressed through configuration files, traces, and C++ simulator interfaces rather than a standalone IR, ISA, or modular lowering pipeline. ([arXiv](https://arxiv.org/pdf/2003.06471))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "RRAM-CIM"
+  - "PCM"
+  - "FeFET"
+  - "ECRAM"
+  - "analog-CIM"
+  - "digital-CIM"
+  - "hybrid"
+workloads:
+  - "MLP/MNIST"
+  - "VGG-8/CIFAR-10"
+  - "ResNet/ImageNet-style inference"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A5, A3, A1]
+axis_B: [B1, B4, B6, B2, B7]
+axis_C_first_class_objects:
+  - "chip/tile/PE/synaptic-array hierarchy"
+  - "subarray dimensions"
+  - "SRAM/eNVM/FeFET memory-cell parameters"
+  - "conductance state"
+  - "ADC/sensing precision"
+  - "ADC sharing / muxing"
+  - "buffers and H-tree interconnect"
+  - "accumulation units and adder/shift-add structures"
+  - "precision fields"
+  - "activation/weight/error/gradient traces"
+axis_D_rewrite_objects:
+  - "hardware mapping"
+  - "array binding"
+  - "convolution-kernel-to-submatrix lowering"
+  - "trace partitioning"
+  - "weight duplication"
+  - "numeric-format configuration"
+  - "nonideality configuration"
+  - "training operation flow"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/neurosim/NeuroSim"
+  license: "CC BY-NC 4.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+  - "frontend_partial"
+reproducibility_level: medium
+notes:
+  - "Most reusable as a CIM backend/cost-model contract."
+  - "Intermediate semantics are distributed across configs, traces, wrapper code, simulator state, and CSV reports."
+  - "No standalone compiler IR, ISA, or instruction-stream artifact found in the checked sources."
+  - "Useful source of CIM-specific Axis C objects for future value-trajectory IR design."
+takeaways: []
+---
+
 # NeuroSIM / DNN+NeuroSim — scoped CIM stack note
 
 I treat this corpus entry as the **NeuroSim family centered on the original NeuroSim circuit macro model and the DNN+NeuroSim inference/training wrappers**, because the public artifacts and papers form one connected stack: NeuroSim supplies the C++ device/circuit/chip model, while DNN+NeuroSim adds PyTorch/TensorFlow or PyTorch integration, traces, automatic mapping/floorplanning, and DNN-level accuracy/performance reporting. ([NSF Public Access Repository](https://par.nsf.gov/servlets/purl/10109970))
@@ -247,50 +322,7 @@ This output format makes NeuroSim practical as a **measurement backend** for a f
 **Integration effort estimate: Medium–High.**  
 Integration would be most direct through a backend adapter that generates NeuroSim configs/traces and consumes CSV reports. The effort becomes higher if the goal is compiler-style rewriting, because mapping semantics, schedule choices, and value-flow assumptions are distributed across PyTorch wrapper code, C++ simulator state, and configuration files. The most valuable reusable boundary appears to be the **hardware/cost-model interface**, not a frontend IR or ISA layer.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially its explicit modeling of **hardware hierarchy, ADC precision, sensing, accumulation, conductance state, precision fields, and trace-derived activity**. The closest approximation to trajectory semantics is the path from DNN weights/activations/errors/gradients through trace extraction, array mapping, ADC/sensing, accumulation, buffers, and reported layer-wise hardware metrics. ([arXiv](https://arxiv.org/pdf/2003.06471))
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Partially. It names architectural resources and operation phases, and it reports component/layer costs, but the named object is usually a layer trace, array operation, or hardware report rather than a persistent value trajectory.
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  The demonstrated abstraction preserves enough information to estimate costs and activity at layer/component level. Fine-grained value identity across analog partial sums, ADC conversion, shift-add reconstruction, reduction, and storage is not serialized as a reusable trajectory object.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Precision, cell bits, ADC levels, conductance levels, subarray placement, and analog/digital transition costs are represented as parameters and backend assumptions. A trajectory-level extension would likely attach these as type-like metadata to tensor slices or partial sums.
-
-- **Could the representation express trajectory rewrites?**  
-  The current representation is especially well suited to evaluating a chosen mapping and numeric/device configuration. Expressing trajectory rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, routing through alternative peripheral paths, or co-optimizing data movement with numeric reconstruction would likely require an additional abstraction for:
-  - value identity,
-  - bit significance,
-  - analog/digital domain,
-  - physical placement,
-  - ADC/reconstruction stage,
-  - accumulation-tree membership,
-  - buffer/DRAM residency,
-  - and operation-phase timing.
-
-A useful value-trajectory extension could attach a record such as:
-
-```yaml
-trajectory_value:
-  source_op:
-  tensor_slice:
-  bit_significance:
-  precision_stage:
-  array_binding:
-  analog_domain_region:
-  adc_stage:
-  reconstruction_stage:
-  accumulation_path:
-  buffer_residency:
-  next_consumer:
-```
-
-to the traces and layer mappings that NeuroSim already consumes.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -301,7 +333,7 @@ to the traces and layer mappings that NeuroSim already consumes.
 | **PUMA** | Memristor-crossbar DNN acceleration and compiler/system stack | PUMA includes a specialized ISA and compiler that partitions graphs and schedules/register-allocates instructions; NeuroSim’s reusable boundary is config/trace/simulator rather than ISA/program generation. ([arXiv](https://arxiv.org/abs/1901.10351?utm_source=chatgpt.com)) | Useful contrast for Axis A4: PUMA foregrounds instruction/compiler objects; NeuroSim foregrounds hardware-cost objects. |
 | **Timeloop/Accelergy** | Mapping-space search and analytical energy/performance modeling | Timeloop/Accelergy provides explicit tensor mapping and energy-estimation infrastructure for DNN accelerators; NeuroSim provides CIM-specific device/circuit/peripheral fidelity. ([timeloop.csail.mit.edu](https://timeloop.csail.mit.edu/?utm_source=chatgpt.com)) | A future CIM compiler could pair Timeloop-like mapping schemas with NeuroSim-like CIM backend cost plugins. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - NeuroSIM / DNN+NeuroSim is best treated as a **CIM simulator and cost-model stack with a bounded DNN wrapper**, not primarily as an explicit compiler IR or ISA stack.
 - The strongest reusable layer is the **device/circuit/backend model**: memory-cell parameters, array/subarray organization, ADC/sensing, buffers, interconnect, accumulation, and nonideality modeling.
@@ -311,86 +343,3 @@ to the traces and layer mappings that NeuroSim already consumes.
 - Artifact status: **public artifact found**, with CC BY-NC 4.0 licensing in the checked source; exact figure-level reproducibility is partial/unknown.
 - Integration is most natural as a **backend cost model, benchmark source, and validation reference** for future CIM compiler/IR projects.
 - For value-trajectory IR research, NeuroSim provides useful hardware and cost ingredients, while trajectory-level rewrites would require adding explicit value identity, domain-transition, bit-significance, and accumulation-path metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "NeuroSIM / DNN+NeuroSim"
-year:
-  - 2018
-  - 2019
-  - 2020
-  - 2021
-venue:
-  - "IEEE TCAD"
-  - "IEDM"
-authors_or_group: "Shimeng Yu group / NeuroSim authors"
-technology:
-  - SRAM-CIM
-  - RRAM-CIM
-  - PCM
-  - FeFET
-  - ECRAM
-  - analog-CIM
-  - digital-CIM
-  - hybrid
-workloads:
-  - MLP/MNIST
-  - VGG-8/CIFAR-10
-  - ResNet/ImageNet-style inference
-axis_A:
-  primary: "A2 Simulator & cost model"
-  secondary:
-    - "A5 Narrow end-to-end co-design"
-    - "A3 Mapping / scheduling / DSE framework"
-    - "A1 Macro / circuit generator-like modeling"
-axis_B:
-  - "B1 Config-as-IR"
-  - "B4 Hardware-resource IR"
-  - "B6 Accuracy / nonideality modeling"
-  - "B2 Graph-as-IR, partial"
-  - "B7 Runtime-state abstraction, partial trace-level"
-axis_C_first_class_objects:
-  - chip/tile/PE/synaptic-array hierarchy
-  - subarray dimensions
-  - SRAM/eNVM/FeFET memory-cell parameters
-  - conductance state
-  - ADC/sensing precision
-  - ADC sharing / muxing
-  - buffers and H-tree interconnect
-  - accumulation units and adder/shift-add structures
-  - precision fields
-  - activation/weight/error/gradient traces
-axis_D_rewrite_objects:
-  - hardware mapping
-  - array binding
-  - convolution-kernel-to-submatrix lowering
-  - trace partitioning
-  - weight duplication
-  - numeric-format configuration
-  - nonideality configuration
-  - training operation flow
-artifact:
-  status: "public artifact found"
-  url:
-    - "https://github.com/neurosim/NeuroSim"
-    - "https://github.com/neurosim/DNN_NeuroSim_V1.4"
-    - "https://github.com/neurosim/DNN_NeuroSim_V2.1"
-  license: "CC BY-NC 4.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-  - frontend_partial
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Most reusable as a CIM backend/cost-model contract."
-  - "Intermediate semantics are distributed across configs, traces, wrapper code, simulator state, and CSV reports."
-  - "No standalone compiler IR, ISA, or instruction-stream artifact found in the checked sources."
-  - "Useful source of CIM-specific Axis C objects for future value-trajectory IR design."
-```

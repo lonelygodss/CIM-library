@@ -1,3 +1,77 @@
+---
+slug: unindp
+title: "UniNDP: A Unified Compilation and Simulation Tool for Near DRAM Processing Architectures"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IEEE HPCA 2025"
+authors_or_group: "Tongxin Xie, Zhenhua Zhu, Bing Li, Yukai He, Cong Li, Guangyu Sun, Huazhong Yang, Yuan Xie, Yu Wang"
+summary: >-
+  UniNDP is best read as a unified mapping-and-simulation framework for **DRAM-based near-data / near-DRAM processing architectures**. Its main contribution is a narrow but concrete stack that takes ML operator descriptions and hardware configuration, enumerates partition and data-layout strategies across DRAM hierarchy levels, prunes and ranks those strategies with DRAM-timing-derived predictors, lowers top candidates to a small NDP instruction abstraction, and evaluates them with an instruction-driven timing simulator. The paper strengthens the CIM/PIM stack at the **mapping, hardware-resource abstraction, cost-model, and simulator-backend** layers rather than at the frontend language or formal IR-verification layer. The demonstrated scope is ML operators from CNN and LLM workloads—especially MM and MVM shapes—on bank-, device-, and rank-level NDP architectures modeled after UPMEM, AiM, HBM-PIM, and DIMMining-like organizations. ([nicsefc.ee.tsinghua.edu.cn](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/d356f1fd-6204-4b21-8849-a9c3b2e15065.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "near-DRAM-processing"
+  - "digital-CIM"
+  - "NDP"
+workloads:
+  - "CNN operators"
+  - "ResNet"
+  - "VGG"
+  - "Llama2-7B"
+  - "Llama2-13B"
+  - "Llama2-34B"
+  - "MM"
+  - "MVM"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A4, A5]
+axis_B: [B1, B4, B5, B7, B2]
+axis_C_first_class_objects:
+  - "DRAM_hierarchy_tree"
+  - "central_bus_node"
+  - "memory_node"
+  - "PU_node"
+  - "buffer_node"
+  - "DRAM_timing_parameters"
+  - "data_block_and_row_mapping"
+  - "NDP_instruction_stream"
+  - "instruction_queue"
+  - "hardware_status_space"
+  - "virtual_memory_controller_issue_state"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "data_partition"
+  - "DRAM_row_column_layout"
+  - "PU_binding"
+  - "instruction_stream"
+  - "issue_order"
+  - "cost_ranked_design_point"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/godfather991/UniNDP"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Best classified as a DRAM-NDP mapping/simulation framework rather than an analog CIM IR stack."
+  - "Reusable semantics are clearest in the hardware tree, mapping equations, instruction set, YAML configs, and simulator status model."
+  - "Frontend evidence is operator-shape/CSV centered; ONNX operator IR is described but less exposed as a public reusable boundary."
+takeaways: []
+---
+
 # UniNDP — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -236,24 +310,7 @@ The paper evaluates bank-, device-, and rank-level NDP configurations. Architect
 
 **Integration effort estimate: Medium.** Integration would be most direct through YAML config plus workload CSV/shape inputs. Reuse would benefit from a small adapter that extracts partition/mapping decisions and generated instruction lists into a stable JSON/MLIR-like form. The main effort is disentangling architecture-specific backend codegen assumptions from the generic tree/instruction abstractions.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-UniNDP provides useful ingredients for a value-trajectory IR, especially its explicit movement instructions among DRAM, global buffer, local buffer, PU register, and host, and its tree model of reachable resources. The closest approximation to trajectory semantics is the generated instruction stream plus simulator dependency graph: values are implicitly tracked by source/destination resources and data dependencies rather than by first-class value identities. ([nicsefc.ee.tsinghua.edu.cn](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/d356f1fd-6204-4b21-8849-a9c3b2e15065.pdf))
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names resource transfers such as DRAM↔local buffer, DRAM↔global buffer, register↔local buffer, and host↔register/buffer/DRAM. It does not appear to define a separate value-path object independent of instructions.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** For this digital DRAM-NDP setting, analog partial sums/sensing/reconstruction are N/A. Digital intermediate results are represented operationally through MAC result registers and buffer/DRAM movement instructions.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement and data precision are represented as parameters/config/search state. Bit significance and domain transition are not type-like IR fields in the demonstrated abstraction.
-- **Could it express trajectory rewrites?**  
-  - Fusing reconstruction with downstream reduction: N/A for the demonstrated technology; a reduction/fusion extension would need value-stage metadata.  
-  - Delaying or retiming ADC conversion: N/A.  
-  - Carrying bit-sliced partial sums across operator boundaries: outside the demonstrated abstraction; would require typed partial-sum/value-slice objects.  
-  - Changing reduction tree structure: partially approximated through PU reduction-unit parallelism and K-dimension mapping, but not as a standalone reduction-tree rewrite.  
-  - Routing values through alternative peripheral paths: supported at instruction/dataflow level when alternative paths exist, such as local vs global buffer vs DRAM.  
-  - Co-optimizing data movement and numeric reconstruction: data movement is optimized; numeric reconstruction is not a modeled object.
-
-A trajectory-level extension would likely attach value identity, precision stage, data domain, producer/consumer dependency, and resource-path annotations to UniNDP’s instruction stream and mapping tuples. For DRAM-PIM, the most useful “trajectory” fields would be operand identity, DRAM row/block location, buffer/register residency, reduction ownership, and host-return point.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -264,7 +321,7 @@ A trajectory-level extension would likely attach value identity, precision stage
 | Samsung PIMSimulator | Cycle-accurate HBM-PIM simulation | UniNDP validates against PIMSimulator for selected MVMs and reports 6–8% deviation, while adding compiler search and multi-architecture abstraction. ([nicsefc.ee.tsinghua.edu.cn](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/d356f1fd-6204-4b21-8849-a9c3b2e15065.pdf)) | Good comparison for simulator fidelity, but UniNDP’s corpus role includes mapping/compiler search. |
 | Ramulator-PIM / PRIMO | NDP/PIM simulation and emulation | UniNDP’s differentiator is the compiler-facing tree abstraction plus instruction-driven simulator and predictor; Ramulator-PIM/PRIMO are closer to simulation/emulation infrastructure. ([nicsefc.ee.tsinghua.edu.cn](https://nicsefc.ee.tsinghua.edu.cn/nics_file/pdf/d356f1fd-6204-4b21-8849-a9c3b2e15065.pdf)) | Separate backend timing engines from full mapping+simulation toolchains. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - UniNDP’s real contribution is a **DRAM-NDP mapping and simulation stack**: configurable hardware abstraction, instruction abstraction, compiler search, predictor, and instruction-driven simulator.
 - The strongest reusable layer is the **middle/backend boundary**: hardware-resource config + partition/mapping state + NDP instruction stream + simulator metrics.
@@ -274,76 +331,3 @@ A trajectory-level extension would likely attach value identity, precision stage
 - Artifact status is **public artifact found** under an MIT-licensed GitHub repository, with runnable scripts and configs; some plotting and validation workflows depend on external files/tools.
 - Integration is most natural as a **mapper/scheduler, cost-model backend, simulator backend, and benchmark provider**, with a medium-effort adapter needed for stable IR serialization.
 - For a value-trajectory IR, UniNDP offers useful ingredients for **resource-path and movement modeling**, but trajectory-level rewrites would add first-class value identity, precision/domain stage, and cross-instruction value-flow metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "UniNDP: A Unified Compilation and Simulation Tool for Near DRAM Processing Architectures"
-year: 2025
-venue: "IEEE HPCA 2025"
-authors_or_group: "Tongxin Xie, Zhenhua Zhu, Bing Li, Yukai He, Cong Li, Guangyu Sun, Huazhong Yang, Yuan Xie, Yu Wang"
-technology:
-  - DRAM-PIM
-  - near-DRAM-processing
-  - digital-CIM
-  - NDP
-workloads:
-  - CNN operators
-  - ResNet
-  - VGG
-  - Llama2-7B
-  - Llama2-13B
-  - Llama2-34B
-  - MM
-  - MVM
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A2_simulator_cost_model
-    - A4_instruction_meta_op_stack
-    - A5_narrow_end_to_end_codesign
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B5_instruction_meta_op_ILA
-  - B7_runtime_state_abstraction
-  - B2_limited_operator_graph_as_IR
-axis_C_first_class_objects:
-  - DRAM_hierarchy_tree
-  - central_bus_node
-  - memory_node
-  - PU_node
-  - buffer_node
-  - DRAM_timing_parameters
-  - data_block_and_row_mapping
-  - NDP_instruction_stream
-  - instruction_queue
-  - hardware_status_space
-  - virtual_memory_controller_issue_state
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - data_partition
-  - DRAM_row_column_layout
-  - PU_binding
-  - instruction_stream
-  - issue_order
-  - cost_ranked_design_point
-artifact:
-  status: public_artifact_found
-  url: "https://github.com/godfather991/UniNDP"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as a DRAM-NDP mapping/simulation framework rather than an analog CIM IR stack."
-  - "Reusable semantics are clearest in the hardware tree, mapping equations, instruction set, YAML configs, and simulator status model."
-  - "Frontend evidence is operator-shape/CSV centered; ONNX operator IR is described but less exposed as a public reusable boundary."
-```

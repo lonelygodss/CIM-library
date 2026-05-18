@@ -1,3 +1,77 @@
+---
+slug: learncnm2predic
+title: "LearnCNM2Predict: Transfer Learning-based Performance Model for CNM Systems"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "25th IEEE International Conference on Embedded Computer Systems: Architectures, Modeling and Simulation (SAMOS 2025)"
+authors_or_group: "Anderson Faustino da Silva; Hamid Farzaneh; João Paulo C. de Lima; Asif Ali Khan; Jeronimo Castrillon"
+summary: >-
+  **LearnCNM2Predict** contributes a transfer-learning performance model for UPMEM-style compute-near-memory systems: it compiles CNM benchmark programs under different compiler-pass and hardware configurations, extracts static opcode-histogram features from compiled programs, augments them with DPU/tasklet and workload parameters, and trains an MLP to predict runtime and speedup for new target applications after limited fine-tuning. Its strongest CIM-stack contribution is a learned cost-model layer for ranking or filtering CNM program variants, rather than a new compiler IR, mapping language, or backend ISA. The demonstrated setting is UPMEM C/C++ benchmark code drawn from PrIM, PIM-ML, and Cinnamon-generated variants, measured on a 2048-DPU UPMEM system and evaluated across compiler pass sequences, DPU/tasklet counts, and benchmark parameters. For CIM compiler/IR research, the paper is most useful as evidence that a compact “feature-record IR” — instruction-mix summary plus hardware/compiler/workload configuration — can serve as a practical prediction boundary for digital CNM design-space exploration. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2507_daSilva_SAMOS.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "digital-CNM"
+  - "DRAM-PIM"
+workloads:
+  - "PrIM benchmarks"
+  - "PIM-ML linear/logistic regression variants"
+  - "Cinnamon-generated UPMEM variants"
+  - "BFS"
+  - "BS"
+  - "GEMV"
+  - "HST-L"
+  - "HST-S"
+  - "MLP"
+  - "RED"
+  - "SCAN-RSS"
+  - "SCAN-SSA"
+  - "SpMV"
+  - "TRNS"
+  - "TS"
+  - "VA"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A6, A3]
+axis_B: [B1, B4, B5, B7]
+axis_C_first_class_objects:
+  - "DPU count"
+  - "tasklet count"
+  - "compiler pass/configuration identifier"
+  - "workload parameter"
+  - "opcode histogram"
+  - "runtime label"
+  - "speedup label"
+axis_D_rewrite_objects:
+  - "program/configuration variant"
+  - "compiler pass sequence"
+  - "hardware configuration"
+  - "workload parameter"
+  - "learned model adaptation"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/ComputerSystemsLaboratory/LearnCNM2Predict"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+  - "IR inspiration"
+reproducibility_level: medium
+notes:
+  - "Treats opcode-histogram plus configuration fields as the practical reusable boundary."
+  - "Best suited as a learned cost model for UPMEM CNM variant ranking."
+  - "Does not expose a formal graph, loop, memory-layout, or value-trajectory IR."
+  - "Full reproduction depends on UPMEM hardware or simulator setup and exact experiment configuration."
+takeaways: []
+---
+
 # LearnCNM2Predict — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -247,27 +321,7 @@ The demonstrated workloads come from PrIM, PIM-ML, and Cinnamon-generated UPMEM 
 **Integration effort estimate: Medium.**  
 Integration would be most direct through the dataset interface: emit compatible opcode/configuration feature rows from an existing compiler or build system, then fine-tune the public model. Reuse becomes more involved when a stack needs source-level provenance, schedule legality, or memory-transfer modeling, because those semantics are compressed away before the predictor boundary. For UPMEM-style cost ranking, the artifact provides a practical starting point; for full compiler/IR integration, a small adapter plus a richer provenance sidecar would be useful.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR mainly as a **cost-model side channel**. It shows how static compiled-code features and compact hardware/workload parameters can predict performance across UPMEM variants. The closest approximation to trajectory semantics is the opcode-histogram/configuration record: it captures what kinds of operations appear and under which DPU/tasklet/pass setting they run, but it abstracts away the identity and path of individual values.
-
-For the specific trajectory questions:
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  It names the UPMEM system hierarchy — host, DIMM/rank/chip/DPU, MRAM, WRAM, IRAM, DMA, and tasklets — but the predictor’s middle representation does not name per-value paths through those resources. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2507_daSilva_SAMOS.pdf))
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  The demonstrated abstraction centers on digital UPMEM program variants. Reductions and accumulations appear as benchmark behavior and opcode counts, not as value-identity-preserving trajectory objects.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  DPU/tasklet placement-like parameters are explicit. Bit significance, precision stage, and analog/digital domain transition are not type-like fields in the feature schema; for UPMEM, several analog-CIM concepts are outside the platform model.
-
-- **Could the representation express trajectory rewrites such as fusing reconstruction, delaying ADC conversion, carrying bit-sliced partial sums, changing reduction trees, routing through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction?**  
-  The representation is especially well suited to predicting costs after such choices have already been compiled into a program/configuration variant. Expressing those rewrites directly would likely require an additional trajectory-level abstraction before histogramming, with value identifiers, memory-region types, DPU/tasklet placement, DMA stages, reduction ownership, precision fields, and storage/conversion events.
-
-A trajectory-level extension could attach these fields to a graph, loop, or memory-transfer IR and then emit LearnCNM2Predict-style feature rows as a derived cost-model view. That would preserve the paper’s practical learned-prediction boundary while giving upstream passes enough structure to verify and rewrite value flow.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -278,7 +332,7 @@ A trajectory-level extension could attach these fields to a graph, loop, or memo
 | ATFormer | Transfer learning for performance prediction | Similar transfer-learning motivation, but aimed at tensor-program/device performance rather than UPMEM CNM benchmark variants. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2507_daSilva_SAMOS.pdf)) | Keep transfer-learning performance models distinct by their feature boundary and target backend. |
 | TransferTuning | Transfer of tuning knowledge across tensor programs | Shares the idea of reusing optimization knowledge across tasks; LearnCNM2Predict transfers prediction models across CNM applications/configurations. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2507_daSilva_SAMOS.pdf)) | In the corpus, distinguish search-policy transfer from supervised cost-model transfer. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - LearnCNM2Predict is best classified as a **learned cost-model / performance-prediction layer** for UPMEM-style digital CNM.
 - Its strongest reusable stack layer is the **feature-record interface**: opcode histogram plus DPU/tasklet, compiler-pass, workload-parameter, and measured-label fields.
@@ -288,74 +342,3 @@ A trajectory-level extension could attach these fields to a graph, loop, or memo
 - The artifact is public under MIT and includes model code, scripts, examples, and benchmark directories; exact full-paper reproduction requires matching UPMEM/simulator setup and experiment configuration.
 - Integration is most direct as a **backend cost-model plugin** or **benchmark calibration source**, not as a graph/loop/memory compiler IR.
 - For value-trajectory IR research, the work is most relevant as a learned prediction sidecar; trajectory-level rewrites would need an upstream representation that preserves value identity, memory-domain transitions, and reduction/storage paths before histogramming.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "LearnCNM2Predict: Transfer Learning-based Performance Model for CNM Systems"
-year: 2025
-venue: "25th IEEE International Conference on Embedded Computer Systems: Architectures, Modeling and Simulation (SAMOS 2025)"
-authors_or_group: "Anderson Faustino da Silva; Hamid Farzaneh; João Paulo C. de Lima; Asif Ali Khan; Jeronimo Castrillon"
-technology:
-  - UPMEM
-  - digital-CNM
-  - DRAM-PIM
-workloads:
-  - PrIM benchmarks
-  - PIM-ML linear/logistic regression variants
-  - Cinnamon-generated UPMEM variants
-  - BFS
-  - BS
-  - GEMV
-  - HST-L
-  - HST-S
-  - MLP
-  - RED
-  - SCAN-RSS
-  - SCAN-SSA
-  - SpMV
-  - TRNS
-  - TS
-  - VA
-axis_A:
-  primary: A2
-  secondary:
-    - A6
-    - A3
-axis_B:
-  - B1
-  - B4
-  - B5
-  - B7
-axis_C_first_class_objects:
-  - DPU count
-  - tasklet count
-  - compiler pass/configuration identifier
-  - workload parameter
-  - opcode histogram
-  - runtime label
-  - speedup label
-axis_D_rewrite_objects:
-  - program/configuration variant
-  - compiler pass sequence
-  - hardware configuration
-  - workload parameter
-  - learned model adaptation
-artifact:
-  status: public artifact found
-  url: "https://github.com/ComputerSystemsLaboratory/LearnCNM2Predict"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - cost_model
-  - benchmark
-  - validation
-  - IR inspiration
-reproducibility_level: medium
-trajectory_IR_relevance: low
-notes:
-  - "Treats opcode-histogram plus configuration fields as the practical reusable boundary."
-  - "Best suited as a learned cost model for UPMEM CNM variant ranking."
-  - "Does not expose a formal graph, loop, memory-layout, or value-trajectory IR."
-  - "Full reproduction depends on UPMEM hardware or simulator setup and exact experiment configuration."
-```

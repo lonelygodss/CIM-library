@@ -1,3 +1,70 @@
+---
+slug: sparsep
+title: "SparseP: Towards Efficient Sparse Matrix Vector Multiplication on Real Processing-In-Memory Systems"
+subtitle: "Scoped CIM stack note"
+year: 2022
+venue: "Proceedings of the ACM on Measurement and Analysis of Computing Systems (POMACS), Vol. 6, No. 1, Article 21; SIGMETRICS/PERFORMANCE 2022 companion presentation"
+authors_or_group: "Christina Giannoula, Ivan Fernandez, Juan Gómez-Luna, Nectarios Koziris, Georgios Goumas, Onur Mutlu"
+summary: >-
+  SparseP is a real-system sparse linear algebra study and software library for SpMV on UPMEM near-bank digital PIM. Its concrete contribution is a family of 25 hand-written host/DPU kernels covering CSR, COO, BCSR, and BCOO sparse formats, multiple scalar data types, 1D and 2D matrix partitioning, PIM-core load balancing, tasklet-level load balancing, and synchronization choices, evaluated on a 20-DIMM UPMEM system against CPU and GPU baselines. ([arXiv](https://arxiv.org/pdf/2201.05072)) For CIM compiler/IR research, SparseP is most useful as a sparse-mapping and backend-contract case study: it exposes what a compiler would need to represent for real near-bank PIM execution, including sparse format metadata, host–PIM transfer phases, DPU memory placement, tasklet schedules, partial-output merging, and reproducibility constraints around hardware, SDK, and benchmark preparation. The demonstrated abstraction is a library-plus-configuration stack rather than a standalone compiler IR, but its artifact makes the hidden mapping state unusually concrete. ([GitHub](https://github.com/CMU-SAFARI/SparseP))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "near-bank-PIM"
+workloads:
+  - "SpMV"
+  - "sparse linear algebra"
+  - "SuiteSparse matrices"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A5, A3]
+axis_B: [B1, B3, B4, B7]
+axis_C_first_class_objects:
+  - "UPMEM DPU"
+  - "DRAM bank / MRAM"
+  - "WRAM / IRAM"
+  - "tasklet"
+  - "CSR / COO / BCSR / BCOO sparse arrays"
+  - "1D / 2D matrix partition"
+  - "host-PIM load / retrieve / merge phase"
+  - "synchronization primitive"
+  - "partial output"
+  - "data type"
+axis_D_rewrite_objects:
+  - "sparse memory layout"
+  - "PIM-core mapping"
+  - "tasklet load balance"
+  - "synchronization mode"
+  - "host-PIM transfer schedule"
+  - "runtime partial-result state"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/CMU-SAFARI/SparseP"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Strongest reusable boundary is sparse-format, partitioning, and tasklet scheduling for UPMEM-style digital PIM."
+  - "No standalone compiler IR; semantics are distributed across code directories, Makefile flags, scripts, host partitioning, and DPU kernels."
+  - "Most relevant to value-trajectory IR work as a digital sparse placement and partial-result ownership case study."
+takeaways: []
+---
+
 # SparseP — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -245,37 +312,7 @@ The evaluation uses SuiteSparse matrices plus small matrices, multiple data type
 
 **Integration effort estimate: High.** Integration would be most direct through a wrapper that selects existing kernels and generates Makefile/script parameters. Deeper compiler integration would require extracting an explicit mapping schema, schedule representation, and provenance model from C code, directory names, and scripts. The most valuable reusable boundary appears to be the sparse-format-plus-partitioning contract, while full end-to-end reuse depends on UPMEM SDK and hardware or functional simulator availability.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-SparseP provides useful ingredients for a value-trajectory IR, especially for **digital sparse PIM trajectories** rather than analog-CIM trajectories. The closest approximation to trajectory semantics is the path:
-
-```text
-host sparse matrix / dense vector
-→ compressed matrix arrays and input-vector placement
-→ DPU MRAM
-→ WRAM staging and tasklet-local accumulation
-→ DPU output / partial output
-→ host retrieval
-→ host-side merge, when needed
-→ final dense output vector
-```
-
-The paper names these phases and shows that they materially affect performance. ([arXiv](https://arxiv.org/pdf/2201.05072)) It preserves value identity at the level of rows, nonzeros, blocks, input-vector indices, and output-vector entries, but not as a serialized value-flow object. For split rows, 2D tiles, or lock-free tasklet accumulation, value identity is preserved through partial-output ownership and merge logic rather than through an explicit trajectory type.
-
-For analog-style value-trajectory questions:
-
-- **Analog partial sums, sensing, digital accumulation, reconstruction:** These are not applicable to the UPMEM digital-PIM substrate. The analogous object is digital partial-output accumulation across tasklets, DPUs, and host merge.
-- **Bit significance, channel rate, precision stage, placement, domain transition:** Data type and placement are explicit; bit significance, ADC/DAC stage, and analog/digital domain transition are not applicable. A trajectory-level extension would attach data type, matrix format, row/block identity, DPU bank, MRAM/WRAM location, tasklet owner, and reduction owner to sparse values.
-- **Fusing reconstruction with downstream reduction:** In this setting, the relevant rewrite would be fusing host merge with a downstream sparse/dense reduction, not analog reconstruction.
-- **Delaying or retiming ADC conversion:** Not applicable to the demonstrated hardware.
-- **Carrying bit-sliced partial sums across operator boundaries:** Not applicable as bit-slicing; a digital analogue would carry partial `y` fragments across host/PIM boundaries before final merge.
-- **Changing reduction tree structure:** SparseP’s tasklet and host-merge strategies provide a concrete starting point. A trajectory IR would make the reduction tree explicit instead of embedding it in synchronization code.
-- **Routing values through alternative peripheral paths:** SparseP motivates this through broadcast/gather recommendations. A trajectory IR would need explicit host–PIM collective operations and memory-bus path metadata.
-- **Co-optimizing data movement and numeric reconstruction:** Numeric reconstruction is outside SparseP’s scope, but co-optimizing data movement and sparse partial aggregation is directly relevant.
-
-Overall, SparseP’s demonstrated abstraction centers on sparse layout, mapping, and runtime partial-result management. A value-trajectory extension would likely attach trajectory metadata to sparse matrix entries, input-vector slices, DPU-local partial sums, and host-merged output fragments.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -286,7 +323,7 @@ Overall, SparseP’s demonstrated abstraction centers on sparse layout, mapping,
 | Fujiki et al. sparse format transformation near memory | Sparse format and memory-controller/PIM cooperation. | Fujiki-style work focuses on transforming CSR to DCSR in a GPU memory-controller context; SparseP evaluates multiple sparse formats and schedules on UPMEM DPUs. ([arXiv](https://arxiv.org/pdf/2201.05072)) | Sparse format conversion and sparse schedule selection should be separate corpus tags. |
 | Commodity SpMV libraries and format-selection methods | Sparse layout, load balance, and performance tuning. | Commodity CPU/GPU methods assume different cache, communication, and thread models; SparseP adapts the format/schedule problem to distributed PIM memory and shallow local storage. ([arXiv](https://arxiv.org/pdf/2201.05072)) | Include commodity sparse-library lineage, but classify SparseP by its PIM backend contract rather than by performance ranking alone. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - SparseP’s real contribution is a public UPMEM SpMV library and real-system evaluation, centered on 25 hand-written sparse kernels rather than a general compiler IR.
 - Its strongest reusable stack layer is the sparse PIM backend contract: sparse format, DPU partition, tasklet schedule, synchronization, host transfer, and partial-result merge.
@@ -296,67 +333,3 @@ Overall, SparseP’s demonstrated abstraction centers on sparse layout, mapping,
 - Artifact status: public artifact found; the repository is MIT-licensed and includes kernels, scripts, inputs, and build instructions, while exact figure reproduction depends on external SDK/hardware and implicit workflow details.
 - For integration, SparseP is most useful as a benchmark, backend library, mapping-rule source, and calibration point for digital near-bank PIM cost models.
 - For a value-trajectory IR, SparseP is most relevant to digital sparse value placement, partial-output ownership, and host/PIM reduction trajectories; analog objects such as ADC/DAC, bit slicing, and reconstruction are not applicable.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "SparseP: Towards Efficient Sparse Matrix Vector Multiplication on Real Processing-In-Memory Systems"
-year: 2022
-venue: "Proceedings of the ACM on Measurement and Analysis of Computing Systems (POMACS), Vol. 6, No. 1, Article 21; SIGMETRICS/PERFORMANCE 2022 companion presentation"
-authors_or_group: "Christina Giannoula, Ivan Fernandez, Juan Gómez-Luna, Nectarios Koziris, Georgios Goumas, Onur Mutlu"
-technology:
-  - UPMEM
-  - DRAM-PIM
-  - digital-CIM
-  - near-bank-PIM
-workloads:
-  - SpMV
-  - sparse linear algebra
-  - SuiteSparse matrices
-axis_A:
-  primary: A6
-  secondary:
-    - A5
-    - A3
-axis_B:
-  - B1 Config-as-IR
-  - B3 Loop / tensor-schedule IR
-  - B4 Hardware-resource IR
-  - B7 Runtime-state abstraction
-axis_C_first_class_objects:
-  - UPMEM DPU
-  - DRAM bank / MRAM
-  - WRAM / IRAM
-  - tasklet
-  - CSR / COO / BCSR / BCOO sparse arrays
-  - 1D / 2D matrix partition
-  - host-PIM load / retrieve / merge phase
-  - synchronization primitive
-  - partial output
-  - data type
-axis_D_rewrite_objects:
-  - sparse memory layout
-  - PIM-core mapping
-  - tasklet load balance
-  - synchronization mode
-  - host-PIM transfer schedule
-  - runtime partial-result state
-artifact:
-  status: public artifact found
-  url: "https://github.com/CMU-SAFARI/SparseP"
-  license: MIT
-  last_checked: 2026-05-15
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest reusable boundary is sparse-format, partitioning, and tasklet scheduling for UPMEM-style digital PIM."
-  - "No standalone compiler IR; semantics are distributed across code directories, Makefile flags, scripts, host partitioning, and DPU kernels."
-  - "Most relevant to value-trajectory IR work as a digital sparse placement and partial-result ownership case study."
-```

@@ -1,3 +1,75 @@
+---
+slug: pimsyn-nn
+title: "PIMSYN / PIMSYN-NN: Synthesizing Processing-in-memory CNN Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DATE 2024"
+authors_or_group: "Wanqian Li, Xiaotian Sun, Xinyu Wang, Lei Wang, Yinhe Han, Xiaoming Chen"
+summary: >-
+  PIMSYN-NN, published as **PIMSYN: Synthesizing Processing-in-memory CNN Accelerators**, contributes an automatic synthesis and design-space-exploration flow for crossbar-based PIM CNN accelerators. Its central compiler/IR contribution is an IR-based dataflow DAG used to express computation, intra-macro communication, and inter-macro communication while the DSE flow searches weight duplication, DAC/ReRAM/crossbar settings, macro partitioning, macro sharing, and peripheral allocation. The demonstrated stack is strongest for **static CNN inference** from ONNX-format model structure plus a power budget into a synthesized macro/PE/crossbar architecture and dataflow schedule, with evaluation through a cycle-accurate IR-based behavior-level simulator. For CIM compiler/IR research, PIMSYN-NN is most useful as a mapping/scheduling and hardware-resource synthesis case study: it makes several CIM architectural objects first-class, while its IR semantics are most reusable when read together with the DAG construction rules, component-allocation model, JSON configs, and downstream PIMCOMP/PIMSIM toolchain interfaces. ([arXiv](https://arxiv.org/pdf/2402.18114))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "crossbar-CIM"
+  - "parameterized-PIM-template"
+workloads:
+  - "CNN inference"
+  - "AlexNet"
+  - "VGG13"
+  - "VGG16"
+  - "MSRA"
+  - "ResNet18"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5, A2, A4]
+axis_B: [B2, B4, B1]
+axis_C_first_class_objects:
+  - "crossbar_set"
+  - "weight_duplication_factor"
+  - "macro_PE_crossbar_hierarchy"
+  - "DAC_resolution"
+  - "ADC_resolution"
+  - "ADC_bank"
+  - "ALU_units"
+  - "macro_partition"
+  - "macro_sharing"
+  - "load_store_merge_transfer_IR_nodes"
+  - "bit_iteration_index"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "array_binding"
+  - "macro_partitioning"
+  - "resource_allocation"
+  - "dataflow_DAG_dependencies"
+  - "bit_level_schedule"
+  - "component_allocation"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/lixixi-jook/PIMSYN-NN"
+  license: "Apache-2.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "backend_adapter_via_PIMCOMP"
+  - "simulator_adapter_via_PIMSIM"
+reproducibility_level: medium
+notes:
+  - "Strongest evidence is for static CNN inference on a parameterized crossbar-based PIM accelerator template."
+  - "IR-based DAG is explicit in the paper and code, but the most inspectable public interchange objects are JSON configs and architecture outputs."
+  - "PIMSYN-NN synthesizes architecture/dataflow choices; companion PIMCOMP-NN handles instruction generation and PIMSIM-NN handles instruction-driven simulation."
+takeaways: []
+---
+
 # PIMSYN-NN — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -274,25 +346,7 @@ Precision is handled as a synthesis input/parameter rather than as a full numeri
 
 **Integration effort estimate: Medium.** Integration would be most direct through the JSON boundaries: model JSON in, `config.json` hardware parameters, architecture JSON out, and PIMCOMP config out. Reuse as a formal compiler IR would require an adapter that exports the internal DAG, records dependency/resource provenance, and normalizes component parameters into a backend-plugin schema. The most valuable reusable boundary appears to be the mapper/scheduler plus cost-model layer rather than a complete replacement for a general CIM compiler frontend or ISA backend.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PIMSYN-NN provides useful ingredients for a value-trajectory IR, especially its explicit MVM → ADC → ALU path, bit-indexed IR nodes, load/store/merge/transfer communication IRs, and macro/resource binding. The closest approximation to trajectory semantics is the IR-based DAG with inter-layer, inter-block, inter-bit, and inter-operation dependencies. ([arXiv](https://arxiv.org/pdf/2402.18114))
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Partially. It names MVM, ADC, ALU, load, store, merge, and transfer operations, and it describes PE analog outputs being converted by ADCs and then processed by ALUs. This names path stages, but not a persistent value object that carries identity through every stage. ([arXiv](https://arxiv.org/pdf/2402.18114))
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  The demonstrated abstraction preserves dependencies and scheduling order. Value identity across analog partial sums, sensing, reconstruction, and storage is approximated through graph edges and layer/block/bit indices rather than represented as an explicit typed trajectory.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Bit iteration is explicit through the `bit` parameter, precision is explicit through data/weight/ReRAM/DAC/ADC parameters, and placement is explicit through macro/crossbar/resource allocation. These are not presented as a unified type system; they are distributed across IR parameters, design variables, and hardware configuration. ([arXiv](https://arxiv.org/pdf/2402.18114))
-
-- **Could it express trajectory rewrites?**  
-  The current representation is well suited to scheduling and allocation rewrites: changing duplication, macro partitioning, ADC sharing, and component allocation. Trajectory-level rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing values through alternative peripheral paths would likely attach additional attributes to IR edges or values: value ID, analog/digital domain, precision stage, bit significance, accumulation/reconstruction status, physical placement, and legal conversion points.
-
-A trajectory-level extension would likely attach a **value-flow record** to each DAG edge and a **resource-stage type** to each IR node. PIMSYN-NN’s graph and hardware-resource choices would then become an excellent substrate for testing whether value-trajectory rewrites improve schedule depth, ADC pressure, macro sharing, and peripheral power.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -303,7 +357,7 @@ A trajectory-level extension would likely attach a **value-flow record** to each
 | **PIM-HLS** | Automatic hardware generation for PIM neural accelerators | The paper positions PIM-HLS as focused on heterogeneous SRAM/ReRAM memory distribution, while PIMSYN-NN targets homogeneous crossbar-based PIM CNN accelerator synthesis. ([arXiv](https://arxiv.org/html/2402.18114v1)) | HLS-style generation and mapping-oriented architecture synthesis should be separated in Axis A. |
 | **AutoDCIM** | Automated CIM generation | The paper positions AutoDCIM as circuit/layout-level template generation for digital PIM, while PIMSYN-NN is architecture/dataflow DSE for crossbar-based CNN accelerators. ([arXiv](https://arxiv.org/html/2402.18114v1)) | Technology/circuit generators and compiler/mapping stacks can share “CIM synthesis” vocabulary but expose different rewrite objects. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIMSYN-NN is best classified as an **A3 mapping/scheduling/DSE framework** with a narrow end-to-end CNN-to-PIM-architecture synthesis path.  
 - Its strongest reusable layer is the joint search over `WtDup`, crossbar/ReRAM/DAC parameters, macro partitioning, macro sharing, and peripheral component allocation.  
@@ -313,72 +367,3 @@ A trajectory-level extension would likely attach a **value-flow record** to each
 - Artifact status: **public artifact found** under Apache-2.0; the artifact includes Python code, configs, model JSONs, and output examples, while full paper-figure reproduction scripts are not clearly exposed in the checked README.  
 - Integration is most direct through JSON adapters and mapper/cost-model reuse, with PIMCOMP-NN/PIMSIM-NN serving as downstream compiler/simulator companions.  
 - For a value-trajectory CIM IR, PIMSYN-NN provides useful path-stage and resource-binding ingredients, but trajectory-level semantics would add explicit value identity, domain, precision stage, bit significance, and reconstruction/reduction state.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIMSYN / PIMSYN-NN: Synthesizing Processing-in-memory CNN Accelerators"
-year: 2024
-venue: "DATE 2024"
-authors_or_group: "Wanqian Li, Xiaotian Sun, Xinyu Wang, Lei Wang, Yinhe Han, Xiaoming Chen"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-  - crossbar-CIM
-  - parameterized-PIM-template
-workloads:
-  - CNN inference
-  - AlexNet
-  - VGG13
-  - VGG16
-  - MSRA
-  - ResNet18
-axis_A:
-  primary: A3_mapping_scheduling_DSE
-  secondary:
-    - A5_narrow_end_to_end_codesign
-    - A2_simulator_cost_model
-    - A4_IR_style_internal_graph
-axis_B:
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B1_config_as_IR
-axis_C_first_class_objects:
-  - crossbar_set
-  - weight_duplication_factor
-  - macro_PE_crossbar_hierarchy
-  - DAC_resolution
-  - ADC_resolution
-  - ADC_bank
-  - ALU_units
-  - macro_partition
-  - macro_sharing
-  - load_store_merge_transfer_IR_nodes
-  - bit_iteration_index
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - array_binding
-  - macro_partitioning
-  - resource_allocation
-  - dataflow_DAG_dependencies
-  - bit_level_schedule
-  - component_allocation
-artifact:
-  status: public_artifact_found
-  url: "GitHub repository: lixixi-jook/PIMSYN-NN"
-  license: "Apache-2.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - backend_adapter_via_PIMCOMP
-  - simulator_adapter_via_PIMSIM
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest evidence is for static CNN inference on a parameterized crossbar-based PIM accelerator template."
-  - "IR-based DAG is explicit in the paper and code, but the most inspectable public interchange objects are JSON configs and architecture outputs."
-  - "PIMSYN-NN synthesizes architecture/dataflow choices; companion PIMCOMP-NN handles instruction generation and PIMSIM-NN handles instruction-driven simulation."
-```

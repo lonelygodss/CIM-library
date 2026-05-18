@@ -1,3 +1,72 @@
+---
+slug: papi
+title: "PAPI: Exploiting Dynamic Parallelism in Large Language Model Decoding with a Processing-In-Memory-Enabled Computing System"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "ASPLOS 2025"
+authors_or_group: "Yintao He, Haiyu Mao, Christina Giannoula, Mohammad Sadrosadati, Juan Gómez-Luna, Huawei Li, Xiaowei Li, Ying Wang, Onur Mutlu"
+summary: >-
+  **PAPI** is a heterogeneous HBM/DRAM-PIM architecture and runtime scheduling framework for LLM decoding. Its central contribution is not an explicit compiler IR, but a runtime decision layer that observes request-level parallelism and token-level parallelism, estimates whether fully connected kernels are compute- or memory-bound, and then maps those kernels either to GPU-like processing units or to FC-PIM, while attention/KV-cache-heavy work is assigned to disaggregated Attn-PIM devices. The demonstrated stack is simulator-backed: the paper evaluates LLaMA-65B, GPT-3 66B, and GPT-3 175B on Dolly creative-writing and general-QA tasks using Ramulator2/AttAcc-derived modeling. For CIM compiler/IR research, PAPI is most useful as a runtime-state and hardware-resource case study: it makes dynamic batching/speculation state first-class enough to schedule over heterogeneous PIM resources, but the reusable compiler boundary remains embedded in scheduler equations, hardware assumptions, data partitioning rules, and simulator setup rather than a serialized IR. ([arXiv](https://arxiv.org/html/2502.15470v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "HBM-PIM"
+  - "digital-CIM"
+  - "heterogeneous-PIM"
+workloads:
+  - "LLM decoding"
+  - "LLaMA-65B"
+  - "GPT-3 66B"
+  - "GPT-3 175B"
+  - "Dolly creative-writing"
+  - "Dolly general-QA"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3]
+axis_B: [B7, B4, B1]
+axis_C_first_class_objects:
+  - "FC-PIM"
+  - "Attn-PIM"
+  - "processing units / GPU tensor-core-like PUs"
+  - "HBM devices"
+  - "bank groups"
+  - "DRAM banks"
+  - "FPU-per-bank configuration"
+  - "RLP"
+  - "TLP"
+  - "KV-cache capacity"
+  - "FC-vs-attention kernel class"
+axis_D_rewrite_objects:
+  - "runtime state"
+  - "mode selection"
+  - "hardware assignment"
+  - "kernel-to-device scheduling"
+  - "HBM-level tensor partitioning"
+artifact:
+  status: "no official public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: low
+notes:
+  - "Best read as a runtime scheduler and architecture co-design for dynamic LLM decoding."
+  - "The reusable boundary is clearest around RLP/TLP-driven FC placement."
+  - "Value-flow semantics are approximated through placement and partitioning, not typed as trajectories."
+takeaways: []
+---
+
 # Papi — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -203,20 +272,7 @@ The paper evaluates with a simulator based on Ramulator2 and AttAcc, all HBMs as
 
 **Integration effort estimate: Medium–High.** Integration would be most direct through the scheduler rule and hardware-resource model, not through a released compiler stack. Reuse would benefit from a small adapter that extracts `(kernel_type, RLP, TLP, model_shape, placement)` into a serializable scheduling record and maps it to a Ramulator-like backend.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PAPI provides useful ingredients for a value-trajectory IR, especially dynamic runtime state and heterogeneous resource selection. It names where classes of work go—FC kernels to PU or FC-PIM, attention heads/KV-cache-heavy work to Attn-PIM—but it does not preserve value identity as a typed path through memory hierarchy, compute units, accumulation, reduction, and storage. The closest approximation to trajectory semantics is the combination of FC/attention data partitioning and scheduler-controlled device selection. ([arXiv](https://arxiv.org/pdf/2502.15470v2))
-
-For the specific trajectory questions:
-
-- **Does the paper name the path a value takes through CIM resources?** It names placement and partitioning through HBM hierarchy levels, but not a typed value path.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** Analog sensing/reconstruction is not applicable; digital accumulation and storage paths are not represented as value-identity-carrying IR objects.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement and FP16 precision are parameters; bit significance and analog/digital stage transitions are not applicable or not exposed. Channel rate is modeled through bandwidth/latency assumptions rather than a type.
-- **Could it express trajectory rewrites such as reconstruction fusion, delayed ADC conversion, cross-operator bit-sliced partial sums, reduction-tree changes, peripheral rerouting, or co-optimized movement/reconstruction?** Not directly. The paper’s demonstrated abstraction centers on runtime mode selection; trajectory-level rewrites would add value-path fields to the scheduler’s kernel records and to the HBM layout rules.
-
-A trajectory-level extension would likely attach `device`, `hierarchy_level`, `partition_axis`, `rate`, `precision`, `state_lifetime`, and `consumer kernel` metadata to FC weights, activations, and KV-cache tensors. PAPI’s RLP/TLP-driven scheduler could then choose not only *where* a kernel runs, but also *which value path* it should take under changing serving conditions.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -227,7 +283,7 @@ A trajectory-level extension would likely attach `device`, `hierarchy_level`, `p
 | HARMONI | DRAM-PIM / LLM modeling and simulation | HARMONI exposes task graph / tensor allocation / communication edges more directly; PAPI exposes a compact dynamic scheduling rule. (CIM stack library compact.md) | Compare simulator/task-graph IR against scheduler-state IR. |
 | Ouroboros | Narrow LLM-oriented co-design stack | Ouroboros focuses on wafer-scale SRAM-CIM, token pipeline, mapping, and KV-cache management; PAPI focuses on heterogeneous HBM/DRAM-PIM and online FC scheduling. (CIM stack library compact.md) | Corpus should separate architecture-scale mapping from runtime kernel-mode selection. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PAPI’s real contribution is a dynamic scheduling and heterogeneous HBM/DRAM-PIM architecture for LLM decoding, not a portable CIM compiler IR.
 - The strongest reusable stack layer is the runtime-state scheduler: RLP, TLP, arithmetic-intensity estimate, threshold α, and FC-kernel mode selection.
@@ -237,68 +293,3 @@ A trajectory-level extension would likely attach `device`, `hierarchy_level`, `p
 - Artifact status: no official public artifact found. A third-party reproduction exists but should not be treated as the official paper artifact.
 - Integration is most plausible as a mapper/scheduler plugin and runtime-state benchmark for future CIM compiler stacks.
 - Relevance to value-trajectory IR is medium: PAPI provides dynamic placement/state ingredients, while value-path typing would require additional trajectory metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PAPI: Exploiting Dynamic Parallelism in Large Language Model Decoding with a Processing-In-Memory-Enabled Computing System"
-year: 2025
-venue: "ASPLOS 2025"
-authors_or_group: "Yintao He, Haiyu Mao, Christina Giannoula, Mohammad Sadrosadati, Juan Gómez-Luna, Huawei Li, Xiaowei Li, Ying Wang, Onur Mutlu"
-technology:
-  - DRAM-PIM
-  - HBM-PIM
-  - digital-CIM
-  - heterogeneous-PIM
-workloads:
-  - LLM decoding
-  - LLaMA-65B
-  - GPT-3 66B
-  - GPT-3 175B
-  - Dolly creative-writing
-  - Dolly general-QA
-axis_A:
-  primary: A5 narrow end-to-end co-design
-  secondary:
-    - A2 simulator & cost model
-    - A3 mapping / scheduling / DSE framework
-axis_B:
-  - B7 runtime-state abstraction
-  - B4 hardware-resource IR
-  - B1 config-as-IR / hidden-stack state
-axis_C_first_class_objects:
-  - FC-PIM
-  - Attn-PIM
-  - processing units / GPU tensor-core-like PUs
-  - HBM devices
-  - bank groups
-  - DRAM banks
-  - FPU-per-bank configuration
-  - RLP
-  - TLP
-  - KV-cache capacity
-  - FC-vs-attention kernel class
-axis_D_rewrite_objects:
-  - runtime state
-  - mode selection
-  - hardware assignment
-  - kernel-to-device scheduling
-  - HBM-level tensor partitioning
-artifact:
-  status: "no official public artifact found"
-  url: ""
-  license: "unknown"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best read as a runtime scheduler and architecture co-design for dynamic LLM decoding."
-  - "The reusable boundary is clearest around RLP/TLP-driven FC placement."
-  - "Value-flow semantics are approximated through placement and partitioning, not typed as trajectories."
-```

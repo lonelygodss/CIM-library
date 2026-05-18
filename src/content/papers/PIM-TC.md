@@ -1,3 +1,73 @@
+---
+slug: pim-tc
+title: "Accelerating Triangle Counting with Real Processing-in-Memory Systems"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IPDPS Workshop on Graphs, Architectures, Programming, and Learning (GrAPL); also indexed as arXiv/CoRR abs/2505.04269"
+authors_or_group: "Lorenzo Asquini, Manos Frouzakis, Juan Gómez-Luna, Mohammad Sadrosadati, Onur Mutlu, Francesco Silvestri"
+summary: >-
+  PIM-TC is a real-hardware graph-processing stack for triangle counting on UPMEM processing-in-memory DPUs. Its main contribution is a workload-specific host/DPU implementation that maps COO-format graph edges to PIM cores using vertex coloring, constructs host-to-DPU edge batches, optionally applies uniform and reservoir sampling for approximate counting, uses Misra-Gries summaries to handle high-degree vertices, and measures the result on a real UPMEM platform. For CIM compiler/IR research, the work is most useful as evidence for the backend/runtime boundary of a graph workload on commercial digital PIM: it names hardware resources, batching state, graph partition state, and per-DPU memory-resident samples, while the demonstrated reusable abstraction is closer to a specialized mapping/runtime protocol than to a general compiler dialect or instruction-level IR. ([arXiv](https://arxiv.org/pdf/2505.04269v2))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "DRAM-PIM"
+  - "digital-PIM"
+  - "processing-near-memory"
+workloads:
+  - "triangle-counting"
+  - "graph-processing"
+  - "COO-edge-list graphs"
+  - "dynamic graph updates"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A5, A3]
+axis_B: [B2, B4, B7, B1]
+axis_C_first_class_objects:
+  - "DPU_or_PIM_core"
+  - "MRAM_bank"
+  - "WRAM_scratchpad"
+  - "tasklet"
+  - "CPU_DPU_transfer_batch"
+  - "color_triplet"
+  - "per_DPU_edge_sample"
+  - "edge_region_index"
+  - "Misra_Gries_high_degree_table"
+  - "partial_triangle_count"
+axis_D_rewrite_objects:
+  - "graph_mapping"
+  - "edge_partitioning"
+  - "edge_duplication"
+  - "memory_layout"
+  - "vertex_relabeling"
+  - "runtime_sampling_state"
+  - "reduction_state"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/CMU-SAFARI/PIM-TC"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Strongest as a real-hardware UPMEM graph benchmark and mapping/runtime case study."
+  - "The reusable boundary is clearest around COO input, color-triplet mapping, per-DPU samples, and host-DPU batching."
+  - "Most CIM analog objects such as ADC/DAC precision, bit slicing, and reconstruction paths are not applicable to the demonstrated digital UPMEM stack."
+takeaways: []
+---
+
 # PIM-TC — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -217,18 +287,7 @@ This mechanism is particularly relevant to IR design because it is a **legality-
 
 **Integration effort estimate: High.** Integration into a general CIM compiler/IR stack would require adapters for graph import, mapping-state extraction, configuration generation, and result/provenance capture. The most direct path is to wrap the repository as a backend benchmark, then gradually expose color-triplet mapping, per-DPU samples, and high-degree remapping as serializable IR objects.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially for **digital graph-state trajectories**: source edge → host stream → color assignment → DPU batch → MRAM sample → WRAM buffer → local comparison/reduction → host aggregation. The paper does not center on analog partial sums, ADC timing, bit-sliced reconstruction, or peripheral routing; those categories are mostly outside the UPMEM execution model. ([arXiv](https://arxiv.org/pdf/2505.04269v2))
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names graph edges, host batches, DPU MRAM samples, WRAM buffers, and host-gathered partial counts, but it does not define a general value-path schema.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** For digital graph edges, identity is preserved through color routing and sorting unless approximate sampling is enabled; for analog partial sums / sensing / reconstruction, the taxonomy object is not applicable.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement is represented through color triplets and DPU IDs. Bit significance, channel rate, and analog/digital precision-stage typing are not part of the demonstrated abstraction.
-- **Could it express trajectory rewrites?** It can express graph-placement and runtime-storage rewrites: vertex relabeling, edge duplication, batch routing, sample replacement, local sorting, and reduction. Trajectory rewrites such as delaying ADC conversion, carrying bit-sliced partial sums across operators, or fusing reconstruction with downstream reduction would require a new abstraction layer for numeric domain, conversion site, and reconstruction state.
-
-A trajectory-level extension would likely attach metadata to each edge or edge batch: original edge ID, color pair, compatible DPU triplets, sampling probability, DPU MRAM offset/range, WRAM buffer schedule, tasklet ownership, and estimator correction. That would turn PIM-TC’s implicit runtime path into an auditable value-flow object.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -238,7 +297,7 @@ A trajectory-level extension would likely attach metadata to each edge or edge b
 | **cuGraph triangle counting** | GPU baseline over COO-derived graphs | GPU consistently outperforms PIM-TC in static graph comparisons, while dynamic COO append behavior changes the measured stack boundary. ([arXiv](https://arxiv.org/pdf/2505.04269v2)) | Corpus entries should separate kernel performance from data-format/update handling. |
 | **Other UPMEM graph / sparse workloads** | Real PIM backend, host-DPU transfers, tasklets, MRAM/WRAM hierarchy | PIM-TC is graph-operator-specific rather than a reusable UPMEM compiler layer. | Useful as a backend contract example for graph analytics, especially where runtime state dominates. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIM-TC’s real contribution is a hand-engineered triangle-counting implementation for UPMEM DPUs, with graph-aware host partitioning, DPU-local storage, and real-hardware evaluation.
 - The strongest reusable stack layer is the **graph-to-DPU mapping/runtime boundary**: COO edge stream, color triplets, per-DPU batches, MRAM samples, WRAM buffers, and host reduction.
@@ -248,71 +307,3 @@ A trajectory-level extension would likely attach metadata to each edge or edge b
 - Artifact status: public artifact found; MIT-licensed source is available, with main and dynamic-graph branches, but packaged datasets, releases, raw logs, and figure-generation scripts were not found in the checked pages.
 - Integration is most direct as a UPMEM graph benchmark/backend wrapper; broader compiler reuse would benefit from serializing the mapping and runtime state.
 - For value-trajectory IR work, PIM-TC is most relevant as a digital graph-state trajectory example rather than an analog numeric-flow example.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Accelerating Triangle Counting with Real Processing-in-Memory Systems"
-short_name: "PIM-TC"
-year: 2025
-venue: "IPDPS Workshop on Graphs, Architectures, Programming, and Learning (GrAPL); also indexed as arXiv/CoRR abs/2505.04269"
-authors_or_group: "Lorenzo Asquini, Manos Frouzakis, Juan Gómez-Luna, Mohammad Sadrosadati, Onur Mutlu, Francesco Silvestri"
-technology:
-  - UPMEM
-  - DRAM-PIM
-  - digital-PIM
-  - processing-near-memory
-workloads:
-  - triangle-counting
-  - graph-processing
-  - COO-edge-list graphs
-  - dynamic graph updates
-axis_A:
-  primary: A6_programming_runtime_benchmark_real_hardware
-  secondary:
-    - A5_narrow_end_to_end_codesign
-    - A3_mapping_scheduling
-axis_B:
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B7_runtime_state_abstraction
-  - B1_config_as_IR
-axis_C_first_class_objects:
-  - DPU_or_PIM_core
-  - MRAM_bank
-  - WRAM_scratchpad
-  - tasklet
-  - CPU_DPU_transfer_batch
-  - color_triplet
-  - per_DPU_edge_sample
-  - edge_region_index
-  - Misra_Gries_high_degree_table
-  - partial_triangle_count
-axis_D_rewrite_objects:
-  - graph_mapping
-  - edge_partitioning
-  - edge_duplication
-  - memory_layout
-  - vertex_relabeling
-  - runtime_sampling_state
-  - reduction_state
-artifact:
-  status: public_artifact_found
-  url: "https://github.com/CMU-SAFARI/PIM-TC"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest as a real-hardware UPMEM graph benchmark and mapping/runtime case study."
-  - "The reusable boundary is clearest around COO input, color-triplet mapping, per-DPU samples, and host-DPU batching."
-  - "Most CIM analog objects such as ADC/DAC precision, bit slicing, and reconstruction paths are not applicable to the demonstrated digital UPMEM stack."
-```

@@ -1,3 +1,77 @@
+---
+slug: pimsynth
+title: "PIMsynth: A Unified Compiler Framework for Bit-Serial Processing-in-Memory Architectures"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IEEE Computer Architecture Letters"
+authors_or_group: "Deyuan Guo, Mohammadhosein Gholamrezaei, Matthew Hofmann, Ashish Venkat, Zhiru Zhang, Kevin Skadron"
+summary: >-
+  PIMsynth is a public compiler framework for generating bit-serial PIM microprograms from bit-parallel combinational Verilog. Its clearest contribution is an automated lowering path that combines Yosys/ABC logic synthesis, a GenLib-described bit-serial PIM instruction set, analog-PIM-specific transformations for TRA/MAJ/DCC behavior, LLVM-based scheduling and register allocation, and PIMeval-backed functional/performance validation. The demonstrated setting is fixed-width integer and bitwise combinational kernels over 8/16/32/64-bit operands, evaluated on representative digital and analog DRAM-PIM programming models with small single-bit register sets. For CIM compiler/IR research, PIMsynth is most useful as a bit-level compiler-stack example where the first-class object is neither a neural-network tensor graph nor an array placement map, but a bit-serial operation DAG plus a constrained register/simulator instruction interface. ([University of Virginia Computer Science](https://www.cs.virginia.edu/venkat/papers/cal2025.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "analog-CIM"
+  - "bit-serial-PIM"
+workloads:
+  - "fixed-width integer arithmetic"
+  - "fixed-width relational and logical operations"
+  - "min/max"
+  - "shifts"
+  - "population count"
+  - "AES S-box variants in artifact"
+tags: []
+baselines: []
+axis_A:
+  primary: A4
+  secondary: [A3, A5]
+axis_B: [B2, B5, B4]
+axis_C_first_class_objects:
+  - "bit-serial operation DAG"
+  - "GenLib-defined PIM ISA gates"
+  - "PIM mode"
+  - "register count"
+  - "single-bit PIM registers"
+  - "memory row read/write"
+  - "digital PIM LU op"
+  - "analog TRA/MAJ op"
+  - "DCC NOT support"
+  - "AP/AAP multi-output operation"
+  - "PIMeval API call"
+axis_D_rewrite_objects:
+  - "graph"
+  - "instruction stream"
+  - "hardware-resource allocation"
+  - "register allocation"
+  - "copy insertion"
+  - "Boolean normalization"
+  - "analog destructive-use legality"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/UVA-LavaLab/PIMsynth"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Reusable boundary is clearest at GenLib/BLIF/PIM IR-1 and PIMeval API codegen."
+  - "Demonstrated scope is bit-serial DRAM-PIM kernels, not general tensor/loop-level CIM compilation."
+  - "Analog-specific transformation sequence is valuable for modeling destructive CIM operations."
+  - "Exact paper-figure reproduction from artifact was not confirmed from checked top-level documentation."
+takeaways: []
+---
+
 # PIMsynth — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -232,25 +306,7 @@ The benchmark suite focuses on Verilog implementations of fixed-width integer ar
 
 **Integration effort estimate: Medium.** Integration would be most direct through the serialized PIM IR-1 and PIMeval backend. Reuse would benefit from a small adapter that extracts PIM IR-1, normalizes opcode/resource metadata, and records provenance between source Verilog signals, graph nodes, scheduled registers, and PIMeval calls. The most valuable reusable boundary appears to be GenLib/BLIF/PIM IR-1 for bit-level lowering, rather than the whole end-to-end build environment.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PIMsynth provides useful ingredients for a value-trajectory IR, especially for bit-level value identity under destructive analog operations. The closest approximation to trajectory semantics is the bit-serial data-dependency graph plus the analog rewrite sequence that protects global inputs, normalizes MAJ logic, eliminates inversions, reuses inout variables, packs multi-output copies, and inserts fallback copies. ([University of Virginia Computer Science](https://www.cs.virginia.edu/venkat/papers/cal2025.pdf))
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  It names rows, sense amplifiers, single-bit registers, LUs, TRA/DCC-enabled register rows, and PIMeval row read/write or AP/AAP operations. The named path is operation-level and register/row-level rather than a typed trajectory object. ([University of Virginia Computer Science](https://www.cs.virginia.edu/venkat/papers/cal2025.pdf))
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  In the demonstrated scope, value identity is preserved across bit-level DAG nodes, temporaries, register allocation, spills, row reads/writes, and generated PIMeval calls. Analog partial sums, ADC sensing, reconstruction trees, and cross-operator reductions are outside the demonstrated abstraction.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Register count and digital/analog mode are explicit; fixed-width precision appears in benchmark/module structure; bit significance is implicit in Verilog and bit-serial lowering. Channel rate, precision stage, placement, and domain transition are not represented as a general type system in the checked sources.
-
-- **Could the representation express trajectory rewrites?**  
-  It is well matched to rewrites such as inserting copies, avoiding destructive input conflicts, changing Boolean decompositions, or packing multiple outputs for AP/AAP. Trajectory-level rewrites such as fusing reconstruction with downstream reduction, retiming ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing analog reduction trees, or routing values through alternative peripheral paths would likely add a trajectory object attached to PIM IR-1 values and backend resources.
-
-A trajectory-level extension would likely attach `{bit_index, significance, domain, row/register location, destructive-use permission, producer opcode, consumer set, and storage/reconstruction stage}` metadata to PIM IR-1 operands and require backend APIs to expose resource-path alternatives rather than only final PIMeval calls.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -260,7 +316,7 @@ A trajectory-level extension would likely attach `{bit_index, significance, doma
 | **PIMeval / PIMbench** | Simulator and benchmark infrastructure for digital DRAM PIM | PIMsynth wraps/extends PIMeval as a backend target and validation loop rather than serving primarily as a simulator paper. ([University of Virginia Computer Science](https://www.cs.virginia.edu/venkat/papers/cal2025.pdf)) | In corpus metadata, mark PIMeval as backend/validation infrastructure and PIMsynth as compiler frontend-to-backend integration. |
 | **MIMDRAM** | Builds on SIMDRAM-style bit-serial compilation for more complex DRAM PIM execution | MIMDRAM focuses on MIMD-style high-level mapping while relying on SIMDRAM-like underlying bit-serial compilation; PIMsynth concentrates on automating the bit-serial compiler layer itself. ([University of Virginia Computer Science](https://www.cs.virginia.edu/venkat/papers/cal2025.pdf)) | Separate high-level program/data orchestration from the bit-serial microprogram synthesis layer. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIMsynth’s real contribution is a public, automated compiler path from combinational Verilog and a GenLib-defined bit-serial PIM ISA to scheduled/register-allocated PIMeval microprograms.
 - The strongest reusable stack layer is the bit-level lowering path: Verilog/BLIF DAG → PIM IR-1 → LLVM-scheduled IR-2 / assembly → PIMeval API code.
@@ -270,73 +326,3 @@ A trajectory-level extension would likely attach `{bit_index, significance, doma
 - Artifact status: public artifact found; it includes compiler code, benchmarks, GenLibs, build/test scripts, and PIMeval integration under an MIT license.
 - Integration is most direct as an IR inspiration, bit-serial mapper/scheduler, backend wrapper, and benchmark source; it would require adapters for provenance, hardware schemas, and value-trajectory metadata.
 - For a value-trajectory CIM IR, PIMsynth is most relevant as an example of preserving bit-level value identity under destructive analog operations, not as a full model of analog MAC accumulation or ADC/reconstruction trajectories.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIMsynth: A Unified Compiler Framework for Bit-Serial Processing-in-Memory Architectures"
-year: 2025
-venue: "IEEE Computer Architecture Letters"
-authors_or_group: "Deyuan Guo, Mohammadhosein Gholamrezaei, Matthew Hofmann, Ashish Venkat, Zhiru Zhang, Kevin Skadron"
-technology:
-  - DRAM-PIM
-  - digital-CIM
-  - analog-CIM
-  - bit-serial-PIM
-workloads:
-  - fixed-width integer arithmetic
-  - fixed-width relational and logical operations
-  - min/max
-  - shifts
-  - population count
-  - AES S-box variants in artifact
-axis_A:
-  primary: A4
-  secondary:
-    - A3
-    - A5
-axis_B:
-  - B2
-  - B5
-  - B4
-axis_C_first_class_objects:
-  - bit-serial operation DAG
-  - GenLib-defined PIM ISA gates
-  - PIM mode
-  - register count
-  - single-bit PIM registers
-  - memory row read/write
-  - digital PIM LU op
-  - analog TRA/MAJ op
-  - DCC NOT support
-  - AP/AAP multi-output operation
-  - PIMeval API call
-axis_D_rewrite_objects:
-  - graph
-  - instruction stream
-  - hardware-resource allocation
-  - register allocation
-  - copy insertion
-  - Boolean normalization
-  - analog destructive-use legality
-artifact:
-  status: public artifact found
-  url: "https://github.com/UVA-LavaLab/PIMsynth"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Reusable boundary is clearest at GenLib/BLIF/PIM IR-1 and PIMeval API codegen."
-  - "Demonstrated scope is bit-serial DRAM-PIM kernels, not general tensor/loop-level CIM compilation."
-  - "Analog-specific transformation sequence is valuable for modeling destructive CIM operations."
-  - "Exact paper-figure reproduction from artifact was not confirmed from checked top-level documentation."
-```

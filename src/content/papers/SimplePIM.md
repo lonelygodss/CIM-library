@@ -1,3 +1,73 @@
+---
+slug: simplepim
+title: "SimplePIM: A Software Framework for Productive and Efficient Processing-in-Memory"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "PACT 2023"
+authors_or_group: "Jinfan Chen, Juan Gómez-Luna, Izzat El Hajj, Yuxin Guo, Onur Mutlu"
+summary: >-
+  **SimplePIM** is a C-level programming framework for UPMEM-style processing-in-memory systems that makes PIM-resident arrays, host-managed metadata, communication collectives, and array iterators the primary reusable objects. Its contribution is clearest as a runtime/programming layer: users register or create arrays, move them with scatter/gather/broadcast/allreduce/allgather, and invoke map, general reduction, or zip iterators through host-side calls while the framework handles DPU allocation, alignment, per-DPU partitioning, scratchpad-aware execution, and DPU binary loading. The paper demonstrates this stack on real UPMEM hardware across reduction, vector addition, histogram, linear regression, logistic regression, and K-means, reporting both LoC reduction and runtime comparisons against hand-optimized UPMEM baselines. For CIM compiler/IR research, SimplePIM is most useful as an example of a “hidden IR” embedded in runtime metadata and DPU argument structs: the stack does not center on an explicit graph or dialect, but it does expose a concrete backend contract for naming PIM arrays, preserving placement state, and lowering high-level array operations to real PIM execution. ([arXiv](https://arxiv.org/html/2310.01893v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "real-hardware-PIM"
+workloads:
+  - "reduction"
+  - "vector_addition"
+  - "histogram"
+  - "linear_regression"
+  - "logistic_regression"
+  - "k_means"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A5, A3]
+axis_B: [B7, B3, B4, B1]
+axis_C_first_class_objects:
+  - "PIM-resident array"
+  - "array_id"
+  - "DPU_set"
+  - "per_DPU_partition_lengths"
+  - "MRAM_start_end_offsets"
+  - "element_type_size"
+  - "communication_collective"
+  - "function_handle"
+  - "lazy_zipped_array"
+  - "reduction_accumulator"
+axis_D_rewrite_objects:
+  - "runtime_state"
+  - "memory_layout"
+  - "array_binding"
+  - "iterator_lowering"
+  - "DPU_kernel_template_selection"
+  - "host_mediated_collective"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/CMU-SAFARI/SimplePIM"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Best read as a UPMEM C runtime/API whose hidden IR is host-side array metadata plus per-DPU argument state."
+  - "Strongest evidence is real-hardware execution and public code for six UPMEM workloads."
+  - "No standalone serialized compiler IR or graph dialect found in checked sources."
+  - "Analog CIM objects such as ADC/DAC, bit-sliced partial sums, and reconstruction trees are not applicable to the demonstrated UPMEM backend."
+takeaways: []
+---
+
 # SimplePIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -284,24 +354,7 @@ The six workloads are reduction, vector addition, histogram, K-means, linear reg
 
 **Integration effort estimate: Medium.** Integration as a UPMEM backend or benchmark harness is relatively direct because the artifact exposes C APIs, benchmark folders, and UPMEM compilation commands. Integration into a general CIM compiler/IR stack would require an adapter that extracts or reconstructs the runtime table state as a durable IR object, plus a representation for iterator semantics and backend constraints. The demonstrated scope is clear and useful, but the core semantics are distributed across source templates, runtime structs, and UPMEM SDK calls rather than packaged as a single compiler-facing schema.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-SimplePIM provides useful ingredients for a value-trajectory IR, especially its explicit treatment of **where arrays live**, **how they are partitioned across PIM cores**, and **which communication primitive moves or combines them**. The closest approximation to trajectory semantics is the array ID plus table metadata: a value collection can be scattered from host memory into DPU MRAM, processed through map/reduction/zip, optionally represented as a lazy zip, gathered back to host, or combined through host-mediated allreduce/allgather. ([arXiv](https://arxiv.org/html/2310.01893v1))
-
-The work names value paths at the granularity of arrays and DPU chunks, not individual scalar trajectories. It preserves identity through array IDs, source/destination table names, per-DPU lengths, start/end offsets, and virtual-zip source fields. For UPMEM, analog partial sums, sensing, ADC conversion, and reconstruction are not applicable; reduction identity is preserved through accumulator functions and host/DPU combination paths. ([GitHub](https://raw.githubusercontent.com/CMU-SAFARI/SimplePIM/main/lib/management/Management.h))
-
-Bit significance, channel rate, precision stage, placement, and domain transition are partly represented. Placement is explicit at DPU/MRAM-offset level; type size is explicit; ML quantization is described at benchmark level; analog precision stages and bit-slice significance are not part of the demonstrated UPMEM abstraction. ([arXiv](https://arxiv.org/html/2310.01893v1))
-
-A trajectory-level extension would likely attach richer metadata to `table_host_t` or to a new IR object above it:
-
-- **fusing reconstruction with downstream reduction:** Mostly not applicable for analog reconstruction; generalized reduction could still benefit from explicit accumulator-path metadata.
-- **delaying or retiming ADC conversion:** Not applicable to the UPMEM digital backend.
-- **carrying bit-sliced partial sums across operator boundaries:** Not applicable as written; would require a numeric-layout/type system beyond element type size.
-- **changing reduction tree structure:** Partially suggested by shared vs thread-private accumulators, ring-reduce merging, and host OpenMP combination; making this rewriteable would require a first-class reduction-tree object. ([arXiv](https://arxiv.org/html/2310.01893v1))
-- **routing values through alternative peripheral paths:** The paper discusses host-mediated PIM-PIM communication and future hardware PIM-PIM mechanisms; expressing alternatives would require communication path nodes as first-class resources. ([arXiv](https://arxiv.org/html/2310.01893v1))
-- **co-optimizing data movement and numeric reconstruction:** Data movement co-optimization is already visible in padding, transfer sizing, and lazy zip; numeric reconstruction would require an additional abstraction for precision stages and reconstruction paths. ([arXiv](https://arxiv.org/html/2310.01893v1))
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -312,7 +365,7 @@ A trajectory-level extension would likely attach richer metadata to `table_host_
 | **CINM / Cinnamon** | CIM/CNM compiler infrastructure, UPMEM support, backend lowering. | CINM is explicitly MLIR-based and targets heterogeneous CIM/CNM devices; SimplePIM is a UPMEM-centered runtime framework without a standalone IR/dialect. ([GitHub](https://github.com/tud-ccc/Cinnamon?utm_source=chatgpt.com)) | Useful contrast between explicit IR stacks and hidden-runtime-IR stacks. |
 | **FREERIDE / MATE-style generalized reduction lineage** | General reduction pattern: map input elements to output entries and combine with associative/commutative accumulation. | SimplePIM adapts this pattern to PIM-resident arrays, DPU-local accumulation, and host-mediated final combination. ([arXiv](https://arxiv.org/html/2310.01893v1)) | Tag generalized reduction separately from conventional map-only PIM APIs. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - SimplePIM’s real contribution is a C-level programming/runtime framework for UPMEM-style PIM arrays, not a general CIM compiler IR.
 - Its strongest reusable stack layer is the host-managed runtime boundary: PIM-resident array metadata, communication collectives, iterator handles, and per-DPU launch arguments.
@@ -322,70 +375,3 @@ A trajectory-level extension would likely attach richer metadata to `table_host_
 - Artifact status is strong for a narrow UPMEM scope: public MIT-licensed code, six benchmark folders, documented UPMEM SDK workflow, and no published GitHub releases. ([GitHub](https://github.com/CMU-SAFARI/SimplePIM))
 - Integration would be most direct as a UPMEM backend or benchmark harness; compiler-level reuse would benefit from extracting runtime metadata into a durable IR/schema.
 - For a value-trajectory IR, SimplePIM is relevant as a chunk-level data-placement and movement model; trajectory-level rewrites would add explicit value-path, domain, precision, and reduction-tree metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "SimplePIM: A Software Framework for Productive and Efficient Processing-in-Memory"
-year: 2023
-venue: "PACT 2023"
-authors_or_group: "Jinfan Chen, Juan Gómez-Luna, Izzat El Hajj, Yuxin Guo, Onur Mutlu"
-technology:
-  - UPMEM
-  - DRAM-PIM
-  - digital-CIM
-  - real-hardware-PIM
-workloads:
-  - reduction
-  - vector_addition
-  - histogram
-  - linear_regression
-  - logistic_regression
-  - k_means
-axis_A:
-  primary: "A6 programming/runtime/benchmark on real hardware"
-  secondary:
-    - "A5 narrow end-to-end co-design"
-    - "A3 runtime mapping/scheduling heuristics"
-axis_B:
-  - "B7 runtime-state abstraction"
-  - "B3 loop/tensor-schedule IR via array iterators"
-  - "B4 hardware-resource metadata, partial"
-  - "B1 config-as-IR, partial"
-axis_C_first_class_objects:
-  - PIM-resident array
-  - array_id
-  - DPU_set
-  - per_DPU_partition_lengths
-  - MRAM_start_end_offsets
-  - element_type_size
-  - communication_collective
-  - function_handle
-  - lazy_zipped_array
-  - reduction_accumulator
-axis_D_rewrite_objects:
-  - runtime_state
-  - memory_layout
-  - array_binding
-  - iterator_lowering
-  - DPU_kernel_template_selection
-  - host_mediated_collective
-artifact:
-  status: "public artifact found"
-  url: "https://github.com/CMU-SAFARI/SimplePIM"
-  license: "MIT"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best read as a UPMEM C runtime/API whose hidden IR is host-side array metadata plus per-DPU argument state."
-  - "Strongest evidence is real-hardware execution and public code for six UPMEM workloads."
-  - "No standalone serialized compiler IR or graph dialect found in checked sources."
-  - "Analog CIM objects such as ADC/DAC, bit-sliced partial sums, and reconstruction trees are not applicable to the demonstrated UPMEM backend."
-```

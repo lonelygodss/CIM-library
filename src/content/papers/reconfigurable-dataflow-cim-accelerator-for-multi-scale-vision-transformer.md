@@ -1,3 +1,67 @@
+---
+slug: reconfigurable-dataflow-cim-accelerator-for-multi-scale-vision-transformer
+title: "An In-Memory Computing Accelerator with Reconfigurable Dataflow for Multi-Scale Vision Transformer with Hybrid Topology"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DAC 2024"
+authors_or_group: "Zhiyuan Chen; Yufei Ma; Keyi Li; Yifan Jia; Guoxiang Li; Meng Wu; Tianyu Jia; Le Ye; Ru Huang"
+summary: >-
+  This DAC 2024 paper contributes a digital SRAM-CIM accelerator architecture and reconfigurable dataflow for static-shape, image-domain multi-scale Vision Transformers whose topology mixes convolutional layers with multi-head attention. Its strongest CIM-stack contribution is at the hardware-mapping and backend-dataflow boundary: the paper highlights MHA pipeline reordering, a two-stage softmax strategy, fused attention matrix multiplication to reduce quadratic intermediate traffic, reconfigurable IMC engines, a distributor network, reuse buffers, accumulation, and post-processing paths. The demonstrated scope is a TSMC 22 nm evaluation against a baseline IMC accelerator, reporting 2.20×–2.52× MHA speedup, 40.6%–74.8% MHA energy reduction, and 44.1%–55.9% EDP reduction for typical multi-scale ViTs. ([ACM Digital Library](https://dl.acm.org/doi/epdf/10.1145/3649329.3658244?utm_source=chatgpt.com)) For CIM compiler/IR research, the paper is most useful as a hardware-software co-design case where the practical “IR-like” object is a reconfigurable dataflow and resource-binding state, rather than a public frontend, verifier, serializable dialect, ISA, or compiler API.
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "multi-scale Vision Transformer inference"
+  - "hybrid convolution + MHA image models"
+  - "MHA workloads"
+  - "convolutional layers"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A3, A2]
+axis_B: [B4, B1, B2, B3]
+axis_C_first_class_objects:
+  - "digital SRAM-CIM macro / IMC engine"
+  - "reconfigurable IMC engine"
+  - "distributor network"
+  - "reuse buffer"
+  - "accumulated-result path"
+  - "post-processing unit"
+  - "MHA tensor stages Q/K/V/S/Sprime/O"
+  - "fused MHA MatMul dataflow"
+axis_D_rewrite_objects:
+  - "operator/dataflow pipeline"
+  - "hardware mapping"
+  - "data movement schedule"
+  - "array/engine binding"
+  - "memory reuse path"
+  - "softmax placement"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "Unknown / not found in checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best understood as a hardware-software co-design and layer-specific architecture contribution."
+  - "The reusable interface is clearest at the reconfigurable dataflow and hardware-resource mapping boundary."
+  - "Public evidence supports MHA pipeline reordering, two-stage softmax placement, fused MatMul, reconfigurable IMC engines/interconnects, reuse buffering, accumulation, and post-processing."
+  - "No public frontend, serializable IR, verifier, compiler API, ISA, simulator API, or reproduction harness was found in checked sources."
+takeaways: []
+---
+
 # An In-Memory Computing Accelerator with Reconfigurable Dataflow for Multi-Scale Vision Transformer with Hybrid Topology — scoped CIM stack note
 
 _Source note: I found the paper’s bibliographic record and ACM-indexed paper text snippets, but the ACM PDF itself was not retrievable through open browsing. No public artifact repository, benchmark package, compiler, simulator, or scripts were found in the checked public sources. The paper appears in DAC 2024 as paper 245:1–245:6. ([DBLP](https://dblp.org/rec/conf/dac/Chen0L0L0JY024))_
@@ -288,44 +352,7 @@ For auditability, the important boundary is that these are paper-level experimen
 **Integration effort estimate: High.**  
 Integration would be most direct through a new adapter that reconstructs the paper’s implicit mapping state: MHA stage graph, layer shapes, engine modes, distributor routing, buffer reuse, accumulation, and post-processing. The most valuable reusable boundary appears to be the attention-dataflow transformation and hardware-resource contract. Effort is high because no public artifact, serialized IR, simulator API, or reproduction scripts were found.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially because it names the high-level attention values \(Q\), \(K\), \(V\), \(S\), \(S'\), and \(O\), and it also names block-level hardware flow through reuse buffers, distributor network, IMC engines, accumulated-result gathering, and post-processing. ([ACM Digital Library](https://dl.acm.org/doi/epdf/10.1145/3649329.3658244?utm_source=chatgpt.com))
-
-The closest approximation to trajectory semantics is the paper’s dataflow path:
-
-```text
-input / activation bits
-  -> reuse buffer or MHA input path
-  -> distributor network
-  -> IMC engines
-  -> accumulated results
-  -> post-processing
-  -> next layer output
-```
-
-The demonstrated abstraction centers on accelerator dataflow and resource mapping. A trajectory-level extension would likely attach the following metadata to each value or tile:
-
-- logical tensor identity: \(Q\), \(K\), \(V\), score tile, softmax state, weighted-\(V\) partial, output tile;
-- physical location: SRAM bank, reuse buffer, distributor lane, IMC engine, accumulator, post-processing unit;
-- numeric state: bit position, precision, accumulation width, scaling state, post-processing operation;
-- materialization state: virtual, partially accumulated, locally normalized, globally normalized, stored, or forwarded;
-- movement state: fanout, gather path, reuse count, and destination stage.
-
-For the specific trajectory rewrites:
-
-| Trajectory rewrite | Fit with this paper |
-|---|---|
-| Fusing reconstruction with downstream reduction | Conceptually related through fused MHA MatMul and post-processing, but reconstruction metadata was not found as an explicit public object. |
-| Delaying or retiming ADC conversion | Mostly not applicable to the demonstrated digital-SRAM path; the paper avoids analog/digital conversion rather than scheduling it. |
-| Carrying bit-sliced partial sums across operator boundaries | The serial input-bit and accumulation path are relevant ingredients, but a type-like bit-slice/partial-sum IR was not found. |
-| Changing reduction tree structure | Related to two-stage softmax and accumulated-result gathering; expressing general reduction-tree rewrites would require explicit reduction-state objects. |
-| Routing values through alternative peripheral paths | Strongly related to the distributor network and reconfigurable interconnect. A trajectory IR could make those paths first-class. |
-| Co-optimizing data movement and numeric reconstruction | Aligned with the paper’s data-movement motivation, especially fused MHA computation; full expression would require numeric-state and reconstruction metadata. |
-
-Overall trajectory-IR relevance: **medium**. The paper is valuable as a case study for attention-specific value movement through CIM resources, but its public abstraction is block-level dataflow rather than an identity-preserving value-trajectory representation.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -336,7 +363,7 @@ Overall trajectory-IR relevance: **medium**. The paper is valuable as a case stu
 | **HEIRS** | Transformer acceleration using CIM hierarchy | HEIRS is listed as a hybrid 3D RRAM/SRAM-CIM accelerator for multi-task transformer acceleration; this paper stays in digital SRAM-CIM and focuses on multi-scale ViT hybrid topology. ([GitHub](https://github.com/BUAA-CI-Lab/Literatures-on-SRAM-based-CIM)) | Corpus classification should separate memory technology from compiler object: technology may differ while mapping/dataflow questions overlap. |
 | **IMTP / tensor-program mapping work** | Compiler/mapping orientation for in-memory tensor programs | IMTP-style work describes search-based code generation and lowering to loop-based tensor IR; this paper contributes architecture-specific dataflow without a public loop IR or compiler artifact. ([arXiv](https://arxiv.org/pdf/2412.19630v1?utm_source=chatgpt.com)) | Explicit lowering artifacts are easier to integrate, but architecture papers can still provide valuable rewrite patterns and backend contracts. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - The paper’s real contribution is a **digital SRAM-CIM accelerator architecture and reconfigurable dataflow** for multi-scale image ViTs with hybrid convolution + MHA topology.
 - The strongest reusable stack layer is the **backend mapping/dataflow layer**, especially MHA pipeline reordering, two-stage softmax placement, fused attention MatMul, distributor routing, and reuse-buffer/accumulation paths.
@@ -346,64 +373,3 @@ Overall trajectory-IR relevance: **medium**. The paper is valuable as a case stu
 - **Artifact status: no public artifact found.** No public compiler, simulator API, serialized IR, ISA, verifier, scripts, or reproducibility harness was found in checked sources.
 - Integration is most plausible as **IR inspiration, mapper/scheduler design input, benchmark motivation, and paper-level validation target**, rather than as a directly reusable software stack.
 - For value-trajectory IR work, the paper is useful because it exposes attention value movement through CIM resources, but a trajectory-level system would need explicit metadata for value identity, bit significance, precision stage, routing, accumulation, and materialization state.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "An In-Memory Computing Accelerator with Reconfigurable Dataflow for Multi-Scale Vision Transformer with Hybrid Topology"
-year: 2024
-venue: "DAC 2024"
-authors_or_group: "Zhiyuan Chen; Yufei Ma; Keyi Li; Yifan Jia; Guoxiang Li; Meng Wu; Tianyu Jia; Le Ye; Ru Huang"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - multi-scale Vision Transformer inference
-  - hybrid convolution + MHA image models
-  - MHA workloads
-  - convolutional layers
-axis_A:
-  primary: A5 narrow end-to-end co-design
-  secondary:
-    - A3 mapping / scheduling / DSE framework
-    - A2 simulator & cost model, paper-level evaluation
-axis_B:
-  - B4 Hardware-resource IR
-  - B1 Config-as-IR, implicit
-  - B2 Graph-as-IR, paper-level
-  - B3 Loop / tensor-schedule IR, implicit
-axis_C_first_class_objects:
-  - digital SRAM-CIM macro / IMC engine
-  - reconfigurable IMC engine
-  - distributor network
-  - reuse buffer
-  - accumulated-result path
-  - post-processing unit
-  - MHA tensor stages Q/K/V/S/Sprime/O
-  - fused MHA MatMul dataflow
-axis_D_rewrite_objects:
-  - operator/dataflow pipeline
-  - hardware mapping
-  - data movement schedule
-  - array/engine binding
-  - memory reuse path
-  - softmax placement
-artifact:
-  status: "no public artifact found"
-  url: ""
-  license: "Unknown / not found in checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best understood as a hardware-software co-design and layer-specific architecture contribution."
-  - "The reusable interface is clearest at the reconfigurable dataflow and hardware-resource mapping boundary."
-  - "Public evidence supports MHA pipeline reordering, two-stage softmax placement, fused MatMul, reconfigurable IMC engines/interconnects, reuse buffering, accumulation, and post-processing."
-  - "No public frontend, serializable IR, verifier, compiler API, ISA, simulator API, or reproduction harness was found in checked sources."
-```

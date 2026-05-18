@@ -1,3 +1,83 @@
+---
+slug: prim
+title: "PrIM / Benchmarking a New Paradigm: Experimental Analysis and Characterization of a Real Processing-in-Memory System"
+subtitle: "Scoped CIM stack note"
+year: 2022
+venue: "IEEE Access"
+authors_or_group: "Juan Gómez-Luna, Izzat El Hajj, Ivan Fernandez, Christina Giannoula, Geraldo F. Oliveira, Onur Mutlu"
+summary: >-
+  PrIM is best classified as a real-hardware benchmark and characterization framework for the UPMEM digital DRAM-PIM architecture rather than as an explicit compiler/IR stack. Its main contribution is a public suite of 16 manually ported memory-bound workloads, accompanying microbenchmarks, CPU/GPU baselines, and a measurement methodology for understanding DPU compute throughput, MRAM/WRAM bandwidth, host-DPU transfer behavior, scaling, and energy on 640-DPU and 2,556-DPU UPMEM systems. The reusable stack layer is clearest at the benchmark/reproducibility boundary: host code, DPU kernels, Makefile parameters, run scripts, datasets, and profiling outputs. For CIM compiler/IR research, PrIM is useful as a concrete backend contract for digital DRAM-PIM: it shows which objects a future IR would need to name to target UPMEM-like systems, especially DPU allocation, tasklet count, MRAM/WRAM staging, transfer direction, inter-DPU communication through the host, and workload partitioning. ([cgiannoula.github.io](https://cgiannoula.github.io/assets/publications/Prim_Access22_arxiv.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "UPMEM"
+  - "digital-CIM"
+  - "digital-PIM"
+workloads:
+  - "Vector Addition"
+  - "GEMV"
+  - "SpMV"
+  - "Select"
+  - "Unique"
+  - "Binary Search"
+  - "Time Series Analysis"
+  - "BFS"
+  - "MLP"
+  - "Needleman-Wunsch"
+  - "Image Histogram"
+  - "Reduction"
+  - "Prefix Sum"
+  - "Matrix Transposition"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A2, A3]
+axis_B: [B1, B4, B7, B5]
+axis_C_first_class_objects:
+  - "DPU"
+  - "tasklet"
+  - "MRAM_bank"
+  - "WRAM"
+  - "IRAM"
+  - "DMA_transfer"
+  - "CPU_DPU_transfer"
+  - "DPU_CPU_transfer"
+  - "host_merge"
+  - "synchronization_primitive"
+  - "datatype"
+  - "block_size"
+axis_D_rewrite_objects:
+  - "manual_loop_partitioning"
+  - "data_chunk_mapping"
+  - "tasklet_block_assignment"
+  - "memory_staging"
+  - "synchronization_structure"
+  - "implementation_variant_selection"
+  - "runtime_phase_measurement"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/CMU-SAFARI/prim-benchmarks"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "benchmark"
+  - "validation"
+  - "cost_model"
+  - "backend"
+  - "IR_inspiration"
+reproducibility_level: medium
+notes:
+  - "Best treated as a real-hardware UPMEM benchmark and characterization artifact, not an explicit compiler IR stack."
+  - "Most reusable IR lessons concern digital value placement, host-DPU transfer phases, DPU/tasklet mapping, and synchronization provenance."
+  - "Analog CIM objects such as ADC/DAC, crossbar bit-slicing, and reconstruction paths are not applicable to the demonstrated hardware."
+takeaways: []
+---
+
 # PrIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -241,17 +321,7 @@ The CPU/GPU comparison uses two full UPMEM systems, an Intel Xeon CPU, and an NV
 
 **Integration effort estimate: Medium.** Integration as a benchmark harness is relatively direct because the repository already contains runnable UPMEM programs and scripts. Integration as a compiler/IR backend would require adapters that extract implicit mapping state from C/Makefile/script boundaries and re-express it as a declarative target contract. The most valuable reusable boundary appears to be the phase-structured execution model: host input preparation → CPU-DPU transfer → DPU-local execution → synchronization/merge → DPU-CPU transfer → verification/profile.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially for **digital PIM value placement and movement**. It names the path a value takes through host memory, CPU-DPU transfer, MRAM bank, WRAM buffer, tasklet-local computation, MRAM writeback, DPU-CPU transfer, and host-side reconstruction/merge. The VA implementation makes this path especially clear: chunks are assigned to DPUs, blocks are assigned to tasklets, data moves from MRAM to WRAM, computation occurs locally, and results return through MRAM to the host. ([cgiannoula.github.io](https://cgiannoula.github.io/assets/publications/Prim_Access22_arxiv.pdf))
-
-For analog-CIM trajectory concepts, many nodes are not applicable: there are no analog partial sums, ADC sensing stages, DAC inputs, shift-add reconstruction trees, or bit-sliced crossbar outputs. The closest approximation to trajectory semantics is the explicit digital memory trajectory plus runtime ownership state: host-owned array segment, DPU-owned MRAM segment, WRAM-resident block, tasklet-local temporary, DPU-local partial result, and host-merged global result.
-
-Bit significance, channel rate, and precision stage are not represented as type-like IR fields. Datatype appears as software type/build configuration, and placement appears as code-level address arithmetic and runtime transfers. A trajectory-level extension would likely attach `{location: host/MRAM/WRAM/register, owner: CPU/DPU/tasklet, datatype, block_size, transfer_size, synchronization_epoch, merge_policy}` to values or buffers.
-
-PrIM’s demonstrated abstraction centers on backend execution phases and memory movement. Trajectory-level rewrites such as fusing reconstruction with downstream reduction, retiming ADC conversion, or carrying analog bit-sliced partial sums across operators are outside the UPMEM digital-PIM setting. For this target, analogous trajectory rewrites would be: delaying host retrieval across multiple DPU kernels, fusing host merge with downstream redistribution, changing reduction tree structure inside a DPU, selecting SCAN-SSA vs SCAN-RSS based on transfer/synchronization cost, or co-optimizing MRAM-WRAM transfer size with tasklet block assignment.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -261,7 +331,7 @@ PrIM’s demonstrated abstraction centers on backend execution phases and memory
 | **UPMEM SDK programming examples / SDK functional simulator** | Same runtime and backend toolchain | The SDK is the programming/runtime substrate; PrIM supplies workload breadth, baselines, and characterization methodology on top of it. ([GitHub](https://github.com/CMU-SAFARI/prim-benchmarks)) | Treat SDK calls as the backend ABI that a future IR/codegen layer would target. |
 | **PrIM-derived architecture studies using uPIMulator** | Use PrIM workloads to study architectural bottlenecks | These works use PrIM as a workload driver while moving the main research object to architectural simulation or proposed microarchitectural changes. ([arXiv](https://arxiv.org/html/2308.00846v3?utm_source=chatgpt.com)) | Corpus classification should distinguish benchmark artifact, simulator artifact, and architecture proposal even when they share workloads. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PrIM’s real contribution is an open UPMEM DRAM-PIM benchmark and characterization suite with microbenchmarks, 16 workload variants, CPU/GPU baselines, and real-system measurements.
 - The strongest reusable stack layer is the reproducibility/backend-validation layer: host/DPU code, Makefiles, run scripts, datasets, and phase-level timing.
@@ -271,80 +341,3 @@ PrIM’s demonstrated abstraction centers on backend execution phases and memory
 - Artifact status: public artifact found, MIT-licensed, with runnable code and scripts; a declarative compiler IR, pass pipeline, and paper-figure workflow were not found in the checked sources.
 - Integration is most direct as a benchmark and calibration source for future CIM/PIM compiler stacks.
 - For a value-trajectory IR project, PrIM is valuable for digital placement/transfer trajectories, while analog trajectory objects such as ADC/DAC, bit-sliced partial sums, and reconstruction paths are not applicable to this target.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PrIM / Benchmarking a New Paradigm: Experimental Analysis and Characterization of a Real Processing-in-Memory System"
-year: 2022
-venue: "IEEE Access"
-authors_or_group: "Juan Gómez-Luna, Izzat El Hajj, Ivan Fernandez, Christina Giannoula, Geraldo F. Oliveira, Onur Mutlu"
-technology:
-  - DRAM-PIM
-  - UPMEM
-  - digital-CIM
-  - digital-PIM
-workloads:
-  - Vector Addition
-  - GEMV
-  - SpMV
-  - Select
-  - Unique
-  - Binary Search
-  - Time Series Analysis
-  - BFS
-  - MLP
-  - Needleman-Wunsch
-  - Image Histogram
-  - Reduction
-  - Prefix Sum
-  - Matrix Transposition
-axis_A:
-  primary: A6_programming_runtime_benchmark_on_real_hardware
-  secondary:
-    - A2_simulator_cost_model_characterization
-    - A3_manual_mapping_patterns
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B7_runtime_state_abstraction
-  - B5_instruction_backend_visibility_partial
-axis_C_first_class_objects:
-  - DPU
-  - tasklet
-  - MRAM_bank
-  - WRAM
-  - IRAM
-  - DMA_transfer
-  - CPU_DPU_transfer
-  - DPU_CPU_transfer
-  - host_merge
-  - synchronization_primitive
-  - datatype
-  - block_size
-axis_D_rewrite_objects:
-  - manual_loop_partitioning
-  - data_chunk_mapping
-  - tasklet_block_assignment
-  - memory_staging
-  - synchronization_structure
-  - implementation_variant_selection
-  - runtime_phase_measurement
-artifact:
-  status: public_artifact_found
-  url: "CMU-SAFARI/prim-benchmarks"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - benchmark
-  - validation
-  - cost_model
-  - backend
-  - IR_inspiration
-reproducibility_level: high_for_benchmark_code_medium_for_full_paper_figures
-trajectory_IR_relevance: medium
-notes:
-  - "Best treated as a real-hardware UPMEM benchmark and characterization artifact, not an explicit compiler IR stack."
-  - "Most reusable IR lessons concern digital value placement, host-DPU transfer phases, DPU/tasklet mapping, and synchronization provenance."
-  - "Analog CIM objects such as ADC/DAC, crossbar bit-slicing, and reconstruction paths are not applicable to the demonstrated hardware."
-```

@@ -1,3 +1,74 @@
+---
+slug: pim-opt
+title: "PIM-Opt: Demystifying Distributed Optimization Algorithms on a Real-World Processing-In-Memory System"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "PACT 2024"
+authors_or_group: "Steve Rhyner, Haocong Luo, Juan Gómez-Luna, Mohammad Sadrosadati, Jiawei Jiang, Ataberk Olgun, Harshita Gupta, Ce Zhang, Onur Mutlu"
+summary: >-
+  PIM-Opt is a real-hardware UPMEM PIM study and reproducible evaluation framework for distributed optimization in linear ML training. Its main contribution is the implementation and measurement of MA-SGD, GA-SGD, and ADMM for logistic regression and SVM training on YFCC100M-HNfc6 and Criteo, including UPMEM execution, CPU/GPU baselines, preprocessing/postprocessing scripts, and figure-generation artifacts. The stack contribution is strongest at the runtime, benchmarking, and hardware-software co-design boundary: the paper makes host–DPU data movement, parameter-server synchronization, DPU/tasklet parallelism, and fixed-point backend constraints visible as performance-critical objects. For CIM compiler/IR research, PIM-Opt is most useful as a real-system backend and benchmark corpus rather than as an explicit IR stack: its reusable semantics are distributed across C structs, Makefiles, experiment scripts, timing logs, and host aggregation code. ([arXiv](https://arxiv.org/pdf/2404.07164v2))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "real-hardware-PIM"
+workloads:
+  - "logistic-regression-training"
+  - "linear-SVM-training"
+  - "YFCC100M-HNfc6"
+  - "Criteo-1TB-click-logs"
+  - "distributed-optimization"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A5, A2]
+axis_B: [B7, B1, B4]
+axis_C_first_class_objects:
+  - "UPMEM_DPU"
+  - "tasklet"
+  - "MRAM"
+  - "WRAM"
+  - "host_parameter_server"
+  - "host_DPU_transfer"
+  - "data_partition"
+  - "minibatch"
+  - "local_model"
+  - "global_model"
+  - "gradient"
+  - "fixed_point_value"
+  - "sigmoid_LUT"
+axis_D_rewrite_objects:
+  - "runtime_state"
+  - "synchronization_schedule"
+  - "data_partitioning"
+  - "batch_size"
+  - "DPU_tasklet_configuration"
+  - "fixed_point_backend_configuration"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/CMU-SAFARI/PIM-Opt"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "benchmark"
+  - "backend"
+  - "cost_model"
+  - "validation"
+  - "IR_inspiration"
+reproducibility_level: high
+notes:
+  - "Best treated as a real-hardware UPMEM runtime/benchmark artifact rather than an explicit compiler IR stack."
+  - "Reusable semantics are clearest in host-DPU communication phases, distributed optimizer state, DPU/tasklet configuration, and timing logs."
+  - "ADC/DAC, analog partial sums, crossbar mapping, and bit-sliced reconstruction are not applicable to the demonstrated UPMEM digital DRAM-PIM platform."
+takeaways: []
+---
+
 # PIM-Opt — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -270,19 +341,7 @@ Integration would be most direct through the existing scripts, C structs, and lo
 
 ---
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PIM-Opt provides useful ingredients for a value-trajectory IR at the **system-dataflow and runtime-state** level. The closest approximation to trajectory semantics is the path: preprocessed training data in host storage/memory → DPU MRAM → DPU WRAM/tasklet computation → local model or gradient state → host retrieval → host aggregation → redistribution of global model state. The paper’s workflow and host code make this path visible enough to reason about communication phases and synchronization frequency. ([arXiv](https://arxiv.org/pdf/2404.07164v2))
-
-The work names the path a value takes through UPMEM resources at a coarse granularity: host memory, DPU MRAM, DPU WRAM, DPU kernel, host aggregation buffer, and redistributed global state. It preserves value identity for algorithmic objects such as model weights, bias, gradients, and local/global model states, but not for fine-grained partial sums through a typed arithmetic pipeline.
-
-For analog-style trajectory questions, many objects are not applicable to this platform: ADC/DAC conversion, analog partial sums, bit-sliced analog accumulation, and reconstruction trees are outside the demonstrated UPMEM digital DRAM-PIM backend. The relevant type-like information is instead fixed-point format, DPU-local placement, transfer phase, batch/epoch index, and synchronization role. ([arXiv](https://arxiv.org/pdf/2404.07164v2))
-
-A trajectory-level extension would likely attach fields such as `{value_role: local_model | gradient | global_model}`, `{location: host | MRAM | WRAM}`, `{phase: distribute | compute | retrieve | aggregate}`, `{numeric_format: fixed32}`, and `{collective: model_average | gradient_average | ADMM_consensus}` to the existing runtime state. That extension would make it easier to express rewrites such as changing reduction tree structure, replacing host-mediated aggregation with inter-DPU collectives, or co-optimizing data movement with numeric update rules. Rewrites such as delaying ADC conversion or carrying bit-sliced partial sums across operator boundaries would belong to a different CIM technology family and would need additional analog/numeric trajectory abstractions.
-
----
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -295,7 +354,7 @@ A trajectory-level extension would likely attach fields such as `{value_role: lo
 
 ---
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIM-Opt’s real contribution is a real-hardware UPMEM implementation and evaluation of MA-SGD, GA-SGD, and ADMM for LR/SVM training on two large datasets, with CPU/GPU baselines and a public reproduction artifact.
 - The strongest reusable stack layer is the runtime/benchmark layer: host-DPU data movement, parameter-server synchronization, DPU/tasklet execution, and timing/accuracy evaluation.
@@ -307,72 +366,3 @@ A trajectory-level extension would likely attach fields such as `{value_role: lo
 - For a value-trajectory IR, PIM-Opt is useful at the system-flow level: it models where model/gradient values live and when they move, while analog partial-sum and ADC/DAC trajectory objects are not applicable to this platform.
 
 ---
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIM-Opt: Demystifying Distributed Optimization Algorithms on a Real-World Processing-In-Memory System"
-year: 2024
-venue: "PACT 2024"
-authors_or_group: "Steve Rhyner, Haocong Luo, Juan Gómez-Luna, Mohammad Sadrosadati, Jiawei Jiang, Ataberk Olgun, Harshita Gupta, Ce Zhang, Onur Mutlu"
-technology:
-  - UPMEM
-  - DRAM-PIM
-  - digital-CIM
-  - real-hardware-PIM
-workloads:
-  - logistic-regression-training
-  - linear-SVM-training
-  - YFCC100M-HNfc6
-  - Criteo-1TB-click-logs
-  - distributed-optimization
-axis_A:
-  primary: A6_programming_runtime_benchmark_on_real_hardware
-  secondary:
-    - A5_narrow_end_to_end_codesign
-    - A2_measurement_oriented_cost_evaluation
-axis_B:
-  - B7_runtime_state_abstraction
-  - B1_config_as_IR
-  - B4_hardware_resource_IR_lightweight
-axis_C_first_class_objects:
-  - UPMEM_DPU
-  - tasklet
-  - MRAM
-  - WRAM
-  - host_parameter_server
-  - host_DPU_transfer
-  - data_partition
-  - minibatch
-  - local_model
-  - global_model
-  - gradient
-  - fixed_point_value
-  - sigmoid_LUT
-axis_D_rewrite_objects:
-  - runtime_state
-  - synchronization_schedule
-  - data_partitioning
-  - batch_size
-  - DPU_tasklet_configuration
-  - fixed_point_backend_configuration
-artifact:
-  status: public_artifact_found
-  url:
-    - "https://github.com/CMU-SAFARI/PIM-Opt"
-    - "https://doi.org/10.5281/zenodo.12747665"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - benchmark
-  - backend
-  - cost_model
-  - validation
-  - IR_inspiration
-reproducibility_level: high_for_documented_environment
-trajectory_IR_relevance: medium
-notes:
-  - "Best treated as a real-hardware UPMEM runtime/benchmark artifact rather than an explicit compiler IR stack."
-  - "Reusable semantics are clearest in host-DPU communication phases, distributed optimizer state, DPU/tasklet configuration, and timing logs."
-  - "ADC/DAC, analog partial sums, crossbar mapping, and bit-sliced reconstruction are not applicable to the demonstrated UPMEM digital DRAM-PIM platform."
-```

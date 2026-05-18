@@ -1,3 +1,78 @@
+---
+slug: pimsim-nn
+title: "PIMSIM-NN: An ISA-based Simulation Framework for Processing-in-Memory Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DATE 2024 Late Breaking Results"
+authors_or_group: "Xinyu Wang, Xiaotian Sun, Yinhe Han, Xiaoming Chen"
+summary: >-
+  PIMSIM-NN is best read as an ISA-centered simulation framework for crossbar-based PIM neural-network inference. The paper’s main contribution is the instruction-sequence boundary between software mapping/code generation and a configurable SystemC simulator: DNNs are compiled into per-core instructions, then evaluated against hardware and NoC configuration files for latency, power, energy, and throughput. The demonstrated paper scope is static DNN inference on memristor/RRAM-style crossbar accelerators, with experiments over CNN workloads such as AlexNet, GoogLeNet, ResNet-18, SqueezeNet, VGG-8, and VGG-16; the public simulator artifact is clearest for precompiled instruction streams and JSON hardware configs, while ONNX-to-instruction compilation is documented through the companion PIMCOMP-NN repository. For CIM compiler/IR research, PIMSIM-NN is valuable less as a general-purpose IR stack and more as a concrete backend contract: it shows which CIM details must be named at the ISA/config boundary for simulator-backed exploration. ([arXiv](https://arxiv.org/html/2402.18089v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "crossbar-PIM"
+  - "DNN-inference-accelerator"
+workloads:
+  - "AlexNet"
+  - "GoogLeNet"
+  - "ResNet-18"
+  - "SqueezeNet"
+  - "VGG-8"
+  - "VGG-16"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A3, A5]
+axis_B: [B5, B1, B4, B2, B7]
+axis_C_first_class_objects:
+  - "instruction_stream"
+  - "array_group"
+  - "core"
+  - "local_memory"
+  - "global_memory"
+  - "matrix_execution_unit"
+  - "vector_execution_unit"
+  - "transfer_execution_unit"
+  - "scalar_execution_unit"
+  - "NoC_mesh_config"
+  - "ROB"
+  - "DAC_ADC_parameters"
+  - "cell_precision"
+  - "shift_adder_latency"
+axis_D_rewrite_objects:
+  - "operator_graph_lowering"
+  - "node_partition"
+  - "weight_replication"
+  - "core_mapping"
+  - "array_group_binding"
+  - "dataflow_schedule"
+  - "instruction_stream"
+  - "numeric_bitwidth_fields"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/wangxy-2000/pimsim-nn"
+  license: "PIMSIM-NN: Unknown / not found in checked sources; PIMCOMP-NN: Apache-2.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "backend"
+  - "cost_model"
+  - "benchmark"
+  - "IR_inspiration"
+  - "mapper_scheduler_via_PIMCOMP"
+reproducibility_level: medium
+notes:
+  - "Best viewed as an ISA/simulator boundary contribution rather than a standalone general compiler IR."
+  - "Artifact exposes simulator inputs and a ResNet-18 example; complete paper-figure reproduction workflow was not found in checked README."
+  - "Value trajectory is implicit in instruction/address/resource sequences and config parameters."
+takeaways: []
+---
+
 # PIMSIM-NN — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -251,25 +326,7 @@ The paper’s evaluation uses CNN-style DNNs. For mapping and ROB studies it rep
 **Integration effort estimate: Medium.**  
 Integration would be most direct through the instruction/config boundary: emit PIMSIM-NN-compatible compressed instruction streams plus JSON configs, then call `ChipTest`. The main effort is not conceptual but infrastructural: documenting or reusing the instruction-stream serializer, preserving source-op provenance through lowering, and versioning the config schema. For end-to-end ONNX flows, reuse should route through PIMCOMP-NN or a compatible adapter.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-PIMSIM-NN provides useful ingredients for a value-trajectory IR, especially instruction-level naming of local/global memory locations, array groups, bit-width-setting instructions, inter-core send/recv, wait/sync, and hardware-resource timing parameters. The closest approximation to trajectory semantics is the sequence of `mvmul`, vector, memory, transfer, and synchronization instructions over local/global memory addresses and array groups. ([arXiv](https://arxiv.org/pdf/2308.06449))
-
-Against a future IR that makes value flow first-class:
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Partially. It names core, local memory, global memory, matrix unit/crossbars, transfer unit, NoC, and instruction actions. The trajectory is reconstructible from instruction operands and simulator config, but the named object is an instruction/resource sequence rather than a persistent value-flow object.
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  The demonstrated abstraction preserves address-level identity across instructions and synchronization. It does not expose a separate trajectory object for analog partial sums, ADC boundary, shift-add reconstruction, digital accumulation, and storage. Shift-adder and ADC timing appear as config parameters, while accumulation is expressed through scheduled operations and data movement. ([GitHub](https://raw.githubusercontent.com/wangxy-2000/pimsim-nn/main/example/config/latency_config.json))
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Precision appears through `setbw`, `mvmul` matrix bit-width, `cell_precision`, DAC/ADC resolution, and related config fields. Placement appears through array-group/core mapping. Domain transition is acknowledged by the ISA’s analog-kernel/digital-interface statement and by ADC/DAC config fields. These are parameters and instruction fields rather than a unified type system. ([arXiv](https://arxiv.org/pdf/2308.06449))
-
-- **Could it express trajectory rewrites?**  
-  The current abstraction could approximate some trajectory changes by changing mapping, instruction order, send/recv placement, local-memory addresses, and hardware config. A trajectory-level extension would likely attach value identity, domain, precision stage, array group, ADC/sense event, reconstruction state, and reduction tree metadata to values or instruction results. That would make it more natural to express rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, routing through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -279,7 +336,7 @@ Against a future IR that makes value flow first-class:
 | **PUMA** | Memristor-crossbar accelerator with specialized ISA, compiler, and simulator | PUMA is an architecture plus compiler/simulator for broad ML inference workloads; PIMSIM-NN is a simulation framework around a more general PIM DNN ISA/config boundary and companion compiler ecosystem. ([arXiv](https://arxiv.org/abs/1901.10351)) | Closest historical ISA/compiler/simulator precedent; compare by “what the ISA names” and how hardware resources are exposed. |
 | **PIM-Toolchain / PIMACC** | Toolchain-level view of architecture synthesis, compilation, performance simulation, and accuracy simulation | PIM-Toolchain positions PIMSIM-NN as the latency/power/energy simulator and PIMACC as the non-ideality/accuracy simulator. ([GitHub](https://github.com/chenxm1986/PIM-Toolchain)) | Corpus should record that PIMSIM-NN covers performance simulation; non-ideality/accuracy belongs to a sibling backend in the same toolchain. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIMSIM-NN’s core contribution is an **ISA-based simulator interface** for crossbar-based PIM DNN inference: compiler output is serialized as per-core instruction streams and consumed by a configurable SystemC simulator.
 - The strongest reusable stack layer is the **backend/simulator contract**: compressed instruction stream + JSON architecture/NoC configuration → latency/throughput/power/energy-style report.
@@ -289,79 +346,3 @@ Against a future IR that makes value flow first-class:
 - Artifact status is **public artifact found** for pimsim-nn; the repository documents build/run and includes a ResNet-18 instruction/config example. PIMSIM-NN license is **Unknown / not found in checked sources**; PIMCOMP-NN is Apache-2.0.
 - Integration is most direct by wrapping PIMSIM-NN as a **backend cost oracle** and using or emulating PIMCOMP-NN’s instruction serializer.
 - For value-trajectory IR research, PIMSIM-NN is a useful reference for **resource/instruction contracts**, but trajectory-level rewrites would add explicit value identity, domain-transition, bit-slice, sensing, reconstruction, and reduction metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIMSIM-NN: An ISA-based Simulation Framework for Processing-in-Memory Accelerators"
-year: 2024
-venue: "DATE 2024 Late Breaking Results"
-authors_or_group: "Xinyu Wang, Xiaotian Sun, Yinhe Han, Xiaoming Chen"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-  - crossbar-PIM
-  - DNN-inference-accelerator
-workloads:
-  - AlexNet
-  - GoogLeNet
-  - ResNet-18
-  - SqueezeNet
-  - VGG-8
-  - VGG-16
-axis_A:
-  primary:
-    - A2_simulator_cost_model
-    - A4_ISA_compiler_backend_boundary
-  secondary:
-    - A3_mapping_scheduling_DSE
-    - A5_narrow_end_to_end_codesign
-axis_B:
-  - B5_instruction_meta_op_ISA
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B2_graph_as_IR_delegated_to_PIMCOMP
-  - B7_runtime_state_backend_local
-axis_C_first_class_objects:
-  - instruction_stream
-  - array_group
-  - core
-  - local_memory
-  - global_memory
-  - matrix_execution_unit
-  - vector_execution_unit
-  - transfer_execution_unit
-  - scalar_execution_unit
-  - NoC_mesh_config
-  - ROB
-  - DAC_ADC_parameters
-  - cell_precision
-  - shift_adder_latency
-axis_D_rewrite_objects:
-  - operator_graph_lowering
-  - node_partition
-  - weight_replication
-  - core_mapping
-  - array_group_binding
-  - dataflow_schedule
-  - instruction_stream
-  - numeric_bitwidth_fields
-artifact:
-  status: "public artifact found"
-  url: "GitHub repository identifier: wangxy-2000/pimsim-nn"
-  companion_compiler: "GitHub repository identifier: sunxt99/PIMCOMP-NN"
-  license: "PIMSIM-NN: Unknown / not found in checked sources; PIMCOMP-NN: Apache-2.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - backend
-  - cost_model
-  - benchmark
-  - IR_inspiration
-  - mapper_scheduler_via_PIMCOMP
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best viewed as an ISA/simulator boundary contribution rather than a standalone general compiler IR."
-  - "Artifact exposes simulator inputs and a ResNet-18 example; complete paper-figure reproduction workflow was not found in checked README."
-  - "Value trajectory is implicit in instruction/address/resource sequences and config parameters."
-```

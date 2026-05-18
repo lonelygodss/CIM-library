@@ -1,3 +1,79 @@
+---
+slug: opencimtc
+title: "OpenCIMTC / A full-stack memristor-based computation-in-memory system with software-hardware co-development"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "Nature Communications"
+authors_or_group: "Tsinghua LEMON Lab and collaborators"
+summary: >-
+  OpenCIMTC is best read as a concrete end-to-end memristor/RRAM CIM co-design stack whose reusable compiler contribution is a serialized YAML **CIM-IR** separating layer attributes, physical mapping information, and calculation/deployment parameters. The work strengthens the vertical path from ONNX model import to memristor-array placement, simulator or hardware execution, post-deployment training, and simulator-/chip-in-the-loop tuning of hardware-sensitive parameters. The demonstrated system targets static neural-network inference and training-adjustment flows for a specific memristor CIM prototype with FPGA/CPU support, with public artifact support clearest around ResNet-32 simulation and generated training/optimization/inference scripts. For CIM compiler/IR research, its main value is not a broad formal IR, but an auditable example of how mapping state, physical addresses, ADC/integration-time parameters, quantization fields, and backend generation contracts can be made explicit enough to survive a compiler-to-hardware flow. ([Nature](https://www.nature.com/articles/s41467-025-57183-0))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "memristor-CIM"
+  - "analog-CIM"
+  - "hybrid analog-digital"
+workloads:
+  - "image classification"
+  - "text classification"
+  - "image segmentation"
+  - "object detection"
+  - "ResNet-32"
+  - "ResNet-50 simulator evaluation"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A4, A3, A2, A6]
+axis_B: [B1, B2, B4, B6, B7]
+axis_C_first_class_objects:
+  - "operator_attributes"
+  - "CIM_friendly_op_type"
+  - "virtual_non_CIM_runtime"
+  - "weight_split_copy_repeat"
+  - "physical_array_address"
+  - "runtime_target_real_or_simulator"
+  - "ADC_integration_time"
+  - "weight_scale"
+  - "input_quantization_scale"
+  - "activation_bits"
+  - "output_quantization_mode"
+  - "simulator_nonideality_parameters"
+axis_D_rewrite_objects:
+  - "operator_graph"
+  - "hardware_mapping"
+  - "array_binding"
+  - "memory_layout"
+  - "input_bit_expansion"
+  - "numeric_format"
+  - "hardware_calculation_parameters"
+  - "generated_backend_flow"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/Tsinghua-LEMON-Lab/OpenCIMTC"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Most reusable abstraction is the Attribute/Mapping/Calculation split in YAML CIM-IR."
+  - "Public workflow is clearest for ResNet-32 simulator-oriented generation, PDT, optimization, and inference."
+  - "Hardware-backed reproduction depends on prototype hardware and calibration context."
+  - "Value-trajectory extensions could attach domain, precision, placement, and reconstruction metadata to DataDef/layer outputs and MacroMappingInfo/MacroCalcInfo."
+takeaways: []
+---
+
 # OpenCIMTC — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -228,24 +304,7 @@ PTSS generalizes this idea to multiple tunable parameters. The paper formulates 
 
 **Integration effort estimate:** **Medium to High.** Integration as an IR-design reference or ResNet-32 simulator workflow is medium effort because the repository exposes the core compiler and example commands. Integration as a general backend or hardware-calibrated compiler component is high effort because several semantics are embedded in Python classes, generated scripts, simulator assumptions, and prototype-specific runtime behavior.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-OpenCIMTC provides useful ingredients for a value-trajectory IR, especially its explicit separation of mapping and calculation metadata. The closest approximation to trajectory semantics is the combination of bit-slicing/input expansion, weight splitting, output quantization, shift-accumulation, and split-output reconstruction in PDT and data-transformation flows. ([Springer Static Content](https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-025-57183-0/MediaObjects/41467_2025_57183_MOESM1_ESM.pdf))
-
-The paper names parts of the path a value takes through CIM resources: input encoding, array/MVM execution, ADC/output quantization, split accumulation, and backend function calls. Value identity, however, is primarily preserved at the layer/tensor/mapping level, not as a first-class value object that spans analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. The artifact’s `DataDef`, `Layer`, `MacroMappingInfo`, and `MacroCalcInfo` objects provide a plausible attachment point for such a trajectory extension. ([GitHub](https://raw.githubusercontent.com/Tsinghua-LEMON-Lab/OpenCIMTC/master/OpenCIMTC/compiler/irtool/core/layer.py))
-
-Bit significance, precision stage, placement, and domain transition are partly represented as parameter-like information: activation bits, input quantization scale, output quantization mode, shift expansion mode, integration time, runtime, and mapped device address. They are not presented as a type system, but they suggest what type-like fields a future trajectory IR could attach to tensors or partial-sum values. ([GitHub](https://raw.githubusercontent.com/Tsinghua-LEMON-Lab/OpenCIMTC/master/OpenCIMTC/compiler/hw_paras_def/macro.py))
-
-For trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** The current representation can express split/add/concat behavior, but a trajectory-level extension would likely need explicit reconstruction and reduction nodes.  
-- **Delaying or retiming ADC conversion:** The stack exposes ADC/integration-time parameters, but retiming ADC across boundaries would need a domain-transition abstraction.  
-- **Carrying bit-sliced partial sums across operator boundaries:** Bit-sliced behavior is modeled inside transformations and PDT; cross-operator carrying would require typed partial-sum values.  
-- **Changing reduction-tree structure:** Current mapping supports split and reconstruction choices; a rewriteable reduction tree would need an explicit accumulation-path object.  
-- **Routing values through alternative peripheral paths:** ACCI-style functions and chip-module blocks provide vocabulary, but alternative path selection would need peripheral path nodes in IR.  
-- **Co-optimizing data movement and numeric reconstruction:** OpenCIMTC already co-optimizes mapping and calculation parameters in a practical loop; a trajectory IR could generalize this by attaching movement, domain, precision, and reconstruction metadata to each value segment.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -256,7 +315,7 @@ For trajectory rewrites:
 | IBM AIHWKIT / analog hardware acceleration kit | Analog nonideality simulation and training | AIHWKIT-style tools center on analog training/simulation abstractions; OpenCIMTC couples nonideality-aware training to explicit CIM-IR mapping and backend generation. ([Nature](https://www.nature.com/articles/s41467-025-57183-0)) | Mark whether nonideality modeling is standalone or tied to compiler mapping state. |
 | Rasch-style hardware-aware training for analog IMC | Training under analog IMC constraints | OpenCIMTC’s PDT shares the hardware-aware training concern but embeds it in an end-to-end compiler flow where mapping metadata feeds training code. ([Nature](https://www.nature.com/articles/s41467-025-57183-0)) | Corpus notes should identify when training consumes compiler IR rather than separate hardware model parameters. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - OpenCIMTC’s core reusable contribution is a vertical memristor CIM stack centered on a YAML CIM-IR with **Attribute**, **Mapping**, and **Calculation** fields.  
 - The strongest reusable stack layer is the mapping/deployment boundary: physical array placement, split/copy metadata, runtime target, and ADC/quantization/integration-time parameters.  
@@ -266,79 +325,3 @@ For trajectory rewrites:
 - Artifact status is public: GitHub plus Zenodo, MIT licensed; reproducibility is strongest for software/simulator examples and partial for full hardware-backed paper figures.  
 - Integration is most direct as IR inspiration, mapper/scheduler reference, simulator workflow, and deployment-parameter search pattern.  
 - For value-trajectory IR research, OpenCIMTC is valuable because it exposes the ingredients—bit slicing, mapping, sensing/quantization parameters, and reconstruction behavior—even though trajectory identity is not the named IR object.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "OpenCIMTC / A full-stack memristor-based computation-in-memory system with software-hardware co-development"
-year: 2025
-venue: "Nature Communications"
-authors_or_group: "Tsinghua LEMON Lab and collaborators"
-technology:
-  - RRAM-CIM
-  - memristor-CIM
-  - analog-CIM
-  - hybrid analog-digital
-workloads:
-  - image classification
-  - text classification
-  - image segmentation
-  - object detection
-  - ResNet-32
-  - ResNet-50 simulator evaluation
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A4_explicit_IR_compiler_stack
-    - A3_mapping_scheduling_DSE
-    - A2_simulator_cost_model
-    - A6_programming_runtime_real_hardware
-axis_B:
-  - B1_config_as_IR
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B6_accuracy_nonideality_modeling
-  - B7_runtime_state_abstraction_partial
-axis_C_first_class_objects:
-  - operator_attributes
-  - CIM_friendly_op_type
-  - virtual_non_CIM_runtime
-  - weight_split_copy_repeat
-  - physical_array_address
-  - runtime_target_real_or_simulator
-  - ADC_integration_time
-  - weight_scale
-  - input_quantization_scale
-  - activation_bits
-  - output_quantization_mode
-  - simulator_nonideality_parameters
-axis_D_rewrite_objects:
-  - operator_graph
-  - hardware_mapping
-  - array_binding
-  - memory_layout
-  - input_bit_expansion
-  - numeric_format
-  - hardware_calculation_parameters
-  - generated_backend_flow
-artifact:
-  status: public_artifact_found
-  url: "GitHub repository Tsinghua-LEMON-Lab/OpenCIMTC; Zenodo DOI 10.5281/zenodo.14823197"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Most reusable abstraction is the Attribute/Mapping/Calculation split in YAML CIM-IR."
-  - "Public workflow is clearest for ResNet-32 simulator-oriented generation, PDT, optimization, and inference."
-  - "Hardware-backed reproduction depends on prototype hardware and calibration context."
-  - "Value-trajectory extensions could attach domain, precision, placement, and reconstruction metadata to DataDef/layer outputs and MacroMappingInfo/MacroCalcInfo."
-```

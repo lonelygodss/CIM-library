@@ -1,3 +1,71 @@
+---
+slug: syndcim
+title: "SynDCIM: A Performance-Aware Digital Computing-in-Memory Compiler with Multi-Spec-Oriented Subcircuit Synthesis"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "DATE 2025"
+authors_or_group: "Kunming Shao, Fengshi Tian, Xiaomeng Wang, Jiakun Zheng, Jia Chen, Jingyu He, Hui Wu, Jinbo Chen, Xihao Guan, Yi Deng, Fengbin Tu, Jie Yang, Mohamad Sawan, Tim Kwang-Ting Cheng, Chi-Ying Tsui"
+summary: >-
+  SynDCIM is a performance-aware SRAM-based digital CIM macro compiler whose evidenced contribution is a macro-generation EDA flow: a user provides architectural parameters and PPA-oriented performance constraints, the tool forms a subcircuit search space from a characterized library, applies a heuristic multi-spec search, emits RTL/netlists and circuit constraints, and then uses commercial synthesis, APR, timing, DRC/LVS, and post-layout simulation to obtain a layout. The paper strengthens the lower compiler/backend side of the CIM stack: subcircuit libraries, resource-level architectural search, layout-aware backend integration, and silicon validation. The demonstrated workloads are macro-level MAC operations under precision modes such as INT4/8, FP8, BF16, FP4/8, and silicon test modes for a 64×64 MCR=2 macro, rather than a public model-graph frontend or reusable tensor IR. For CIM compiler/IR research, SynDCIM is best read as a hardware-resource/configuration compiler whose “IR-like” semantics live in the macro spec, subcircuit-library choices, timing constraints, and generated RTL/netlist/layout flow. ([arXiv](https://arxiv.org/html/2411.16806v2))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "MAC-operation macro evaluation"
+  - "INT4/INT8/FP8/BF16 post-layout precision sweep"
+  - "INT1/INT2/INT4/INT8/FP4/FP8 silicon macro validation"
+tags: []
+baselines: []
+axis_A:
+  primary: A1
+  secondary: [A3, A5]
+axis_B: [B1, B4]
+axis_C_first_class_objects:
+  - "macro_SPEC"
+  - "SRAM_cell"
+  - "WL_BL_driver"
+  - "bitwise_multiplier_multiplexer"
+  - "adder_tree_CSA"
+  - "shift_and_adder"
+  - "output_fusion_unit"
+  - "FP_INT_alignment_unit"
+  - "array_dimensions"
+  - "MCR"
+  - "precision_modes"
+  - "timing_PPA_constraints"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "subcircuit_selection"
+  - "critical_path_retiming"
+  - "pipeline_register_placement"
+  - "column_partitioning"
+  - "power_area_subcircuit_substitution"
+  - "RTL_netlist_generation"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: 
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Macro-specification-to-layout scope is well evidenced in the paper."
+  - "No public SCL, RTL templates, PPA LUTs, generated outputs, or reproduction scripts found in checked sources."
+  - "Most useful corpus reading is hardware-resource/config-as-IR rather than graph/loop/ISA compiler stack."
+takeaways: []
+---
+
 # SynDCIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -212,15 +280,7 @@ The post-layout evaluation is macro-centric: four generated macros from 32×32 t
 
 **Integration effort estimate: High.** The most valuable reusable boundary appears to be the SCL/MSO-search contract, but the checked public sources provide paper-level descriptions rather than a runnable artifact. Integration would benefit from a small adapter that extracts macro SPEC, selected subcircuits, timing constraints, and generated-output metadata, but direct wrapping would require non-public RTL templates, PPA LUTs, commercial EDA scripts, and technology files.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-SynDCIM provides useful ingredients for a value-trajectory IR, especially its explicit decomposition of the digital CIM value path into WL/BL drivers, SRAM cells, multiplier/mux, adder tree/CSA, S&A, OFU, and FP/INT alignment. The closest approximation to trajectory semantics is the macro data path: weights stored in SRAM, activations fed bit-serially through WL drivers, partial sums accumulated in an adder tree, bit-serial sums accumulated in S&A, and multi-precision outputs fused by OFU. ([arXiv](https://arxiv.org/html/2411.16806v2))
-
-The paper’s demonstrated abstraction centers on **resource selection and timing/PPA feasibility**. It does not expose value identity across partial sums, S&A, OFU, storage, and downstream operators as a typed serializable object in the checked sources. Bit significance and precision stage are present as hardware/precision parameters; placement and domain transition appear through layout constraints and FP-to-INT alignment; channel rate appears indirectly through MAC frequency/update frequency and timing constraints. ([arXiv](https://arxiv.org/html/2411.16806v2))
-
-A trajectory-level extension would likely attach value-path metadata to the macro SPEC and selected subcircuits: bit significance, precision stage, accumulation domain, register stage, physical column/partition, reconstruction/fusion stage, and legal retiming boundaries. This would make it easier to express rewrites such as fusing reconstruction with downstream reduction, changing reduction-tree structure, routing values through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction. Retiming ADC conversion is largely not applicable to this fully digital SRAM-CIM setting; the analogous rewrite would be retiming FP/INT alignment, S&A, OFU, and pipeline registers.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -231,7 +291,7 @@ A trajectory-level extension would likely attach value-path metadata to the macr
 | ReDCIM | Unified FP/INT digital CIM pipeline | ReDCIM is a hardware architecture reference for FP/INT pipeline ideas; SynDCIM turns similar precision/peripheral concerns into generator/search objects. ([arXiv](https://arxiv.org/pdf/2411.16806)) | Hardware papers can supply first-class object vocabulary even when they are not compiler stacks. |
 | ISSCC SRAM-DCIM macros | Manually designed high-efficiency macro baselines | SynDCIM compares generated macro metrics with manually designed SRAM-DCIM macros; the corpus distinction is generated design flow versus hand-designed macro result. ([arXiv](https://arxiv.org/pdf/2411.16806)) | Keep performance baselines separate from reusable compiler/IR evidence. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - SynDCIM’s real contribution is a performance-aware SRAM digital CIM **macro-generation EDA flow** from macro SPEC to RTL/netlist, APR, layout, and silicon-validated macro measurement.
 - Its strongest reusable stack layer is the **subcircuit-library + MSO searcher** boundary: selectable hardware resources, PPA LUTs, timing constraints, and implementation decisions.
@@ -241,66 +301,3 @@ A trajectory-level extension would likely attach value-path metadata to the macr
 - Artifact status: no public artifact found.
 - Integration is most plausible as IR inspiration, backend-cost-model inspiration, and validation source; direct reuse would require public SCL, RTL templates, EDA scripts, and generated outputs.
 - For a value-trajectory IR, SynDCIM contributes a clear digital CIM path vocabulary, while trajectory-level rewrites would add typed value identity across S&A, OFU, precision alignment, registers, and layout/resource placement.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "SynDCIM: A Performance-Aware Digital Computing-in-Memory Compiler with Multi-Spec-Oriented Subcircuit Synthesis"
-year: 2025
-venue: "DATE 2025"
-authors_or_group: "Kunming Shao, Fengshi Tian, Xiaomeng Wang, Jiakun Zheng, Jia Chen, Jingyu He, Hui Wu, Jinbo Chen, Xihao Guan, Yi Deng, Fengbin Tu, Jie Yang, Mohamad Sawan, Tim Kwang-Ting Cheng, Chi-Ying Tsui"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - MAC-operation macro evaluation
-  - INT4/INT8/FP8/BF16 post-layout precision sweep
-  - INT1/INT2/INT4/INT8/FP4/FP8 silicon macro validation
-axis_A:
-  primary: A1_macro_circuit_generator
-  secondary:
-    - A3_mapping_scheduling_DSE
-    - A5_narrow_end_to_end_codesign
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-axis_C_first_class_objects:
-  - macro_SPEC
-  - SRAM_cell
-  - WL_BL_driver
-  - bitwise_multiplier_multiplexer
-  - adder_tree_CSA
-  - shift_and_adder
-  - output_fusion_unit
-  - FP_INT_alignment_unit
-  - array_dimensions
-  - MCR
-  - precision_modes
-  - timing_PPA_constraints
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - subcircuit_selection
-  - critical_path_retiming
-  - pipeline_register_placement
-  - column_partitioning
-  - power_area_subcircuit_substitution
-  - RTL_netlist_generation
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: null
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Macro-specification-to-layout scope is well evidenced in the paper."
-  - "No public SCL, RTL templates, PPA LUTs, generated outputs, or reproduction scripts found in checked sources."
-  - "Most useful corpus reading is hardware-resource/config-as-IR rather than graph/loop/ISA compiler stack."
-```

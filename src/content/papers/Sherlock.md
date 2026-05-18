@@ -1,3 +1,72 @@
+---
+slug: sherlock
+title: "SHERLOCK: Scheduling Efficient and Reliable Bulk Bitwise Operations in NVMs"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DAC 2024"
+authors_or_group: "Hamid Farzaneh; João Paulo C. de Lima; Ali Nezhadi Khelejani; Asif Ali Khan; Mahta Mayahinia; Mehdi Tahoori; Jeronimo Castrillon"
+summary: >-
+  **SHERLOCK** is a mapping and scheduling framework for bulk bitwise logic in memristive NVM compute-in-memory systems. Its main compiler contribution is to treat a bulk-bitwise program as a DAG of operand and operation nodes, cluster dependent operations so their operands fit NVM array columns, bind those clusters to row/column resources, and generate simulator-compatible read/write/shift/CIM instructions while accounting for the latency–energy–reliability tradeoff of multi-row activation. The demonstrated flow starts from C bulk-bitwise kernels parsed with pycparser, targets scouting-logic-style ReRAM and STT-MRAM arrays, and evaluates BitWeaving, bit-sliced Sobel, and Usuba-generated bit-sliced AES through an extended gem5 + NVSim + SPICE/statistical-modeling backend. For CIM compiler/IR research, SHERLOCK is best read as a graph-to-hardware-layout compiler whose reusable semantics are clearest in the DAG, cluster/layout state, instruction format, and reliability-aware MRA model. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2406_Farzaneh_DAC.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "STT-MRAM-CIM"
+  - "NVM-CIM"
+  - "digital-CIM"
+  - "scouting-logic"
+workloads:
+  - "BitWeaving-V database predicate evaluation"
+  - "bit-sliced Sobel edge detection"
+  - "Usuba-generated bit-sliced AES"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A5, A4]
+axis_B: [B2, B4, B5, B6]
+axis_C_first_class_objects:
+  - "DAG_operand_nodes"
+  - "DAG_operation_nodes"
+  - "b_level_priority"
+  - "operation_clusters"
+  - "memory_layout"
+  - "array_id"
+  - "rows"
+  - "columns"
+  - "per_column_CIM_operation"
+  - "multi_row_activation_count"
+  - "decision_failure_probability"
+axis_D_rewrite_objects:
+  - "operator_graph"
+  - "hardware_mapping"
+  - "array_binding"
+  - "memory_layout"
+  - "instruction_stream"
+  - "reliability_cost_annotation"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown / not found"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend_adapter"
+  - "benchmark"
+  - "validation_reference"
+reproducibility_level: low
+notes:
+  - "Best read as a reliability-aware graph-to-column-layout compiler for bulk-bitwise NVM-CIM."
+  - "The instruction stream is the clearest backend contract: op + array/column/row address + optional per-column CIM op."
+  - "Frontend and backend implementation details are paper-level in checked sources; no runnable artifact was found."
+takeaways: []
+---
+
 # SHERLOCK — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -261,23 +330,7 @@ Workloads are BitWeaving-V for database scan predicates, bit-sliced Sobel edge d
 **Integration effort estimate: Medium–High.**  
 Integration would be most direct through a small adapter that emits SHERLOCK-like DAGs and consumes a SHERLOCK-like instruction schema. Effort rises because the checked sources do not expose code, configs, generated traces, or simulator extensions. The most valuable reusable boundary appears to be the layout/instruction interface plus reliability annotation per scheduled CIM operation.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-SHERLOCK provides useful ingredients for a value-trajectory IR, especially the explicit connection between graph values, row/column placement, activated rows, and generated memory/CIM actions. The closest approximation to trajectory semantics is the tuple of DAG dependency edge, layout entry, row/column address, instruction op, and operation failure probability. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2406_Farzaneh_DAC.pdf))
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  It names graph dependencies, layout positions, array/column/row addresses, row-buffer shifts, and instruction actions. It does not present a standalone “value path” object; trajectory is recoverable from multiple states.
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  For this bulk-bitwise setting, partial sums and reconstruction are not the central computation. Value identity is preserved as operand/intermediate DAG nodes and memory layout entries, while sensing is modeled through decision failure rather than a value-domain transition object.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Placement is represented through layout and instructions. Bit significance appears in workload-level bit-sliced implementations, not as a type-like IR field. Sensing/domain transition is modeled through comparator/reference behavior and failure probability, not a typed stage. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2406_Farzaneh_DAC.pdf))
-
-- **Could it express trajectory rewrites?**  
-  The demonstrated abstraction centers on static Boolean DAG rewrites, column placement, MRA selection, and instruction merging. A trajectory-level extension would likely attach value identity, bit significance, domain, failure probability, row/column residence, and “next use” metadata to each DAG value or layout entry. That would make it easier to express rewrites such as carrying bit-sliced partial results across operator boundaries, changing reduction structure, routing through alternative peripheral paths, or co-optimizing data movement with reconstruction. For ADC retiming or analog partial-sum movement, an additional abstraction would be needed because SHERLOCK’s target is scouting-logic bulk Boolean operations rather than analog MAC pipelines.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -288,7 +341,7 @@ SHERLOCK provides useful ingredients for a value-trajectory IR, especially the e
 | **ParaBit** | Parallel bitwise operations near/in storage | ParaBit is a NAND-flash SSD bulk-bitwise system cited as related in the paper; SHERLOCK targets array-level NVM CIM mapping. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2406_Farzaneh_DAC.pdf)) | Corpus tag should separate storage/SSD bitwise PIM from array-level NVM-CIM compilers. |
 | **BitWeaving / Usuba** | Bit-level workload representation | BitWeaving-V and Usuba-generated bit-sliced AES are inputs/benchmarks rather than SHERLOCK’s backend target. ([cfaed.tu-dresden.de](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2406_Farzaneh_DAC.pdf)) | Treat them as frontend/workload sources for Boolean DAGs, not as CIM mappers. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - SHERLOCK’s real contribution is a **DAG-to-NVM-array mapping and scheduling method** for bulk bitwise CIM, centered on operation clustering, column placement, instruction generation, and MRA-aware reliability tradeoffs.
 - The strongest reusable stack layer is the **mapper/scheduler boundary**: DAG nodes become clusters, clusters become column layouts, and layouts become read/write/shift/CIM instructions.
@@ -298,70 +351,3 @@ SHERLOCK provides useful ingredients for a value-trajectory IR, especially the e
 - **Artifact status: no public artifact found.** The public checked sources provide the paper PDF and slides, but no repository, scripts, simulator extensions, configs, or generated traces.
 - Integration would be most useful by reimplementing or adapting the **cluster/layout/instruction logic** and connecting it to another CIM backend with explicit latency, energy, and reliability callbacks.
 - For a value-trajectory IR, SHERLOCK is a useful precursor because it ties value dependencies to physical placement and operation failure probability; trajectory-level reuse would add typed value path metadata across placement, sensing, and storage.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "SHERLOCK: Scheduling Efficient and Reliable Bulk Bitwise Operations in NVMs"
-year: 2024
-venue: "DAC 2024"
-authors_or_group: "Hamid Farzaneh; João Paulo C. de Lima; Ali Nezhadi Khelejani; Asif Ali Khan; Mahta Mayahinia; Mehdi Tahoori; Jeronimo Castrillon"
-technology:
-  - RRAM-CIM
-  - STT-MRAM-CIM
-  - NVM-CIM
-  - digital-CIM
-  - scouting-logic
-workloads:
-  - BitWeaving-V database predicate evaluation
-  - bit-sliced Sobel edge detection
-  - Usuba-generated bit-sliced AES
-axis_A:
-  primary: A3
-  secondary:
-    - A2
-    - A5
-    - A4-like instruction/codegen interface
-axis_B:
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B5_instruction_meta_op_stream
-  - B6_reliability_nonideality_model
-axis_C_first_class_objects:
-  - DAG_operand_nodes
-  - DAG_operation_nodes
-  - b_level_priority
-  - operation_clusters
-  - memory_layout
-  - array_id
-  - rows
-  - columns
-  - per_column_CIM_operation
-  - multi_row_activation_count
-  - decision_failure_probability
-axis_D_rewrite_objects:
-  - operator_graph
-  - hardware_mapping
-  - array_binding
-  - memory_layout
-  - instruction_stream
-  - reliability_cost_annotation
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown / not found"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend_adapter
-  - benchmark
-  - validation_reference
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best read as a reliability-aware graph-to-column-layout compiler for bulk-bitwise NVM-CIM."
-  - "The instruction stream is the clearest backend contract: op + array/column/row address + optional per-column CIM op."
-  - "Frontend and backend implementation details are paper-level in checked sources; no runnable artifact was found."
-```

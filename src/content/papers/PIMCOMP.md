@@ -1,3 +1,80 @@
+---
+slug: pimcomp
+title: "PIMCOMP: An End-to-End DNN Compiler for Processing-In-Memory Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems / arXiv v1"
+authors_or_group: "Xiaotian Sun, Xinyu Wang, Wanqian Li, Yinhe Han, Xiaoming Chen"
+summary: >-
+  PIMCOMP is best read as a crossbar-PIM/CIM DNN deployment compiler whose most reusable contribution is the middle/backend optimizer: it converts an ONNX-style DNN description into a structure IR plus weight data, partitions weights into **array groups**, optimizes weight replication and AG layout across cores, schedules high-throughput or low-latency inter-layer pipelines, and emits pseudo-instruction/configuration artifacts for verification and simulation. The paper strengthens the CIM compiler stack at the mapping/scheduling boundary rather than at a formal general-purpose IR boundary: its named abstractions are structure IR, hardware configuration, array groups, mapping info, pseudo-instructions, and pixel-level runtime management. The demonstrated setting is static DNN inference on configurable NVM crossbar-style PIM accelerators, evaluated with simulator-backed experiments over VGG/ResNet/GoogleNet-style workloads and three abstracted architecture instances. ([arXiv](https://arxiv.org/pdf/2411.09159v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "NVM-crossbar"
+  - "analog-CIM"
+  - "crossbar-PIM"
+  - "hybrid"
+workloads:
+  - "DNN inference"
+  - "CNNs"
+  - "VGG8"
+  - "ResNet18"
+  - "ResNet34"
+  - "GoogleNet"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5, A4, A2]
+axis_B: [B1, B2, B4, B5, B7]
+axis_C_first_class_objects:
+  - "structure_IR"
+  - "weight_data"
+  - "crossbar_array"
+  - "PIMFU"
+  - "core"
+  - "local_memory"
+  - "global_memory"
+  - "array_group"
+  - "weight_replica"
+  - "AG_to_core_mapping"
+  - "pseudo_instruction"
+  - "pixel_runtime_record"
+  - "hardware_config"
+axis_D_rewrite_objects:
+  - "operator_graph"
+  - "weight_unfolding"
+  - "array_group_partition"
+  - "weight_replication"
+  - "hardware_mapping"
+  - "computation_storage_mapping"
+  - "instruction_stream"
+  - "pipeline_schedule"
+  - "runtime_memory_state"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/sunxt99/PIMCOMP-NN"
+  license: "Apache-2.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Best classified as a compiler/mapping framework with narrow end-to-end integration."
+  - "Array group is the paper-specific CIM compiler object to preserve in the corpus."
+  - "Pseudo-instructions are simulator/backend-facing, while formal value-trajectory semantics would need additional typed metadata."
+takeaways: []
+---
+
 # PIMCOMP — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -246,15 +323,7 @@ The evaluation instantiates three architecture configurations: Arch-A with 168 c
 
 **Integration effort estimate:** **Medium.** Integration would be most direct through the artifact’s JSON/config/instruction outputs and the AG mapping abstraction. Effort rises when treating PIMCOMP as a general backend because several semantics live in C++ passes, hardware config, simulator assumptions, and model-specific restrictions. A practical adapter would extract structure IR, AG partitions, mapping info, and pseudo-instruction streams into a stable external schema.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially the AG abstraction, the pseudo-instruction stream, and the LL pixel-level dependency/runtime tables. The closest approximation to trajectory semantics is the chain from source layer output pixel → dependency list → AG/core mapping → local-memory runtime record → `mvm`/`vec`/`send`/`recv` pseudo-instructions. ([arXiv](https://arxiv.org/pdf/2411.09159v1))
-
-PIMCOMP names the resources through which values move—local memory, global memory, PIMFU/AG, VFU, and inter-core communication—but the demonstrated abstraction centers on scheduling tasks and managing pixels rather than preserving a typed identity for each analog partial sum, sensed value, reconstructed digital value, and stored tensor element. Bit significance, ADC/DAC precision, cell precision, and shift-add timing are present as parameters or backend/config fields; they are not presented as type-like information attached to values across lowering. ([arXiv](https://arxiv.org/pdf/2411.09159v1))
-
-A trajectory-level extension would likely attach the following to each structure-IR edge, AG task, or pseudo-instruction result: value domain, precision stage, bit-slice/sign component, replica/AG placement, memory address lifetime, reconstruction state, and domain transition. That would enable rewrites such as fusing reconstruction with downstream reduction, retiming conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, routing values through alternative peripheral paths, and co-optimizing data movement with numeric reconstruction. PIMCOMP’s AG and pixel-runtime abstractions are a strong starting point for such an extension.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -265,7 +334,7 @@ A trajectory-level extension would likely attach the following to each structure
 | TC-CIM / TDO-CIM / CINM / OCC | PIM compilation/offload tools | The paper’s Table I places them as more layer-wise or coarse-grained relative to PIMCOMP’s CG-based convolution-operator scheduling and higher hardware/app configurability. ([arXiv](https://arxiv.org/pdf/2411.09159v1)) | Use these as “offload/runtime/compiler” comparators, but keep PIMCOMP tagged as mapping/scheduling-centric. |
 | PIMSIM-NN / PIM EDA Suite | Simulator/toolchain integration | PIMCOMP-NN is the compiler component; PIMSIM-NN consumes architecture and instruction sequence for latency/power/energy, while PIMACC targets nonideality/accuracy simulation. ([GitHub](https://github.com/chenxm1986/PIM-Toolchain)) | In the corpus, compiler, architecture synthesizer, performance simulator, and accuracy simulator should be separate but cross-linked artifacts. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIMCOMP’s real contribution is an AG-centered compiler optimizer for crossbar-PIM DNN inference: unfolding, AG partitioning, weight replication/layout, computation-storage mapping, and HT/LL scheduling.
 - The strongest reusable stack layer is the **mapping/scheduling middle layer**, not a general-purpose IR framework.
@@ -275,79 +344,3 @@ A trajectory-level extension would likely attach the following to each structure
 - Artifact status is public and Apache-2.0; reproducibility is medium because compile/verification workflows are documented, while paper-figure reproduction and formal IR schemas are less explicit in the checked sources.
 - Integration is most direct by wrapping the ONNX→JSON frontend, extracting AG/mapping/pseudo-instruction artifacts, or using the profiler/simulator interface as a backend cost-model target.
 - For value-trajectory IR research, PIMCOMP offers useful ingredients—AGs, pixel dependencies, and pseudo-instructions—but a trajectory-level extension would add typed value identity across bit-slicing, analog accumulation, sensing, reconstruction, communication, and storage.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIMCOMP: An End-to-End DNN Compiler for Processing-In-Memory Accelerators"
-year: 2024
-venue: "IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems / arXiv v1"
-authors_or_group: "Xiaotian Sun, Xinyu Wang, Wanqian Li, Yinhe Han, Xiaoming Chen"
-technology:
-  - NVM-crossbar
-  - analog-CIM
-  - crossbar-PIM
-  - hybrid
-workloads:
-  - DNN inference
-  - CNNs
-  - VGG8
-  - ResNet18
-  - ResNet34
-  - GoogleNet
-axis_A:
-  primary: A3_mapping_scheduling_DSE
-  secondary:
-    - A5_narrow_end_to_end_codesign
-    - A4_instruction_metaop_compiler_stack
-    - A2_simulator_cost_model
-axis_B:
-  - B1_config_as_IR
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B5_instruction_metaop_ILA
-  - B7_runtime_state_abstraction
-axis_C_first_class_objects:
-  - structure_IR
-  - weight_data
-  - crossbar_array
-  - PIMFU
-  - core
-  - local_memory
-  - global_memory
-  - array_group
-  - weight_replica
-  - AG_to_core_mapping
-  - pseudo_instruction
-  - pixel_runtime_record
-  - hardware_config
-axis_D_rewrite_objects:
-  - operator_graph
-  - weight_unfolding
-  - array_group_partition
-  - weight_replication
-  - hardware_mapping
-  - computation_storage_mapping
-  - instruction_stream
-  - pipeline_schedule
-  - runtime_memory_state
-artifact:
-  status: public_artifact_found
-  url: "GitHub: sunxt99/PIMCOMP-NN"
-  license: Apache-2.0
-  last_checked: 2026-05-15
-integration_roles:
-  - frontend
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as a compiler/mapping framework with narrow end-to-end integration."
-  - "Array group is the paper-specific CIM compiler object to preserve in the corpus."
-  - "Pseudo-instructions are simulator/backend-facing, while formal value-trajectory semantics would need additional typed metadata."
-```

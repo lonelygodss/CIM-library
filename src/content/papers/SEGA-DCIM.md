@@ -1,3 +1,70 @@
+---
+slug: sega-dcim
+title: "SEGA-DCIM: Design Space Exploration-Guided Automatic Digital CIM Compiler with Multiple Precision Support"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "DATE 2025; arXiv v1 submitted 2025-05-14"
+authors_or_group: "Haikang Diao, Haoyi Zhang, Jiahao Song, Haoyang Luo, Yibo Lin, Runsheng Wang, Yuan Wang, Xiyuan Tang"
+summary: >-
+  SEGA-DCIM is a digital SRAM-CIM macro-generation and design-space-exploration framework for producing Pareto-frontier DCIM macro designs across integer and floating-point precision choices. Its strongest contribution is the combination of a parameterized synthesizable DCIM architecture, normalized analytical area/delay/energy/throughput models, an NSGA-II-based multi-objective search over macro parameters, and a template-based Verilog/netlist/layout generation flow that relies on user-provided cell/layout resources and commercial EDA tools. The demonstrated workload abstraction is matrix-vector multiplication with static stored weights and streamed input vectors, evaluated mainly through macro-level PPA trends, generated layouts, and comparisons against published DCIM macro results. For CIM compiler/IR research, SEGA-DCIM is most useful as a hardware-generation and backend-cost-model reference: it makes DCIM macro structure and numeric precision choices first-class, while workload graph import, tensor IR, CIM ISA, runtime state, and simulator-facing instruction streams sit outside the demonstrated interface. ([arXiv](https://arxiv.org/abs/2505.09451)) |
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "digital-CIM"
+  - "SRAM-CIM"
+  - "TSMC28-evaluated"
+workloads:
+  - "matrix-vector multiplication"
+  - "NN macro computation with static stored weights"
+  - "macro-level INT/FP precision sweeps"
+tags: []
+baselines: []
+axis_A:
+  primary: A1
+  secondary: [A3, A2, A5]
+axis_B: [B1, B4]
+axis_C_first_class_objects:
+  - "DCIM_array_hierarchy"
+  - "SRAM_weight_storage"
+  - "weight_bit_column_mapping"
+  - "input_bit_chunk_k"
+  - "compute_unit"
+  - "adder_tree"
+  - "shift_accumulator"
+  - "result_fusion_unit"
+  - "FP_pre_alignment"
+  - "INT_to_FP_converter"
+  - "macro_layout"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "architecture_template_choice"
+  - "array_binding"
+  - "numeric_format"
+  - "macro_generation_flow"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown / no implementation license found"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Compiler boundary is macro/circuit/layout generation, not workload graph lowering."
+  - "Design vector and component cost model are the clearest reusable abstractions."
+  - "Backend reuse depends on unavailable templates, scripts, PDK collateral, and commercial EDA setup."
+  - "Useful value-trajectory ingredients include bit-position columns, k-bit temporal input chunks, shift accumulation, result fusion, and FP pre-alignment/conversion."
+takeaways: []
+---
+
 # SEGA-DCIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -264,17 +331,7 @@ The experiments use a Linux server with Intel Xeon Gold 6248 CPU, TSMC28 PDK, mu
 
 **Integration effort estimate: High.** Integration would be most direct through a small adapter that emits SEGA-like macro parameter vectors and consumes analytical PPA estimates. However, a reusable implementation would need public templates, generator scripts, PDK-independent calibration hooks, and a documented schema. The most valuable reusable boundary appears to be the parameterized hardware-resource/cost abstraction rather than the closed physical-design flow.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-SEGA-DCIM provides useful ingredients for a value-trajectory IR, especially its explicit structural path through FP pre-alignment, input buffering, DCIM array computation, adder-tree reduction, shift accumulation, result fusion, and INT-to-FP conversion. The architecture names the major resources a value passes through, and the cost model assigns resource/cost consequences to those stages. ([arXiv](https://arxiv.org/pdf/2505.09451v1))
-
-The closest approximation to trajectory semantics is the bit-level decomposition: weight bits are placed in separate columns, input bits are processed in `k`-bit chunks over cycles, partial sums are accumulated by a shift accumulator, and weight-bit significance is reconstructed by result fusion. This is valuable because it exposes bit significance, temporal chunking, and reconstruction as hardware facts rather than abstract arithmetic. ([arXiv](https://arxiv.org/pdf/2505.09451v1))
-
-The paper’s demonstrated abstraction centers on macro-parameter search and hardware generation. A trajectory-level extension would likely attach value-flow annotations to the design vector and generated components: `{value_id, bit_significance, numeric_domain, precision_stage, array_column, cycle_chunk, accumulation_width, reconstruction_rule, conversion_stage}`. That extension would make it easier to express rewrites such as fusing reconstruction with downstream reduction, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing values through alternative peripheral paths.
-
-For ADC-retiming-style rewrites, the all-digital SEGA-DCIM setting makes ADC/DAC transition not applicable. The analogous digital rewrites would be retiming INT-to-FP conversion, moving result fusion relative to downstream accumulation, changing `k` to alter temporal bit consumption, or choosing a different partial-sum/reconstruction tree. Expressing those transformations cleanly would require a first-class value trajectory object rather than only a macro configuration.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -285,7 +342,7 @@ For ADC-retiming-style rewrites, the all-digital SEGA-DCIM setting makes ADC/DAC
 | **MemGen / OpenSAR** | Automated circuit/macro generation precedent. | MemGen and OpenSAR are adjacent EDA macro-generator flows cited as inspiration; SEGA-DCIM specializes this idea for multi-precision digital CIM macro architecture and DSE. ([arXiv](https://arxiv.org/pdf/2505.09451v1)) | Good examples of “compiler” meaning circuit generator, not software workload compiler. |
 | **Published SOTA DCIM macros** | Macro PPA comparison targets. | SEGA-DCIM compares selected generated INT8/BF16 design points against published DCIM macros, but those baselines are hardware designs rather than compiler stacks. ([arXiv](https://arxiv.org/pdf/2505.09451v1)) | Use them as performance baselines, not taxonomy-neighbor compiler baselines. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - SEGA-DCIM’s real contribution is a **DSE-guided digital SRAM-CIM macro generator** with multi-precision INT/FP support.
 - The strongest reusable stack layer is the **hardware-resource/cost abstraction**: array shape, bit-position columns, input chunk width, accumulation path, result fusion, and FP pre-alignment/conversion.
@@ -295,66 +352,3 @@ For ADC-retiming-style rewrites, the all-digital SEGA-DCIM setting makes ADC/DAC
 - **Artifact status: no public artifact found.** Public reuse would require scripts, templates, configs, generated examples, and backend setup details.
 - Integration into a future compiler stack would be most direct as a **backend cost-model and macro-template target**, not as a frontend or runtime.
 - For value-trajectory IR work, SEGA-DCIM is useful because it exposes **bit significance, temporal input chunking, partial-sum accumulation, reconstruction, and numeric conversion** as costed macro-path elements.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "SEGA-DCIM: Design Space Exploration-Guided Automatic Digital CIM Compiler with Multiple Precision Support"
-year: 2025
-venue: "DATE 2025; arXiv v1 submitted 2025-05-14"
-authors_or_group: "Haikang Diao, Haoyi Zhang, Jiahao Song, Haoyang Luo, Yibo Lin, Runsheng Wang, Yuan Wang, Xiyuan Tang"
-technology:
-  - digital-CIM
-  - SRAM-CIM
-  - TSMC28-evaluated
-workloads:
-  - matrix-vector multiplication
-  - NN macro computation with static stored weights
-  - macro-level INT/FP precision sweeps
-axis_A:
-  primary: A1_macro_circuit_generator
-  secondary:
-    - A3_mapping_scheduling_DSE
-    - A2_simulator_cost_model
-    - A5_narrow_macro_flow_codesign
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-axis_C_first_class_objects:
-  - DCIM_array_hierarchy
-  - SRAM_weight_storage
-  - weight_bit_column_mapping
-  - input_bit_chunk_k
-  - compute_unit
-  - adder_tree
-  - shift_accumulator
-  - result_fusion_unit
-  - FP_pre_alignment
-  - INT_to_FP_converter
-  - macro_layout
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - architecture_template_choice
-  - array_binding
-  - numeric_format
-  - macro_generation_flow
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown / no implementation license found"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Compiler boundary is macro/circuit/layout generation, not workload graph lowering."
-  - "Design vector and component cost model are the clearest reusable abstractions."
-  - "Backend reuse depends on unavailable templates, scripts, PDK collateral, and commercial EDA setup."
-  - "Useful value-trajectory ingredients include bit-position columns, k-bit temporal input chunks, shift accumulation, result fusion, and FP pre-alignment/conversion."
-```

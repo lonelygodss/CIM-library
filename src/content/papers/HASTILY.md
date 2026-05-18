@@ -1,3 +1,83 @@
+---
+slug: hastily
+title: "HASTILY: Hardware-Software Co-Design for Accelerating Transformer Inference Leveraging Compute-in-Memory"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IEEE Transactions on Circuits and Systems for Artificial Intelligence; arXiv:2502.12344"
+authors_or_group: "Dong Eun Kim, Tanvi Sharma, Kaushik Roy"
+summary: >-
+  HASTILY is a hardware-software co-design for BERT-style transformer encoder inference on an SRAM-based analog-CIM spatial accelerator. Its central contribution is the **Unified Compute and Lookup Module**: an 8T-SRAM CIM structure that can perform both matrix-vector multiplication and exponent-table lookup, enabling softmax acceleration inside the CIM core rather than relegating exponentiation entirely to a vector functional unit. The compiler-facing part of the work is clearest in its vector-level scheduling strategy and ISA extensions: transformer encoder layers are decomposed into row/vector MVM stages, Q/K/V and attention computations are pipelined through UCLMs, K/V are dynamically written as CIM weights, and softmax maxima/sums are reduced across cores through a tree-style gather. For CIM compiler/IR research, HASTILY is best read as a narrow but informative end-to-end stack whose reusable semantics are concentrated in the mapping schedule, UCLM mode model, softmax reduction state, and PUMASim-derived backend contract, rather than in an auditable standalone IR. ([arXiv](https://arxiv.org/pdf/2502.12344)) |
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "analog-CIM"
+  - "8T-SRAM"
+  - "transformer-CIM"
+workloads:
+  - "BERT-Base"
+  - "BERT-Large"
+  - "transformer encoder inference"
+  - "softmax"
+  - "matrix-vector multiplication"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3, A4]
+axis_B: [B3, B4, B5, B7]
+axis_C_first_class_objects:
+  - "UCLM"
+  - "8T_SRAM_compute_lookup_array"
+  - "lookup_line_LKL"
+  - "exponent_lookup_table"
+  - "compute_lookup_mode"
+  - "chip_tile_core_hierarchy"
+  - "VFU"
+  - "register_file"
+  - "shared_memory"
+  - "DAC"
+  - "sample_and_hold"
+  - "ADC"
+  - "shift_and_add"
+  - "local_maximum"
+  - "partial_sum"
+  - "tree_reduction"
+  - "dynamic_KV_as_CIM_weights"
+axis_D_rewrite_objects:
+  - "operator_graph_to_vector_schedule"
+  - "matmul_to_iterative_MVM"
+  - "hardware_mapping"
+  - "array_binding"
+  - "memory_address_mapping"
+  - "UCLM_mode_selection"
+  - "softmax_reduction_state"
+  - "instruction_stream"
+  - "exponent_LUT_numeric_approximation"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend_reconstruction"
+  - "benchmark"
+  - "validation_partial"
+reproducibility_level: low
+notes:
+  - "Strongest evidence is architecture/scheduling/simulator-backed evaluation, not a public IR."
+  - "Compiler is described through BERT support and ISA extensions; frontend contract and generated traces are unknown."
+  - "Value-trajectory relevance comes from UCLM mode switching, analog-to-digital path, S&A reconstruction, and distributed softmax reduction state."
+  - "Best classified as a narrow transformer SRAM-CIM co-design rather than a backend-agnostic compiler/IR stack."
+takeaways: []
+---
+
 # HASTILY — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -258,24 +338,7 @@ The paper compares HASTILY to a modified PUMA baseline and Nvidia A40 measuremen
 **Integration effort estimate: High.**  
 Integration would be most direct through reconstructing a schedule-level model from Fig. 6 and a hardware-config model from Table II. The most valuable reusable boundary appears to be the ISA/meta-op plus UCLM-resource abstraction. The effort is high because the compiler, simulator fork, generated instruction streams, and reproduction scripts were not found as public artifacts.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-HASTILY provides useful ingredients for a value-trajectory IR, especially its explicit hardware path through UCLM compute, ADC, S&A, VFU operations, lookup mode, shared memory, and cross-core reduction. The closest approximation to trajectory semantics is Fig. 6’s vector pipeline plus Fig. 5’s softmax reduction protocol: values move from Q/K/V projection into dynamic CIM weights, through QKᵀ MVM, scale, lookup-backed softmax, SV MVM, output projection, Add/LayerNorm, and feed-forward stages. ([arXiv](https://arxiv.org/pdf/2502.12344))
-
-The paper names several value paths but does not preserve value identity as a typed object across all stages. Analog partial sums are described inside the UCLM compute path, and digital reductions are described for softmax, but the representation centers on scheduling and hardware operations rather than on a serializable value-flow trajectory. Bit significance is handled by S&A, precision is parameterized, and domain transitions are described through ADC/S&H, but these are not carried as type-like annotations from frontend tensor to backend instruction. ([arXiv](https://arxiv.org/pdf/2502.12344))
-
-A trajectory-level extension would likely attach the following metadata to each vector fragment or partial sum:
-
-- placement: tile/core/UCLM/SRAM array,
-- domain: digital register, analog bitline, sensed digital value, reconstructed MAC output,
-- precision: input/weight bit width, ADC precision, lookup precision, residual approximation choice,
-- role: Q vector, K-as-weight, V-as-weight, logit vector, softmax numerator, denominator, attention output,
-- path node: DAC, BL accumulation, S&H, ADC, S&A, VFU, shared memory, lookup table, reduction tree,
-- reduction state: local max, global max, local sum, denominator, broadcast generation.
-
-Under such an extension, HASTILY-like rewrites could express fusing reconstruction with downstream reduction, carrying bit-sliced partial sums across operator boundaries, changing softmax reduction-tree shape, or choosing alternative peripheral paths. Delaying ADC conversion or retiming analog-domain accumulation would require a richer hardware model than the paper demonstrates, because the current compute path samples and digitizes each MVM output before S&A and downstream VFU/lookup scheduling. ([arXiv](https://arxiv.org/pdf/2502.12344))
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -286,7 +349,7 @@ Under such an extension, HASTILY-like rewrites could express fusing reconstructi
 | **Softermax / ITA / Hyft** | Softmax/attention acceleration | These works are close on the softmax bottleneck; HASTILY differs by embedding exponent lookup into dual-function CIM arrays and scheduling reductions across CIM cores. | HASTILY is valuable for IR work because softmax is represented as hardware-resource scheduling, not merely as an approximate arithmetic unit. ([arXiv](https://arxiv.org/pdf/2502.12344)) |
 | **FlashAttention / FLAT** | Attention dataflow and memory-footprint reduction | These are not SRAM-CIM stacks, but they are close in treating attention as a schedule/data-movement problem. HASTILY brings a CIM-specific hardware path and UCLM mode model. | Helpful corpus cross-link for value-trajectory IR: both classes expose attention value movement, but at different hardware abstraction levels. ([arXiv](https://arxiv.org/pdf/2502.12344)) |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - HASTILY’s real contribution is a transformer-oriented SRAM analog-CIM co-design: UCLM arrays support both MVM and exponent lookup, and software schedules softmax and encoder stages around that dual-function resource.
 - The strongest reusable stack layer is the **mapping/scheduling layer**: vector-granular transformer pipelining, K/V dynamic weight placement, K transpose by address mapping, and tree-style multi-core softmax reduction.
@@ -296,81 +359,3 @@ Under such an extension, HASTILY-like rewrites could express fusing reconstructi
 - **Artifact status: no public artifact found.** The paper states that the codebase would be open-sourced on GitHub, but no public compiler/simulator artifact was found in checked sources. ([arXiv](https://arxiv.org/pdf/2502.12344))
 - Integration is most plausible as IR inspiration, mapper/scheduler logic, benchmark scenario, or backend cost-model reconstruction; direct reuse as a compiler artifact would require substantial reconstruction.
 - For value-trajectory IR research, HASTILY is a useful case because it exposes where values cross CIM modes, analog/digital boundaries, reconstruction paths, and distributed reduction states, even though those trajectories are not represented as a typed public IR.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "HASTILY: Hardware-Software Co-Design for Accelerating Transformer Inference Leveraging Compute-in-Memory"
-year: 2025
-venue: "IEEE Transactions on Circuits and Systems for Artificial Intelligence; arXiv:2502.12344"
-authors_or_group: "Dong Eun Kim, Tanvi Sharma, Kaushik Roy"
-technology:
-  - SRAM-CIM
-  - analog-CIM
-  - 8T-SRAM
-  - transformer-CIM
-workloads:
-  - BERT-Base
-  - BERT-Large
-  - transformer encoder inference
-  - softmax
-  - matrix-vector multiplication
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A2_simulator_cost_model
-    - A3_mapping_scheduling
-    - A4_ISA_extension_paper_level
-axis_B:
-  - B3_tensor_vector_schedule_IR
-  - B4_hardware_resource_IR
-  - B5_instruction_meta_op_ISA
-  - B7_runtime_state_abstraction_partial
-axis_C_first_class_objects:
-  - UCLM
-  - 8T_SRAM_compute_lookup_array
-  - lookup_line_LKL
-  - exponent_lookup_table
-  - compute_lookup_mode
-  - chip_tile_core_hierarchy
-  - VFU
-  - register_file
-  - shared_memory
-  - DAC
-  - sample_and_hold
-  - ADC
-  - shift_and_add
-  - local_maximum
-  - partial_sum
-  - tree_reduction
-  - dynamic_KV_as_CIM_weights
-axis_D_rewrite_objects:
-  - operator_graph_to_vector_schedule
-  - matmul_to_iterative_MVM
-  - hardware_mapping
-  - array_binding
-  - memory_address_mapping
-  - UCLM_mode_selection
-  - softmax_reduction_state
-  - instruction_stream
-  - exponent_LUT_numeric_approximation
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend_reconstruction
-  - benchmark
-  - validation_partial
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest evidence is architecture/scheduling/simulator-backed evaluation, not a public IR."
-  - "Compiler is described through BERT support and ISA extensions; frontend contract and generated traces are unknown."
-  - "Value-trajectory relevance comes from UCLM mode switching, analog-to-digital path, S&A reconstruction, and distributed softmax reduction state."
-  - "Best classified as a narrow transformer SRAM-CIM co-design rather than a backend-agnostic compiler/IR stack."
-```

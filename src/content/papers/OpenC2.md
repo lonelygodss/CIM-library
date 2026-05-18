@@ -1,3 +1,70 @@
+---
+slug: openc2
+title: "OpenC2: An Open-Source End-to-End Hardware Compiler Development Framework for Digital Compute-in-Memory Macro"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "DATE 2025"
+authors_or_group: "Tianchu Dong, Shaoxuan Li, Yihang Zuo, Hongwu Jiang, Yuzhe Ma, Shanshi Huang; HKUST(GZ)"
+summary: >-
+  OpenC² contributes an open-source, template-based hardware generation and physical-design flow for digital SRAM compute-in-memory macros. Its strongest demonstrated stack layer is the backend macro generator: from top-level macro parameters, customized cells, and 45 nm FreePDK technology/library inputs, it emits Verilog and SPICE front-end netlists plus DEF/GDSII layout artifacts through open-source EDA tools. The paper demonstrates this flow for DCIM macro construction, including a 64×64, 4-bit-by-4-bit example and macro-level area, power, and energy-efficiency comparisons. For CIM compiler/IR research, OpenC² is best read as a backend-plugin case study: it makes macro shape, precision fields, hardware hierarchy, and physical layout generation concrete, while the effective intermediate semantics are distributed across configuration values, Python templates, generated netlists, Yosys scripts, and DEF/LEF/GDS metadata rather than a standalone CIM IR. ([zyh0911.github.io](https://zyh0911.github.io/assets/pdf/OpenC2.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "DCIM macro generation"
+  - "VMM-oriented digital CIM macro context"
+  - "64x64 4-bit x 4-bit generated macro example"
+  - "macro-size PPA comparison"
+tags: []
+baselines: []
+axis_A:
+  primary: A1
+  secondary: [A5, A2]
+axis_B: [B1, B4]
+axis_C_first_class_objects:
+  - "macro rows and columns"
+  - "input and weight bit widths"
+  - "DCIM column"
+  - "SRAM with read/write circuitry"
+  - "bitcell array"
+  - "adder tree"
+  - "accumulator"
+  - "decoder"
+  - "input and wordline drivers"
+  - "control block"
+  - "DEF/LEF/GDS layout metadata"
+axis_D_rewrite_objects:
+  - "hardware topology"
+  - "module expansion"
+  - "array binding"
+  - "bit-width propagation"
+  - "memory layout / physical placement"
+  - "backend EDA flow trajectory"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/OpenC2-official/OpenC2_V1.0"
+  license: "Unknown / not found in checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best treated as a backend-plugin case study rather than an application-level CIM compiler stack."
+  - "The most auditable boundary is macro configuration to generated Verilog/SPICE/DEF/GDSII."
+  - "Several semantic decisions are embedded in templates, scripts, generated EDA files, and layout metadata."
+  - "A trajectory-IR extension would add explicit value identity, bit significance, precision stage, and path annotations above the current macro generator."
+takeaways: []
+---
+
 # OpenC² — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -236,24 +303,7 @@ The artifact includes area-calculation scripts that read submodule `area.json` f
 **Integration effort estimate: High.**  
 Integration would be most direct through a backend adapter that extracts a normalized macro configuration and invokes the generator scripts. The effort is elevated by the minimal README workflow, unknown license status, hard-coded example parameters in scripts, and the need to make implicit template/layout assumptions explicit for a larger compiler stack. For corpus reuse as a case study, effort is lower because the generated files and code structure are already inspectable.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-OpenC² provides useful ingredients for a value-trajectory IR, especially its explicit hardware path components: SRAM/DCIM column, adder tree, accumulator, control, pins, and physical-layout metadata. The closest approximation to trajectory semantics is the generated datapath hierarchy and bit-width propagation code: values flow through a DCIM column into reduction/accumulation logic, and the scripts derive partial-sum and output widths from macro parameters. ([GitHub](https://github.com/OpenC2-official/OpenC2_V1.0/blob/main/source/frontend/verilog_generator/verilog_generator/dcim_column_generator.py))
-
-The paper’s demonstrated abstraction centers on macro hardware generation. It names the structural path a value takes through DCIM resources at the hardware-block level, but it does not serialize value identity across stages such as partial sums, sign handling, shift/reconstruction, accumulation, and output storage as a standalone trajectory object. Bit width is explicit; bit significance, channel rate, precision stage, placement, and domain transition are mostly embedded in generator code, net names, and physical layout metadata.
-
-A trajectory-level extension would likely attach typed value-flow annotations to generated modules and ports: input bit slice, weight bit slice, partial-sum width, reduction depth, sign stage, accumulation stage, output bit range, physical column group, and storage boundary. That extension could make the following rewrites expressible above the macro generator:
-
-- fusing reconstruction with downstream reduction;
-- delaying or retiming conversion/reconstruction stages where the hardware supports it;
-- carrying bit-sliced partial sums across operator or macro boundaries;
-- changing reduction-tree structure;
-- routing values through alternative peripheral paths;
-- co-optimizing data movement and numeric reconstruction.
-
-OpenC² is therefore relevant as a **backend substrate** for a value-trajectory IR: it shows what a trajectory-aware compiler would eventually need to lower into, while the trajectory semantics themselves would need to be added as an explicit layer above the current template and layout scripts.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -263,7 +313,7 @@ OpenC² is therefore relevant as a **backend substrate** for a value-trajectory 
 | **SEGA-DCIM** | DSE-guided DCIM compiler and template-based netlist/layout generation | SEGA-DCIM emphasizes multi-objective design-space exploration across area, power, delay, and precision; OpenC² exposes a narrower but public macro hardware-generation flow. ([arXiv](https://arxiv.org/html/2505.09451)) | Good comparison for whether “middle layer” is DSE/search state or config/template state. |
 | **OpenACM** | Open-source SRAM-based CIM/compiler infrastructure | OpenACM adds accuracy-configurable multiplier libraries and approximation-oriented SRAM macro generation; OpenC² is a digital CIM macro generator centered on exact macro layout/backend generation. ([arXiv](https://arxiv.org/pdf/2601.11292)) | Useful contrast between open backend macro generation and approximation-aware CIM design spaces. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - OpenC²’s evidenced contribution is an open-source, template-based **digital SRAM-CIM macro hardware generator**.
 - Its strongest reusable stack layer is the **backend macro-generation and physical-design flow** from macro parameters and libraries to Verilog/SPICE/DEF/GDSII.
@@ -273,65 +323,3 @@ OpenC² is therefore relevant as a **backend substrate** for a value-trajectory 
 - Artifact status is public, with source, libraries, and a generated 64×64 4-bit×4-bit example; license and full runnable workflow were not found in the checked sources.
 - Integration is most promising as a backend plugin or backend case study for a larger CIM compiler/IR stack.
 - For value-trajectory IR work, OpenC² supplies concrete backend resources and bit-width propagation rules, while trajectory-level value identity and rewrite legality would need an added abstraction layer.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "OpenC2: An Open-Source End-to-End Hardware Compiler Development Framework for Digital Compute-in-Memory Macro"
-year: 2025
-venue: "DATE 2025"
-authors_or_group: "Tianchu Dong, Shaoxuan Li, Yihang Zuo, Hongwu Jiang, Yuzhe Ma, Shanshi Huang; HKUST(GZ)"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - DCIM macro generation
-  - VMM-oriented digital CIM macro context
-  - 64x64 4-bit x 4-bit generated macro example
-  - macro-size PPA comparison
-axis_A:
-  primary: "A1 Macro / circuit generator"
-  secondary:
-    - "A5 Narrow end-to-end co-design"
-    - "A2 Macro-level PPA reporting"
-axis_B:
-  - "B1 Config-as-IR"
-  - "B4 Hardware-resource IR"
-axis_C_first_class_objects:
-  - macro rows and columns
-  - input and weight bit widths
-  - DCIM column
-  - SRAM with read/write circuitry
-  - bitcell array
-  - adder tree
-  - accumulator
-  - decoder
-  - input and wordline drivers
-  - control block
-  - DEF/LEF/GDS layout metadata
-axis_D_rewrite_objects:
-  - hardware topology
-  - module expansion
-  - array binding
-  - bit-width propagation
-  - memory layout / physical placement
-  - backend EDA flow trajectory
-artifact:
-  status: "public artifact found"
-  url: "https://github.com/OpenC2-official/OpenC2_V1.0"
-  license: "Unknown / not found in checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best treated as a backend-plugin case study rather than an application-level CIM compiler stack."
-  - "The most auditable boundary is macro configuration to generated Verilog/SPICE/DEF/GDSII."
-  - "Several semantic decisions are embedded in templates, scripts, generated EDA files, and layout metadata."
-  - "A trajectory-IR extension would add explicit value identity, bit significance, precision stage, and path annotations above the current macro generator."
-```

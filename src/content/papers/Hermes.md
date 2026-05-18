@@ -1,3 +1,72 @@
+---
+slug: hermes
+title: "Hermes / Make LLM Inference Affordable to Everyone: Augmenting GPU Memory with NDP-DIMM"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "HPCA 2025"
+authors_or_group: "Lian Liu, Shixin Zhao, Bing Li, Haimeng Ren, Zhaohui Xu, Mengdi Wang, Xiaowei Li, Yinhe Han, Ying Wang"
+summary: >-
+  Hermes, formally “Make LLM Inference Affordable to Everyone: Augmenting GPU Memory with NDP-DIMM,” is an HPCA 2025 hardware–software co-design for activation-sparse LLM inference on a consumer-grade GPU augmented by digital near-data-processing DIMMs. Its core contribution is not a general CIM compiler IR, but a specialized runtime mapping and scheduling layer: frequently active “hot” neurons are kept on the GPU, while less frequently active “cold” neurons remain in NDP-DIMMs, with an offline ILP initializer, a lightweight online predictor, and a window-based DIMM load-balancing scheduler. The paper demonstrates this design for OPT, LLaMA2, and Falcon-style models under ReLU-based activation sparsity, using an RTX 4090, eight modeled DDR4 NDP-DIMMs, measured GPU kernels, a modified Ramulator 2.0 simulator, and RTL-synthesized NDP cores. For CIM compiler/IR research, Hermes is most useful as a runtime-state and mapping case study: it names neuron activity, placement, and remapping as first-class scheduling objects, while the compiler-visible value trajectory remains implicit in the scheduler, commands, barriers, and simulator assumptions. ([arXiv](https://arxiv.org/abs/2502.16963?utm_source=chatgpt.com))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "digital-NDP"
+  - "NDP-DIMM"
+  - "GPU-PIM-hybrid"
+workloads:
+  - "OPT-13B"
+  - "OPT-30B"
+  - "OPT-66B"
+  - "LLaMA2-13B"
+  - "LLaMA2-70B"
+  - "Falcon-40B"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A3, A2]
+axis_B: [B7, B1, B5]
+axis_C_first_class_objects:
+  - "neuron_identity"
+  - "hot_cold_neuron_status"
+  - "neuron_state_table"
+  - "neuron_correlation_table"
+  - "neuron_activity_window"
+  - "GPU_vs_NDP_DIMM_placement"
+  - "DIMM_load"
+  - "DIMM_link_remapping"
+  - "MAC_softmax_command"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "runtime_state"
+  - "neuron_placement"
+  - "cold_neuron_remapping"
+  - "command_schedule"
+artifact:
+  status: "partial"
+  url: "https://huggingface.co/SparseLLM"
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Strong runtime-state case study for sparse LLM serving on digital NDP-DIMM."
+  - "Most reusable abstraction is per-neuron hot/cold placement plus windowed DIMM load balancing."
+  - "Value trajectory is operationally visible at GPU/NDP merge points but not represented as a typed rewritable object."
+takeaways: []
+---
+
 # Hermes — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -229,24 +298,7 @@ The demonstrated workloads are OPT-13B/30B/66B, LLaMA2-13B/70B, and Falcon-40B. 
 
 **Integration effort estimate: High.** Integration would be most direct through reimplementing the placement and scheduling algorithms around an existing LLM runtime and a DRAM-PIM simulator. Reuse would benefit from a small adapter that extracts per-neuron activation frequencies, builds the ILP input, serializes neuron placement, and emits a DIMM/GPU command trace. The most valuable reusable boundary appears to be the mapping/scheduler state, not the full end-to-end system.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-Hermes provides useful ingredients for a value-trajectory IR, especially runtime placement, device-local execution, sparse-neuron identity, and merge-point semantics. The closest approximation to trajectory semantics is the FC-layer flow: activated neurons are assigned to GPU or NDP-DIMMs, GPU and DIMM computations run with barriers, and a merge kernel on the NDP-DIMM side gathers results. ([arXiv](https://arxiv.org/html/2502.16963v1))
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names host, GPU, NDP-DIMM, DIMM-link, MAC/softmax commands, barriers, and merge kernels, but the value path is described operationally rather than as a typed object.
-- **Does it preserve value identity across partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** It preserves neuron identity for placement and activation; partial result identity is implicit in the merge workflow. Analog sensing/reconstruction is not applicable to the digital NDP-DIMM target.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement is represented strongly; precision and bit-serial behavior are hardware details; channel rate is costed through bandwidth/timing, not typed; analog/digital domain transition is not applicable.
-- **Could it express trajectory rewrites?**  
-  - Fusing reconstruction with downstream reduction: not applicable for analog reconstruction; fusing merge with downstream reduction would require a typed partial-result/reduction abstraction.  
-  - Delaying or retiming ADC conversion: not applicable.  
-  - Carrying bit-sliced partial sums across operator boundaries: not represented; bit-serial multiplication is inside the GEMV unit.  
-  - Changing reduction tree structure: hardware parameter/hardware design issue, not a scheduler rewrite.  
-  - Routing values through alternative peripheral paths: DIMM-link remapping provides a coarse analogue for data movement, but peripheral paths are not first-class.  
-  - Co-optimizing data movement and numeric reconstruction: Hermes co-optimizes placement and data movement, but not numeric reconstruction.
-
-A trajectory-level extension would likely attach value-subset metadata to each partial result: layer, neuron subset, source device, current storage location, accumulation stage, merge target, and allowed migration path. This aligns with the taxonomy’s finding that current stacks tend to cost dataflow and reconstruction but do not make value flow a named, rewritable object. (CIM taxonomy.md)
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -257,7 +309,7 @@ A trajectory-level extension would likely attach value-subset metadata to each p
 | PIMCOMP / PIMSIM-NN | PIM compiler-to-simulator flow with instruction-like backend | PIMCOMP/PIMSIM-NN lower static ONNX DNNs to instruction/config artifacts for crossbar PIM; Hermes uses runtime neuron placement and command invocation for LLM serving. (CIM stack library compact.md) | Contrast static graph-to-instruction pipelines with dynamic sparse-runtime placement. |
 | CIMFlow | Vertical digital CIM DNN compiler/simulator stack | CIMFlow exposes graph partitioning, MLIR/DSL lowering, ISA, and SystemC simulation; Hermes exposes a narrower scheduler and modeled NDP-DIMM backend. (CIM stack library compact.md) | CIMFlow is a stronger explicit-stack baseline; Hermes is a stronger runtime-state case study. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - Hermes is best read as a **narrow hardware–software co-design for activation-sparse LLM inference**, not as a general CIM compiler or IR stack.
 - Its strongest reusable layer is the **hot/cold neuron mapping and runtime scheduling abstraction**: offline ILP placement, online predictor, and DIMM load-balancing scheduler.
@@ -267,68 +319,3 @@ A trajectory-level extension would likely attach value-subset metadata to each p
 - Artifact status is **partial**: public SparseLLM model collection found; no public Hermes implementation, simulator patch, RTL, or reproduction scripts were found.
 - Integration into a future stack would be most valuable as a **runtime mapper/scheduler plugin and benchmark scenario** for sparse LLM serving on digital NDP/PIM memory.
 - For a value-trajectory IR, Hermes motivates **runtime placement and merge-point metadata**, but trajectory-level rewrites would require explicit partial-result identity, accumulation-stage, and path annotations.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Hermes / Make LLM Inference Affordable to Everyone: Augmenting GPU Memory with NDP-DIMM"
-year: 2025
-venue: "HPCA 2025"
-authors_or_group: "Lian Liu, Shixin Zhao, Bing Li, Haimeng Ren, Zhaohui Xu, Mengdi Wang, Xiaowei Li, Yinhe Han, Ying Wang"
-technology:
-  - DRAM-PIM
-  - digital-CIM
-  - digital-NDP
-  - NDP-DIMM
-  - GPU-PIM-hybrid
-workloads:
-  - OPT-13B
-  - OPT-30B
-  - OPT-66B
-  - LLaMA2-13B
-  - LLaMA2-70B
-  - Falcon-40B
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A3_mapping_scheduling_DSE
-    - A2_simulator_cost_model
-axis_B:
-  - B7_runtime_state_abstraction
-  - B1_config_search_as_IR
-  - B5_instruction_command_boundary
-axis_C_first_class_objects:
-  - neuron_identity
-  - hot_cold_neuron_status
-  - neuron_state_table
-  - neuron_correlation_table
-  - neuron_activity_window
-  - GPU_vs_NDP_DIMM_placement
-  - DIMM_load
-  - DIMM_link_remapping
-  - MAC_softmax_command
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - runtime_state
-  - neuron_placement
-  - cold_neuron_remapping
-  - command_schedule
-artifact:
-  status: partial
-  url: "SparseLLM on Hugging Face; no public Hermes code/simulator/RTL found"
-  license: unknown
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Strong runtime-state case study for sparse LLM serving on digital NDP-DIMM."
-  - "Most reusable abstraction is per-neuron hot/cold placement plus windowed DIMM load balancing."
-  - "Value trajectory is operationally visible at GPU/NDP merge points but not represented as a typed rewritable object."
-```

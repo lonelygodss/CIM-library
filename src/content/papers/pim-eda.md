@@ -1,3 +1,84 @@
+---
+slug: pim-eda
+title: "PIM EDA Suite / PIM Toolchain"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "Repository-centered suite; associated papers include DAC 2023, IEEE TCAD, DATE 2024"
+authors_or_group: "Xiaoming Chen group / ICT CAS and collaborators"
+summary: >-
+  **PIM EDA Suite / PIM Toolchain** is best read as a crossbar-PIM DNN/CNN inference toolchain family rather than a single compiler paper. Its strongest contribution for a CIM compiler/IR corpus is the way it exposes several adjacent compiler boundaries: PIMSYN-NN synthesizes a parameterized macro/PE/crossbar accelerator and dataflow under a power constraint; PIMCOMP-NN lowers ONNX models through structure/weight representations, array-group partitioning, weight replication, core mapping, and HT/LL scheduling into pseudo-instruction or simulator inputs; PIMSIM-NN evaluates ISA/program-instruction streams against architecture/NoC configuration; and PIMACC evaluates inference accuracy under configurable nonidealities. The demonstrated setting is static DNN/CNN inference on configurable crossbar/RRAM-style PIM accelerators, with reusable evidence strongest at the hardware-template/config, mapping-state, pseudo-instruction, and simulator-input boundaries. ([GitHub](https://github.com/chenxm1986/PIM-Toolchain))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "crossbar-PIM"
+  - "NVM-CIM"
+  - "configurable crossbar template"
+workloads:
+  - "CNN inference"
+  - "DNN inference"
+  - "ONNX models"
+  - "AlexNet"
+  - "VGG"
+  - "ResNet"
+  - "GoogleNet"
+  - "SqueezeNet"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A1, A2, A3, A4]
+axis_B: [B1, B2, B4, B5, B6, B7]
+axis_C_first_class_objects:
+  - "crossbar array"
+  - "array group"
+  - "macro / PE / crossbar hierarchy"
+  - "chip / core / PIMFU hierarchy"
+  - "logical array / physical array mapping"
+  - "weight replication factor"
+  - "ADC / DAC / cell precision parameters"
+  - "local and global memory"
+  - "NoC / inter-core transfer"
+  - "pseudo-instruction stream"
+  - "pixel dependency and runtime address records"
+  - "nonideality configuration"
+axis_D_rewrite_objects:
+  - "operator graph"
+  - "weight unfolding"
+  - "array partitioning"
+  - "hardware mapping"
+  - "array binding"
+  - "dataflow schedule"
+  - "instruction stream"
+  - "numeric bit-splitting"
+  - "memory layout"
+  - "accuracy model"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/chenxm1986/PIM-Toolchain"
+  license: "Apache-2.0 for PIMCOMP-NN, PIMSYN-NN, and PIMACC; umbrella and pimsim-nn license not found in checked README/listing"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Treat as a suite/paper-family entry unless a standalone PIM EDA paper is later identified."
+  - "Most reusable boundary is PIMCOMP AG mapping plus pseudo-instruction/simulator input."
+  - "PIMSYN IR DAG is valuable for operation/component-level CIM IR comparison."
+  - "PIMACC nonideality config is useful as an accuracy-model plugin boundary."
+takeaways: []
+---
+
 # PIM EDA Suite / PIM Toolchain — scoped CIM stack note
 
 Checked sources: I found an umbrella repository titled **“PIM EDA Suite”** and four linked artifacts/papers: **PIMSYN-NN**, **PIMCOMP-NN**, **PIMSIM-NN**, and **PIMACC**. I did **not** find a standalone public paper titled exactly “PIM EDA”; this note treats the suite and its linked publications/artifacts as the corpus object. The umbrella repository describes the suite as an architecture-level EDA toolchain for PIM CNN accelerators and lists four tools: PIMSYN-NN, PIMCOMP-NN, PIMSIM-NN, and PIMACC. ([GitHub](https://github.com/chenxm1986/PIM-Toolchain))
@@ -271,22 +352,7 @@ PIMCOMP evaluates three architecture instantiations and four networks: vgg8/resn
 
 **Integration effort estimate: Medium.** Integration would be most direct through PIMCOMP’s JSON/config/instruction outputs and PIMSIM’s instruction/config simulator interface. Reuse would benefit from a small adapter that extracts AG layout, pseudo-instructions, hardware config, and provenance into a stable schema. Deeper reuse of LL runtime state or PIMSYN component allocation would require aligning internal data structures with a public IR.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially AGs, pseudo-instructions, local/global memory movement, send/recv communication, PIMSYN’s ADC/ALU/transfer nodes, and PIMCOMP’s LL pixel dependency/runtime records. The closest approximation to trajectory semantics is the combination of AG mapping, `mvm`/`vec`/`load`/`store`/`send`/`recv` instructions, pixel-AG dependency lists, runtime core addresses, and transmission requests. ([ar5iv](https://ar5iv.org/abs/2411.09159))
-
-The demonstrated abstraction centers on mapping and scheduling rather than persistent value identity. It names where weights live, how AGs compute, when values are loaded/stored/transmitted, and which pixels are needed by successor computations, but it does not expose a single value object that is typed across analog partial sums, ADC sensing, digital accumulation, reconstruction, reduction, storage, and inter-core transfer. A trajectory-level extension would likely attach value identity, precision stage, bit significance, domain state, placement, and accumulation/reconstruction metadata to AG outputs and pseudo-instruction operands.
-
-For the specific trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** PIMSYN’s ALU/shift-and-add and PIMCOMP’s VFU/vec boundary provide ingredients, but a rewrite would need explicit reconstruction-result objects and reduction-tree metadata.  
-- **Delaying or retiming ADC conversion:** PIMSYN names ADC IR, but retiming ADC would require explicit analog-domain lifetime and legality constraints. ([ar5iv](https://ar5iv.org/abs/2402.18114))  
-- **Carrying bit-sliced partial sums across operator boundaries:** PIMCOMP models logical/physical arrays and backend bit splitting; cross-operator bit-slice persistence would require type-like bit-slice value annotations. ([ar5iv](https://ar5iv.org/abs/2411.09159))  
-- **Changing reduction tree structure:** Partial-sum accumulation is present at AG/VFU level; a general rewrite would require reduction tree nodes rather than embedded schedule behavior.  
-- **Routing values through alternative peripheral paths:** Config and instruction targets expose memory/communication/VFU/PIMFU resources; alternative path rewrites would need explicit path alternatives and costed peripheral nodes.  
-- **Co-optimizing data movement and numeric reconstruction:** PIMCOMP already co-optimizes mapping, communication, and memory behavior; adding numeric reconstruction as a first-class value property would make this optimization expressible at IR level.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -297,7 +363,7 @@ For the specific trajectory rewrites:
 | **ISAAC / PipeLayer / PRIME / AtomLayer** | Crossbar/RRAM CNN accelerator architecture | PIMSYN uses these as manually designed accelerator baselines; they are closer to hardware architecture than compiler IR. ([ar5iv](https://ar5iv.org/abs/2402.18114)) | Helps classify PIM EDA as a toolchain around hardware templates, not just a new accelerator microarchitecture. |
 | **PIMACC-adjacent accuracy simulators** | Nonideality and accuracy under analog CIM effects | PIMACC’s distinguishing public boundary is coupling PIMCOMP mappings/instructions with configurable nonideal effects. ([GitHub](https://github.com/HertzHan/PIMACC-simulator)) | Useful for corpus tags involving accuracy/nonideality modeling, even when compiler IR is mapping-centric. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - PIM EDA Suite is a public crossbar-PIM CNN/DNN inference toolchain family, not a single monolithic IR paper.
 - The strongest reusable compiler layer is PIMCOMP’s AG-based mapping/scheduling pipeline from ONNX-derived JSON to pseudo-instructions and simulator inputs.
@@ -307,85 +373,3 @@ For the specific trajectory rewrites:
 - PIMSIM and PIMACC make the backend boundary auditable through program instructions/config files and nonideality configuration.
 - Artifact status is public and partial-to-good for experimentation: multiple repos, documented commands, examples, and Apache-2.0 for several components; full paper-figure reproduction scripts are not clearly documented in checked sources.
 - For value-trajectory IR work, PIM EDA provides strong ingredients but would benefit from an added abstraction that preserves value identity, domain transitions, bit significance, accumulation/reconstruction state, and peripheral path choices across lowering.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "PIM EDA Suite / PIM Toolchain"
-year: "2023-2024 linked papers; umbrella repository checked 2026-05-15"
-venue: "Repository-centered suite; associated papers include DAC 2023, IEEE TCAD, DATE 2024"
-authors_or_group: "Xiaoming Chen group / ICT CAS and collaborators"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-  - crossbar-PIM
-  - NVM-CIM
-  - configurable crossbar template
-workloads:
-  - CNN inference
-  - DNN inference
-  - ONNX models
-  - AlexNet
-  - VGG
-  - ResNet
-  - GoogleNet
-  - SqueezeNet
-axis_A:
-  primary: A5 narrow end-to-end co-design
-  secondary:
-    - A1 macro / architecture synthesis
-    - A2 simulator & cost model
-    - A3 mapping / scheduling / DSE framework
-    - A4 explicit IR / ISA compiler stack
-axis_B:
-  - B1 config-as-IR
-  - B2 graph-as-IR
-  - B4 hardware-resource IR
-  - B5 instruction / meta-op / ISA
-  - B6 accuracy / nonideality modeling
-  - B7 partial runtime-state abstraction
-axis_C_first_class_objects:
-  - crossbar array
-  - array group
-  - macro / PE / crossbar hierarchy
-  - chip / core / PIMFU hierarchy
-  - logical array / physical array mapping
-  - weight replication factor
-  - ADC / DAC / cell precision parameters
-  - local and global memory
-  - NoC / inter-core transfer
-  - pseudo-instruction stream
-  - pixel dependency and runtime address records
-  - nonideality configuration
-axis_D_rewrite_objects:
-  - operator graph
-  - weight unfolding
-  - array partitioning
-  - hardware mapping
-  - array binding
-  - dataflow schedule
-  - instruction stream
-  - numeric bit-splitting
-  - memory layout
-  - accuracy model
-artifact:
-  status: public artifact found
-  url: "Repository identifiers: chenxm1986/PIM-Toolchain; sunxt99/PIMCOMP-NN; lixixi-jook/PIMSYN-NN; wangxy-2000/pimsim-nn; HertzHan/PIMACC-simulator"
-  license: "Apache-2.0 for PIMCOMP-NN, PIMSYN-NN, and PIMACC; umbrella and pimsim-nn license not found in checked README/listing"
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Treat as a suite/paper-family entry unless a standalone PIM EDA paper is later identified."
-  - "Most reusable boundary is PIMCOMP AG mapping plus pseudo-instruction/simulator input."
-  - "PIMSYN IR DAG is valuable for operation/component-level CIM IR comparison."
-  - "PIMACC nonideality config is useful as an accuracy-model plugin boundary."
-```

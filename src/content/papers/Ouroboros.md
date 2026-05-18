@@ -1,3 +1,74 @@
+---
+slug: ouroboros
+title: "Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "ASPLOS 2026"
+authors_or_group: "Yiqi Liu, Yudong Pan, Mengdi Wang, Shixin Zhao, Haonan Zhu, Yinhe Han, Lei Zhang, Ying Wang"
+summary: >-
+  **Ouroboros** is best classified as a narrow end-to-end hardware–software co-design for wafer-scale **digital SRAM compute-in-memory** LLM inference. The paper’s central stack contribution is not a general CIM compiler IR, but a coherent target-specific execution stack: token-grained pipelining for causal decoder inference, communication- and fault-aware layer-to-core mapping, H-tree-aware intra-core placement, distributed dynamic KV-cache management, and a simulator-backed evaluation loop. Its demonstrated setting is LLM inference over a proposed 54 GB SRAM-CIM wafer-scale architecture, evaluated with decoder-only models such as LLaMA/Baichuan/Qwen and encoder-containing models such as T5/BERT. For CIM compiler/IR research, Ouroboros is valuable because it exposes a rich “hidden IR” made from mapping variables, pipeline stages, KV runtime tables, hardware-resource coordinates, and simulator parameters, even though those interfaces are paper-internal rather than released as a reusable dialect or instruction stream. ([arXiv](https://arxiv.org/html/2603.02737v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+  - "wafer-scale"
+  - "all-SRAM"
+workloads:
+  - "LLaMA-13B"
+  - "LLaMA-32B"
+  - "LLaMA-65B"
+  - "Baichuan-13B"
+  - "Qwen-32B"
+  - "T5-11B"
+  - "BERT-large"
+  - "WikiText-2"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A3, A2]
+axis_B: [B4, B7, B1]
+axis_C_first_class_objects:
+  - "wafer_die_core_hierarchy"
+  - "SRAM_CIM_crossbar"
+  - "H_tree_reduction_path"
+  - "mesh_NoC_coordinates"
+  - "token_pipeline_stage"
+  - "KV_page_table"
+  - "KV_bitmap"
+  - "logical_KV_block"
+  - "row_column_valid_registers"
+  - "partial_sum_accumulation_path"
+  - "fault_map_and_replacement_chain"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "array_binding"
+  - "token_pipeline_schedule"
+  - "runtime_KV_state"
+  - "fault_remap_state"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown for artifact; paper is CC BY 4.0"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation_partial"
+reproducibility_level: low
+notes:
+  - "Strongest reusable boundary is mapping/runtime state rather than a released compiler API."
+  - "Digital SRAM-CIM target makes ADC/DAC trajectory objects largely not applicable, but bit-level accumulation and shift-add paths are relevant."
+  - "KV-cache management is unusually explicit and useful as a runtime-state abstraction for future CIM IR work."
+takeaways: []
+---
+
 # Ouroboros — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -219,18 +290,7 @@ The evaluated workloads include decoder-only LLaMA-13B/32B/65B, Baichuan-13B, Qw
 
 **Integration effort estimate:** **High.** Integration would be most direct through reimplementing the mapping/state objects from the equations and hardware descriptions, then writing adapters for a simulator target. Reuse would benefit from a small schema that extracts layer tiles, core coordinates, H-tree decisions, KV-table state, and traffic terms. The most valuable reusable boundary appears to be the mapping/runtime-state model rather than the unreleased simulator.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-Ouroboros provides useful ingredients for a value-trajectory IR, especially physical mapping, accumulation-path cost, and dynamic KV placement. The closest approximation to trajectory semantics is the combination of MIQP traffic terms for output/reduce/gather movements, H-tree reduction/concatenation placement, and KV address translation from sequence/head to core/crossbar/block. ([arXiv](https://arxiv.org/pdf/2603.02737))
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names buffers, crossbar arrays, H-tree, SFU, NoC links, page tables, bitmaps, and valid registers, but value identity is not carried as a first-class typed object across those resources.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** For this digital CIM target, analog partial sums and ADC conversion are not the central issue. The paper describes digital sensing, AND, adder-tree accumulation, sign extension, and shift-add accumulation, but preservation is expressed as hardware behavior rather than as an IR-level value trajectory.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Some are present as parameters: 8-bit inputs/weights, 1-bit cells, 8:1 mux, 13-bit intermediate adder-tree output, 32-bit partial sums, row activation ratio, and core/crossbar placement. They are not presented as type annotations on values.
-- **Could it express trajectory rewrites?** Its demonstrated abstraction centers on mapping and scheduling. Trajectory-level rewrites such as fusing reconstruction with downstream reduction, retiming conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure beyond the H-tree DP, routing values through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction would likely add a trajectory object attached to tensor tiles, partial sums, numeric stage, and resource path.
-
-A trajectory-level extension would likely attach metadata such as `(value_id, tensor role, bit slice, precision stage, accumulation depth, resource coordinate, domain, valid mask, live range)` to the pipeline and KV mapping state.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -241,7 +301,7 @@ A trajectory-level extension would likely attach metadata such as `(value_id, te
 | **TranCIM / MulTCIM** | Digital CIM for transformer acceleration | These are closer to circuit/operator-level transformer CIM accelerators; Ouroboros is system-level, full-stack, and LLM-serving oriented. ([arXiv](https://arxiv.org/html/2603.02737v1)) | Separate circuit/operator CIM innovations from whole-system mapping/runtime papers. |
 | **CIM circuit macros such as VLSI’22 / ISSCC’22 baselines** | SRAM-CIM core design and TOPS/W comparison | Ouroboros intentionally trades aggressive core density for capacity-driven whole-model on-chip storage and LLM-serving throughput. ([arXiv](https://arxiv.org/html/2603.02737v1)) | Corpus entry should record the optimization target: circuit TOPS/W vs system-level memory-capacity efficiency. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - Ouroboros is a **target-specific end-to-end co-design** for wafer-scale **digital SRAM-CIM LLM inference**, not a general-purpose compiler/IR stack.
 - Its strongest reusable stack layer is **mapping + scheduling + runtime state**: token-grained pipelining, MIQP/DP placement, distributed KV-cache mapping, and fault-aware remapping.
@@ -251,70 +311,3 @@ A trajectory-level extension would likely attach metadata such as `(value_id, te
 - Artifact status: **no public artifact found.** The paper describes an E2E simulator and Verilog/RTL modeling flow, but no public simulator repository or scripts were found.
 - Integration is most promising as **IR inspiration, mapper/scheduler logic, cost-model structure, and benchmark target**, with high integration effort due to absent public artifacts.
 - For value-trajectory IR work, Ouroboros is relevant because it exposes path-sensitive mapping and runtime state, but a trajectory-level extension would add explicit value identity, precision stage, bit significance, and resource-path annotations.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference"
-year: 2026
-venue: "ASPLOS 2026"
-authors_or_group: "Yiqi Liu, Yudong Pan, Mengdi Wang, Shixin Zhao, Haonan Zhu, Yinhe Han, Lei Zhang, Ying Wang"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-  - wafer-scale
-  - all-SRAM
-workloads:
-  - LLaMA-13B
-  - LLaMA-32B
-  - LLaMA-65B
-  - Baichuan-13B
-  - Qwen-32B
-  - T5-11B
-  - BERT-large
-  - WikiText-2
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A3_mapping_scheduling_DSE
-    - A2_simulator_cost_model
-axis_B:
-  - B4_hardware_resource_IR
-  - B7_runtime_state_abstraction
-  - B1_config_as_IR
-axis_C_first_class_objects:
-  - wafer_die_core_hierarchy
-  - SRAM_CIM_crossbar
-  - H_tree_reduction_path
-  - mesh_NoC_coordinates
-  - token_pipeline_stage
-  - KV_page_table
-  - KV_bitmap
-  - logical_KV_block
-  - row_column_valid_registers
-  - partial_sum_accumulation_path
-  - fault_map_and_replacement_chain
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - array_binding
-  - token_pipeline_schedule
-  - runtime_KV_state
-  - fault_remap_state
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown for artifact; paper is CC BY 4.0"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation_partial
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest reusable boundary is mapping/runtime state rather than a released compiler API."
-  - "Digital SRAM-CIM target makes ADC/DAC trajectory objects largely not applicable, but bit-level accumulation and shift-add paths are relevant."
-  - "KV-cache management is unusually explicit and useful as a runtime-state abstraction for future CIM IR work."
-```

@@ -4,9 +4,9 @@
 
 Finish this as a static Astro paper library. Do not add PDF hosting yet.
 
-Root-level project instructions now live in `AGENTS.md`. Use this handoff as a short status note; use `AGENTS.md` for ongoing agent behavior.
+Root-level project instructions live in `AGENTS.md`. Use this handoff as a short status note; use `AGENTS.md` for ongoing agent behavior.
 
-Current migration plan lives in `docs/future-development-plan.md`. A ready-to-use restart prompt lives in `docs/next-session-prompt.md`.
+Current development plan lives in `docs/future-development-plan.md`. A ready-to-use restart prompt lives in `docs/next-session-prompt.md`.
 
 ## Design decisions already made
 
@@ -14,23 +14,63 @@ Current migration plan lives in `docs/future-development-plan.md`. A ready-to-us
 - Taxonomy vocabulary source: `src/data/taxonomy.json`.
 - Atlas route: `/library/`.
 - Paper route: `/papers/[slug]/`.
-- Visualization: keep the Axis A × Axis B dot atlas and selected-paper metadata panel.
+- Visualization: keep the Axis A x Axis B dot atlas and selected-paper metadata panel.
 - No coverage score, ranking score, or trajectory-IR relevance metadata in the active schema.
+- Keep the site static and suitable for personal hosting.
+
+## Current state
+
+All 62 paper notes in `src/content/papers/` have been migrated into schema-valid Astro content entries. The previous raw-note migration blocker is resolved.
+
+Latest verification:
+
+- `npm run validate` passes: `Validated 62 paper metadata file(s).`
+- `npm run check` passes: `0 errors, 0 warnings, 0 hints`.
+- `npm run build` passes and builds 64 pages into `dist/`.
+
+The final migration batch converted:
+
+- `openc2.md`
+- `opencimtc.md`
+- `ouroboros.md`
+- `papi.md`
+- `pim-eda.md`
+- `pim-hls.md`
+- `pim-opt.md`
+- `pim-tc.md`
+- `pimacc.md`
+- `pimcomp.md`
+- `pimsim-nn.md`
+- `pimsyn-nn.md`
+- `pimeva.md`
+- `pimsynth.md`
+- `puma.md`
+- `polyhedral-based-compilation-framework-for-in-memoryneural-network-accelerators.md`
+- `prim.md`
+- `rescim.md`
+- `reconfigurable-dataflow-cim-accelerator-for-multi-scale-vision-transformer.md`
+- `sega-dcim.md`
+- `sherlock.md`
+- `simplepim.md`
+- `sparsep.md`
+- `syndcim.md`
+- `unindp.md`
+
+Several artifact URLs and conservative metadata values were manually normalized when the note already contained checked evidence. Examples include OpenCIMTC, PIM-EDA, PIM-Opt, PIMACC, PIMCOMP, PIMSIM-NN, PIMSYN-NN, PrIM, and PUMA.
+
+On macOS-style case-insensitive filesystems, Git may show case-only filename normalizations as modifications under the original tracked names until staging. The on-disk lowercase kebab-case filenames are authoritative.
 
 ## What to finish next
 
-1. Convert raw notes in `src/content/papers/` into schema-valid Astro content entries.
-2. Promote each note's `## 12. Suggested metadata entry` YAML into frontmatter.
-3. Normalize filenames to lowercase kebab-case slugs.
-4. Remove section 12 from rendered note bodies after promotion.
-5. Remove generated value-trajectory IR project sections and ignore obsolete `trajectory_IR_relevance` fields.
-6. Run `npm run validate`, `npm run check`, and `npm run build` after migration batches.
-7. Improve the Markdown paper page layout only after all content compiles.
-8. Optional: add tag/axis detail pages after the atlas is stable.
+1. Run content QA across the now-valid corpus.
+2. Scan for duplicate slugs and title collisions.
+3. Check typo-like names and long migrated filenames.
+4. Spot-check paper and artifact URLs for high-priority entries.
+5. Review entries with `year: null`, blank artifact URLs, or `reproducibility_level: unknown`.
+6. Improve individual paper page layout only after QA remains green.
+7. Optional: add tag, axis detail, or search pages after the atlas is stable.
 
-Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from the draft artifacts.
-
-As of the fourth migration batch, 27 notes are structured and 35 raw notes remain. The newly migrated files are `cmswitch.md`, `comonm.md`, `count2multiply.md`, `dappa.md`, `declarative-memory-services.md`, `dypim.md`, `efficient-in-memory-acceleration-of-sparse-block-diagonal-llms.md`, `exploiting-the-memory-compute-coupling-feature-for-cim-accelerator-design-optimization.md`, `geniex.md`, and `gibbon.md`. `npm run validate` is expected to fail until raw notes receive frontmatter; the current next raw blocker is `HARMONI.md: missing YAML frontmatter block`. `npm run check` currently stops on another remaining raw note, `Hermes.md`, before a full Astro check can complete.
+Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from draft artifacts.
 
 ## Frontmatter contract
 
@@ -48,25 +88,13 @@ axis_B: [B1]
 
 Keep arrays inline where possible. The Astro schema is the strict source of truth; `scripts/validate-library.mjs` is a fast preflight check.
 
-Obsolete generated fields such as `coverage` and `trajectory_IR_relevance` should be ignored during migration.
+Obsolete generated fields such as `coverage` and `trajectory_IR_relevance` should stay out of migrated entries.
 
-## Converting existing generated notes
+## Future imports
 
-Use the note's section 12 metadata block when present. If absent, extract from:
+For any future raw generated note:
 
-- section 1 classification table -> `axis_A`, `axis_B`, objects, rewrite objects, tags, baselines;
-- section 2 public summary -> `summary`;
-- section 8 artifact status -> `artifact` and `reproducibility_level`;
-- section 10 final takeaway -> `takeaways`.
-
-Do not try to parse the entire prose automatically before the schema is stable. Prefer a small manual adapter plus validation.
-
-Refined batch workflow from the latest migration:
-
-1. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` first and inspect planned lowercase filenames.
-2. Run the helper for the batch, then inspect warnings. The helper now blanks nonnumeric years, blanks non-HTTP(S) artifact URLs, and converts unsupported reproducibility labels to `unknown`; manually restore a schema-valid value only when the note already contains checked evidence.
-3. Check the migrated files for frontmatter, absence of section 12, and absence of the generated value-trajectory section before running global validation.
-4. If `npm run validate` stops at the next raw note, treat that as expected. Run `npm run check` only in that state or after full validation passes; Astro may stop on a different raw note because its glob order differs from the validator's sorted order.
-5. Do not run `npm run build` until `npm run check` passes.
-
-On the current macOS-style case-insensitive filesystem, Git may show case-only filename normalizations as modifications under the original tracked names until staging. The on-disk filenames are authoritative during migration.
+1. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` first.
+2. Promote the note with `scripts/promote-raw-note.mjs` only after inspecting planned filenames and warnings.
+3. Restore a schema-valid year, URL, or reproducibility label only when official source material or checked note evidence supports it.
+4. Run `npm run validate`, then `npm run check`, then `npm run build`.
