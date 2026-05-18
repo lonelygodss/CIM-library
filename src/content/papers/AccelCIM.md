@@ -1,3 +1,71 @@
+---
+slug: accelcim
+title: "AccelCIM: Systematic Dataflow Exploration for SRAM Compute-in-Memory Accelerator"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "DAC 2026"
+authors_or_group: "Chenhao Xue, Yukun Wang, An Guo, Yuhui Shi, Jinwei Zhou, Xiping Dong, Yihan Yin, Yuanpeng Zhang, Tianyu Jia, Wei Gao, Qiang Wu, Xin Si, Jun Yang, Guangyu Sun"
+summary: >-
+  **AccelCIM** contributes a systematic design-space exploration framework for SRAM compute-in-memory accelerator dataflows, with particular emphasis on the coupling between CIM macro parameters and macro-array organizations. Its strongest stack contribution is in hardware-aware mapping and backend evaluation: the paper models weight-stationary versus output-stationary dataflows, broadcast versus systolic interconnect, macro capacity, pipeline level, and compute-I/O overlap, then ranks candidate designs using cycle-accurate simulation and post-layout PPA extraction through an SRAM-CIM macro compiler, SPICE characterization, RTL generation, Cadence synthesis, and place-and-route. The demonstrated workloads are GEMM-like LLM inference cases, including Qwen3-0.6B, LLaMA-3-8B/70B, and GPT-3 175B, under W8A8 integer computation and prefill/time-to-first-token evaluation. For CIM compiler/IR research, AccelCIM is best read as a **config-and-schedule-centered mapping stack**: it makes hardware dataflow options and macro-array resources first-class, while upstream graph IR, explicit ISA lowering, runtime state, and serialized reusable intermediate states remain outside the demonstrated public interface. ([arXiv](https://arxiv.org/pdf/2604.17692))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "W8A8 integer GEMM"
+  - "LLM prefill / time-to-first-token"
+  - "Qwen3-0.6B"
+  - "LLaMA-3-8B"
+  - "LLaMA-3-70B"
+  - "GPT-3 175B"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A5, A1]
+axis_B: [B1, B4, B3]
+axis_C_first_class_objects:
+  - "SRAM_CIM_macro_template"
+  - "macro_bank_count_PC"
+  - "accumulation_length_AL"
+  - "local_storage_length_LSL"
+  - "pipeline_level_PL"
+  - "compute_IO_overlap_OL"
+  - "array_rows_BR"
+  - "array_columns_BC"
+  - "weight_stationary_output_stationary_dataflow"
+  - "broadcast_systolic_interconnect"
+  - "bit_sliced_input_weight_processing"
+  - "adder_tree_reduction_path"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "macro_array_organization"
+  - "dataflow_choice"
+  - "schedule_overlap_choice"
+  - "tiling_parameter_selection"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "paper CC-BY-4.0; AccelCIM artifact license unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best read as config-as-IR plus hardware-resource mapping for SRAM-CIM macro arrays."
+  - "Strongest evidence is for macro-array dataflow/PPA co-design, not for frontend IR or runtime integration."
+  - "Uses in-house cycle simulator and post-layout flow; public reproducibility would benefit from scripts, schemas, simulator traces, and generated design files."
+takeaways: []
+---
+
 # AccelCIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -108,18 +176,6 @@ The paper models timing, power, area, routing, utilization, and transition rates
 
 ### 5.3 Axis C — first-class CIM objects
 
-| CIM object | Status in this paper | Evidence |
-|---|---|---|
-| Crossbar / array / macro hierarchy | **First-class / parameterized** | The hierarchy includes CIM macro, core/array, and engine context; Table 2 parameterizes macro and array dimensions. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Bit-slicing / bit significance | **Parameter + implicit behavior** | Weight bitwidth and input bitwidth are fixed at 8 in Table 2; the macro behavior slices weights into 2-bit chunks and broadcasts two input bit-slices per step. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| ADC/DAC precision or sensing | **Not applicable / not found in checked sources** | The modeled macro uses SRAM subarrays with bit-wise multipliers and digital adder trees; the checked text does not name ADC/DAC objects. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Analog-to-digital or domain transition | **Not applicable / not found in checked sources** | The data path is described through bit-sliced digital multiply and adder-tree reductions rather than analog sensing/conversion. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Peripheral circuits as path nodes | **First-class / costed** | The macro template names input buffer, wordline driver, bit-wise multipliers, adder trees, control/I/O, and weight-update resources; backend PPA uses post-layout extraction. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Partial-sum accumulation path | **First-class inside macro behavior; costed through cycles/PPA** | Multiplication results go through subarray-level channel-wise reduction, bank-level weight-wise reduction, and pipelined accumulation stages. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Reconstruction / shift-add tree | **Implicit / hard-coded** | The paper describes 2-bit chunks and adder-tree reductions, but a reusable reconstruction object or shift-add IR node is not named in the checked sources. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Runtime state, masks, KV cache, batching, sparsity | **Workload parameters; runtime state implicit** | Batch size, sequence length, model size, and prefill time-to-first-token are evaluated, but KV cache/masks/sparsity are not presented as first-class compiler objects in the checked sources. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-| Value trajectory / flow path | **Approximated by dataflow diagrams and schedules** | Figure 5 and Section 3.2 name activation, weight, and output movement across broadcast/systolic WS/OS arrays, but value identity is not serialized across reduction/storage stages. ([arXiv](https://arxiv.org/pdf/2604.17692)) |
-
 ### 5.4 Axis D — rewrite object
 
 AccelCIM rewrites the **hardware mapping and schedule configuration**, not a frontend graph or instruction stream. The legal transformations demonstrated are:
@@ -132,8 +188,6 @@ AccelCIM rewrites the **hardware mapping and schedule configuration**, not a fro
 - ranking candidate designs under cycle, latency, power, and area objectives. ([arXiv](https://arxiv.org/pdf/2604.17692))
 
 The exploited equivalence is that multiple macro-array dataflows implement the same block GEMM semantics while inducing different weight-update schedules, activation movement patterns, interconnect pressure, and PPA outcomes. The preserved information includes GEMM dimensions, W8A8 precision assumptions, dot-product equivalence, weight/activation block shapes, and reduction correctness. ([arXiv](https://arxiv.org/pdf/2604.17692))
-
-The representation is especially well suited to comparing **macro-array organizations under physical backend costs**. Expressing graph-level fusion, dynamic batching, KV-cache lifetime, instruction scheduling, cross-operator bit-sliced partial sums, or value-trajectory rewrites would likely require an additional abstraction for values, domains, storage locations, and reduction/reconstruction stages.
 
 ## 6. Technical mechanism reading
 
@@ -273,27 +327,7 @@ For the LLM case study, the paper uses a combined PPA trade-off metric `latency�
 **Integration effort estimate: High.**  
 Integration would be most direct through a small adapter that extracts AccelCIM-style design tuples from an existing compiler mapping record. The main effort comes from artifact availability: the paper describes a sophisticated backend flow, but the in-house simulator, RTL generator, P&R scripts, and reproduction bundle were not found publicly. The most valuable reusable boundary appears to be the hardware-mapping/cost-model abstraction rather than a runnable compiler stack.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-AccelCIM provides useful ingredients for a value-trajectory IR, especially its explicit macro template, bit-sliced compute behavior, adder-tree reductions, weight-update timing, and array-level dataflow diagrams. The closest approximation to trajectory semantics is Figure 5 plus Section 3.2: activations, weights, and outputs move differently under WS/OS and broadcast/systolic schedules, and overlap changes whether write and compute events can coexist. ([arXiv](https://arxiv.org/pdf/2604.17692))
-
-For the specific value-trajectory questions:
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Partially. It names input buffer, wordline activation, bit-wise multipliers, subarray adder tree, bank-level adder tree, and output movement at the dataflow level. It does not present a serialized per-value path object. ([arXiv](https://arxiv.org/pdf/2604.17692))
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  The demonstrated abstraction centers on digital SRAM-CIM macro behavior and reductions. It preserves block-level GEMM semantics and schedule timing, but value identity across reduction/reconstruction/storage stages is not surfaced as a first-class object in the checked sources.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Precision and bit slicing are represented as parameters and behavior: W8A8, 2-bit chunks, `IBW/2` cycles, `PC` parallel dot products. They are not expressed as type-like annotations that can be checked or rewritten independently. ([arXiv](https://arxiv.org/pdf/2604.17692))
-
-- **Could the representation express trajectory rewrites?**  
-  It can compare coarse movement strategies such as WS versus OS, broadcast versus systolic, and overlap versus no overlap. More fine-grained trajectory rewrites—fusing reconstruction with downstream reduction, delaying conversion, carrying bit-sliced partial sums across operators, changing reduction tree structure, routing values through alternative peripheral paths, or co-optimizing data movement with numeric reconstruction—would likely require an additional trajectory abstraction attached to macro events, reduction stages, bit-slice identity, and storage locations.
-
-A trajectory-level extension would likely attach fields such as `value_id`, `bit_slice`, `domain`, `macro_location`, `reduction_stage`, `write_epoch`, `compute_epoch`, and `reconstruction_state` to AccelCIM’s existing schedule/configuration records.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -304,78 +338,4 @@ A trajectory-level extension would likely attach fields such as `value_id`, `bit
 | **DAMIL-DCIM** | Layout-aware digital CIM synthesis / floorplanning | AccelCIM shares the theme that physical layout matters, but uses layout to evaluate dataflow choices rather than primarily solving detailed placement. The paper references DAMIL-DCIM as a dataflow-aware floorplan and MILP placement framework. ([arXiv](https://arxiv.org/pdf/2604.17692)) | Useful comparison for “layout-aware CIM” where the rewrite object differs: floorplan placement versus macro-array schedule/dataflow. |
 | **NeuroSim** | CIM modeling and technology/architecture evaluation | AccelCIM positions NeuroSim-like tools among analytical modeling baselines; its differentiator is post-layout macro and array PPA plus explicit macro-array dataflow exploration. ([arXiv](https://arxiv.org/pdf/2604.17692)) | Corpus should separate technology-scaled analytical modeling from backend-layout-calibrated DSE. |
 
-## 11. Corpus-ready final takeaway
-
-- AccelCIM’s real contribution is a **systematic SRAM-CIM macro-array dataflow exploration framework** with post-layout-aware PPA evaluation.
-- The strongest reusable stack layer is **hardware mapping / scheduling / DSE**, not frontend graph compilation or instruction generation.
-- The evidenced scope is W8A8 GEMM-like LLM inference, including Qwen3, LLaMA-3, and GPT-3 prefill/time-to-first-token case studies.
-- First-class objects include macro parameters, macro-array dimensions, WS/OS dataflow, broadcast/systolic interconnect, compute-I/O overlap, bit-slice processing, and reduction paths.
-- The hidden IR is the combination of the macro/array design tuple, block-GEMM schedule equations, dataflow movement rules, and backend `.lib/.lef`/layout metadata.
-- Artifact status: no public artifact found.
-- Integration is most natural as an IR inspiration, mapper/scheduler model, and cost-model benchmark; runnable backend reuse would depend on public simulator/codegen/P&R assets.
-- For value-trajectory IR work, AccelCIM offers strong resource and schedule ingredients, while trajectory-level value identity would need additional annotations for bit slices, reduction stages, storage locations, and movement epochs.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "AccelCIM: Systematic Dataflow Exploration for SRAM Compute-in-Memory Accelerator"
-year: 2026
-venue: "DAC 2026"
-authors_or_group: "Chenhao Xue, Yukun Wang, An Guo, Yuhui Shi, Jinwei Zhou, Xiping Dong, Yihan Yin, Yuanpeng Zhang, Tianyu Jia, Wei Gao, Qiang Wu, Xin Si, Jun Yang, Guangyu Sun"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - W8A8 integer GEMM
-  - LLM prefill / time-to-first-token
-  - Qwen3-0.6B
-  - LLaMA-3-8B
-  - LLaMA-3-70B
-  - GPT-3 175B
-axis_A:
-  primary: A3_mapping_scheduling_DSE
-  secondary:
-    - A2_simulator_cost_model
-    - A5_narrow_end_to_end_codesign
-    - A1_macro_array_generator_adjacent
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B3_loop_tensor_schedule_IR
-axis_C_first_class_objects:
-  - SRAM_CIM_macro_template
-  - macro_bank_count_PC
-  - accumulation_length_AL
-  - local_storage_length_LSL
-  - pipeline_level_PL
-  - compute_IO_overlap_OL
-  - array_rows_BR
-  - array_columns_BC
-  - weight_stationary_output_stationary_dataflow
-  - broadcast_systolic_interconnect
-  - bit_sliced_input_weight_processing
-  - adder_tree_reduction_path
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - macro_array_organization
-  - dataflow_choice
-  - schedule_overlap_choice
-  - tiling_parameter_selection
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "paper CC-BY-4.0; AccelCIM artifact license unknown"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best read as config-as-IR plus hardware-resource mapping for SRAM-CIM macro arrays."
-  - "Strongest evidence is for macro-array dataflow/PPA co-design, not for frontend IR or runtime integration."
-  - "Uses in-house cycle simulator and post-layout flow; public reproducibility would benefit from scripts, schemas, simulator traces, and generated design files."
-```
+## 10. Corpus-ready final takeaway

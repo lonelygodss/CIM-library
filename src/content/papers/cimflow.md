@@ -21,19 +21,6 @@ axis_A:
 axis_B: [B2, B5, B4, B1, B3, B7]
 axis_C_first_class_objects: ["hardware hierarchy", "core grid", "macro groups", "local/global memory regions", "address space", "NoC bandwidth and cost matrix", "per-core instruction stream", "CIM_MVM", "vector/reduce/scalar/transfer units", "GRF/SRF registers", "synchronization IDs"]
 axis_D_rewrite_objects: ["operator graph", "mapping state", "loop/tile schedule", "array binding/layout", "instruction stream", "runtime synchronization state"]
-coverage:
-  frontend: 2
-  graph: 2
-  loop: 2
-  resource: 3
-  mapping: 3
-  isa: 3
-  sim: 3
-  accuracy: 0
-  runtime: 1
-  macro: 0
-  real: 0
-  artifact: 2
 artifact:
   status: public artifact found
   url: https://www.cimflow.org/
@@ -55,4 +42,4 @@ CIMFlow is a public SRAM-based digital CIM infrastructure stack for DNN inferenc
 
 ## Integration helper
 
-The most direct integration path is to use CIMFlow as a **backend/interface comparison**: keep its CG JSON and ISA JSON as examples of serialized compiler boundaries, then compare those boundaries against future value-trajectory or first-class-flow IR proposals.
+The most direct integration path is to use CIMFlow as a **backend/interface comparison**: keep its CG JSON and ISA JSON as examples of serialized compiler boundaries, then compare those boundaries against future CIM compiler IR proposals.

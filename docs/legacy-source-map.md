@@ -7,7 +7,7 @@ This project began as a generated standalone HTML atlas plus compact source note
 - `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html`
   - Original standalone atlas.
   - Contains embedded paper records, role/style counts, display names, short overviews, and visualization logic.
-  - Use this when recovering the old atlas overview text, original grouping, legacy display labels, or legacy coverage/visual score behavior.
+  - Use this when recovering the old atlas overview text, original grouping, legacy display labels, or old visualization behavior.
 - `src/content/legacy/CIM stack library compact.md`
   - Compact source material for the 62-entry paper library.
   - Use this as the main seed when creating new `src/content/papers/*.md` entries.
@@ -20,11 +20,10 @@ This project began as a generated standalone HTML atlas plus compact source note
 
 ## Migration Notes
 
-- Current Astro metadata uses `coverage` as twelve descriptive dimensions with levels `0..3`.
-- `src/components/TaxonomyAtlas.astro` currently computes a paper's visual coverage total by summing those twelve levels.
-- Do not treat the visual total as a quality ranking.
+- Current Astro metadata does not use coverage scores or trajectory-IR relevance fields.
+- Do not restore the old visual totals as quality rankings.
 - If a future task asks for "original paper overview", first check the embedded records in the legacy HTML, then cross-check the matching compact note.
-- If a future task asks for "coverage score", inspect both the legacy HTML visualization logic and the current `coverage` frontmatter before deciding whether the request refers to old display behavior or the new descriptive metadata.
+- If a future task asks for "coverage score", treat it as a legacy-atlas request unless the user explicitly asks to reintroduce coverage metadata.
 
 ## Migration Order
 

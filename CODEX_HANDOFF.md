@@ -6,24 +6,31 @@ Finish this as a static Astro paper library. Do not add PDF hosting yet.
 
 Root-level project instructions now live in `AGENTS.md`. Use this handoff as a short status note; use `AGENTS.md` for ongoing agent behavior.
 
+Current migration plan lives in `docs/future-development-plan.md`. A ready-to-use restart prompt lives in `docs/next-session-prompt.md`.
+
 ## Design decisions already made
 
 - Paper metadata source: Markdown frontmatter in `src/content/papers/*.md`.
 - Taxonomy vocabulary source: `src/data/taxonomy.json`.
 - Atlas route: `/library/`.
 - Paper route: `/papers/[slug]/`.
-- Visualization: keep the old left-side Axis A × Axis B dot atlas; replace radar with selected-paper coverage cloud.
-- No scoring model. Coverage levels are descriptive 0–3 metadata.
+- Visualization: keep the Axis A × Axis B dot atlas and selected-paper metadata panel.
+- No coverage score, ranking score, or trajectory-IR relevance metadata in the active schema.
 
 ## What to finish next
 
-1. Move complete paper notes into `src/content/papers/` and preserve/extend frontmatter.
-2. Decide whether to keep sample seed bodies or replace them with full notes.
-3. Run `npm install`, `npm run validate`, `npm run check`, and `npm run build`.
-4. Improve the Markdown paper page layout only after content compiles.
-5. Optional: add tag/axis detail pages after the atlas is stable.
+1. Convert raw notes in `src/content/papers/` into schema-valid Astro content entries.
+2. Promote each note's `## 12. Suggested metadata entry` YAML into frontmatter.
+3. Normalize filenames to lowercase kebab-case slugs.
+4. Remove section 12 from rendered note bodies after promotion.
+5. Remove generated value-trajectory IR project sections and ignore obsolete `trajectory_IR_relevance` fields.
+6. Run `npm run validate`, `npm run check`, and `npm run build` after migration batches.
+7. Improve the Markdown paper page layout only after all content compiles.
+8. Optional: add tag/axis detail pages after the atlas is stable.
 
-Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text, legacy coverage behavior, or compact-source material from the draft artifacts.
+Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from the draft artifacts.
+
+As of the first migration batch, 7 notes are structured and 55 raw notes remain. `npm run validate` is expected to fail until raw notes receive frontmatter. The current next raw blocker is `C4CAM.md: missing YAML frontmatter block`.
 
 ## Frontmatter contract
 
@@ -37,28 +44,15 @@ axis_A:
   primary: A1|A2|A3|A4|A5|A6
   secondary: []
 axis_B: [B1]
-coverage:
-  frontend: 0
-  graph: 0
-  loop: 0
-  resource: 0
-  mapping: 0
-  isa: 0
-  sim: 0
-  accuracy: 0
-  runtime: 0
-  macro: 0
-  real: 0
-  artifact: 0
 ```
 
 Keep arrays inline where possible. The Astro schema is the strict source of truth; `scripts/validate-library.mjs` is a fast preflight check.
 
-Coverage levels are descriptive evidence levels, not a ranking model. The current atlas sums the twelve dimensions only for visualization size and summary display.
+Obsolete generated fields such as `coverage` and `trajectory_IR_relevance` should be ignored during migration.
 
 ## Converting existing generated notes
 
-Use the note's section 11 metadata block when present. If absent, extract from:
+Use the note's section 12 metadata block when present. If absent, extract from:
 
 - section 1 classification table -> `axis_A`, `axis_B`, objects, rewrite objects, tags, baselines;
 - section 2 public summary -> `summary`;

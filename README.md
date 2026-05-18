@@ -18,10 +18,10 @@ Paper metadata lives in each Markdown file's YAML frontmatter. The Markdown body
 
 ```text
 src/content/papers/          paper notes with structured frontmatter
-src/data/taxonomy.json       Axis A/B vocabulary and coverage dimensions
+src/data/taxonomy.json       Axis A/B vocabulary and supporting terms
 src/pages/library.astro      atlas route
 src/pages/papers/[slug].astro dynamic paper route
-src/components/TaxonomyAtlas.astro interactive atlas + cloud panel
+src/components/TaxonomyAtlas.astro interactive atlas + selected-paper panel
 scripts/validate-library.mjs frontmatter/reference checks
 scripts/scaffold-paper.mjs   create a new paper stub
 AGENTS.md                    project instructions for future Codex runs
@@ -59,12 +59,8 @@ npm run new:paper -- cim-mlc "CIM-MLC"
 
 For full note conversion, use `docs/corpus-note-harness.md`. Legacy seed material is intentionally preserved in `src/content/legacy/`; `docs/legacy-source-map.md` explains which file to consult for compact notes, original overview text, and old atlas behavior.
 
+If raw notes have just been imported, use `docs/future-development-plan.md` before running full build checks. Raw notes must be promoted to frontmatter-backed content entries before `npm run validate` can pass.
+
 ## Visualization behavior
 
-The left atlas uses the existing draft's Axis A × Axis B dot-grid idea. The right panel replaces the old radar view with a selected-paper **coverage cloud**:
-
-- background grid: same Axis A × Axis B frame as the atlas;
-- membership bubbles: every listed Axis A × Axis B combination for the selected paper;
-- coverage bubbles: coverage dimensions with level > 0, sized by level 1–3.
-
-This gives paper-specific shape without introducing scores or radar charts.
+The atlas uses the existing draft's Axis A × Axis B dot-grid idea. The selected-paper panel shows summary metadata, Axis B styles, first-class objects, rewrite objects, and a link to the full note. The active schema does not use coverage scores or ranking metrics.

@@ -21,19 +21,6 @@ axis_A:
 axis_B: [B3, B1, B4]
 axis_C_first_class_objects: ["storage nodes", "tensor tiles", "memory hierarchy", "component actions", "spatial fanout", "compute units"]
 axis_D_rewrite_objects: ["mapping", "loop schedule", "tile-shape search state", "storage-node order", "loop placement/order", "loop bounds"]
-coverage:
-  frontend: 1
-  graph: 0
-  loop: 3
-  resource: 2
-  mapping: 3
-  isa: 0
-  sim: 2
-  accuracy: 0
-  runtime: 0
-  macro: 0
-  real: 0
-  artifact: 1
 artifact:
   status: public but partial/indirect artifact found
   url: https://accelergy-project.github.io/accelforge/
@@ -55,4 +42,4 @@ The paper is best read as a mapping-search and schedule-representation contribut
 
 ## Integration helper
 
-The most direct integration path is to borrow its **dataplacement / LoopTree / symbolic-pruning split** as an IR-design comparison point. Reuse would benefit from an adapter that extracts storage-node order, loop placement, tile shape, and cost criteria into a format comparable with CIM-specific flow or trajectory metadata.
+The most direct integration path is to borrow its **dataplacement / LoopTree / symbolic-pruning split** as an IR-design comparison point. Reuse would benefit from an adapter that extracts storage-node order, loop placement, tile shape, and cost criteria into a format comparable with CIM-specific placement and resource metadata.

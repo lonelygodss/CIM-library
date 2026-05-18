@@ -1,7 +1,4 @@
 ---
-import CoverageMatrix from './CoverageMatrix.astro';
-import CoverageCloud from './CoverageCloud.astro';
-
 type AxisA = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'A6';
 type AxisB = 'B1' | 'B2' | 'B3' | 'B4' | 'B5' | 'B6' | 'B7';
 
@@ -14,13 +11,6 @@ type Family = {
 
 type Middle = {
   name: string;
-  short: string;
-  desc: string;
-};
-
-type CoverageDimension = {
-  key: string;
-  label: string;
   short: string;
   desc: string;
 };
@@ -43,13 +33,11 @@ type Paper = {
   axis_B: AxisB[];
   axis_C_first_class_objects?: string[];
   axis_D_rewrite_objects?: string[];
-  coverage: Record<string, number>;
 };
 
 type Taxonomy = {
   families: Record<AxisA, Family>;
   middles: Record<AxisB, Middle>;
-  coverage_dimensions: CoverageDimension[];
 };
 
 interface Props {
@@ -93,7 +81,7 @@ const { papers, taxonomy } = Astro.props;
   <div class="section-title">
     <div>
       <h2>Interactive paper atlas</h2>
-      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B. Circle size reflects total coverage across the twelve dimensions.</div>
+      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B.</div>
     </div>
   </div>
   <div class="controls" aria-label="Taxonomy filters">
@@ -101,7 +89,6 @@ const { papers, taxonomy } = Astro.props;
     <select id="familyFilter" aria-label="Filter by stack role"></select>
     <select id="middleFilter" aria-label="Filter by middle-layer style"></select>
     <select id="targetFilter" aria-label="Filter by technology or workload"></select>
-    <select id="dimensionFilter" aria-label="Require coverage dimension"></select>
   </div>
   <div class="viz-grid">
     <div class="panel viz-card atlas-box">
@@ -110,38 +97,8 @@ const { papers, taxonomy } = Astro.props;
     </div>
     <aside class="panel viz-card selected-panel" aria-live="polite">
       <div id="workDetails" class="empty">Select a paper.</div>
-      <CoverageCloud />
       <div id="workMore"></div>
     </aside>
-  </div>
-</section>
-
-<section id="matrix-section" class="panel pad">
-  <div class="section-title">
-    <div>
-      <h2>Interactive coverage matrix</h2>
-      <div class="subtle">Cells are coded 0–3: 0 = not central or not reported, 1 = supporting, 2 = explicit component, 3 = primary evidenced strength.</div>
-    </div>
-    <button class="secondary" id="exportCsv" style="max-width:190px">Export filtered CSV</button>
-  </div>
-  <CoverageMatrix />
-</section>
-
-<section id="dimensions" class="panel pad">
-  <div class="section-title">
-    <div>
-      <h2>Coverage dimensions</h2>
-      <div class="subtle">These dimensions make coverage visible as a graphable profile rather than a flat tag list.</div>
-    </div>
-  </div>
-  <div class="dimension-grid">
-    {taxonomy.coverage_dimensions.map((dimension: CoverageDimension) => (
-      <div class="dim-card">
-        <code>{dimension.short}</code>
-        <h3>{dimension.label}</h3>
-        <p>{dimension.desc}</p>
-      </div>
-    ))}
   </div>
 </section>
 
@@ -153,7 +110,6 @@ const { papers, taxonomy } = Astro.props;
   const taxonomy = JSON.parse(document.getElementById('taxonomy-data').textContent);
   const families = taxonomy.families;
   const middles = taxonomy.middles;
-  const dimensions = taxonomy.coverage_dimensions;
   const familyCodes = Object.keys(families);
   const middleCodes = Object.keys(middles);
   const svgNS = 'http://www.w3.org/2000/svg';
@@ -162,8 +118,6 @@ const { papers, taxonomy } = Astro.props;
 
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
-  const level = (paper, key) => Number(paper.coverage?.[key] ?? 0);
-  const coverageTotal = (paper) => dimensions.reduce((sum, d) => sum + level(paper, d.key), 0);
   const firstMiddle = (paper) => paper.axis_B?.[0] ?? 'B1';
   const roles = (paper) => [paper.axis_A.primary, ...(paper.axis_A.secondary ?? [])];
   const textBlob = (paper) => [
@@ -189,20 +143,15 @@ const { papers, taxonomy } = Astro.props;
     for (let i = 0; i < str.length; i += 1) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
     return Math.abs(h);
   };
-  const average = (items) => items.length ? items.reduce((a, b) => a + b, 0) / items.length : 0;
-
   function setupFilters() {
     const familyFilter = $('familyFilter');
     const middleFilter = $('middleFilter');
     const targetFilter = $('targetFilter');
-    const dimensionFilter = $('dimensionFilter');
     familyFilter.innerHTML = `<option value="">All Axis A roles</option>` + familyCodes.map((code) => `<option value="${code}">${code} — ${esc(families[code].short)}</option>`).join('');
     middleFilter.innerHTML = `<option value="">All Axis B styles</option>` + middleCodes.map((code) => `<option value="${code}">${code} — ${esc(middles[code].short)}</option>`).join('');
     const targets = [...new Set(papers.flatMap((p) => [...(p.technology ?? []), ...(p.workloads ?? [])]))].sort();
     targetFilter.innerHTML = `<option value="">All technologies/workloads</option>` + targets.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
-    dimensionFilter.innerHTML = `<option value="">Any coverage dimension</option>` + dimensions.map((d) => `<option value="${d.key}">${esc(d.label)}</option>`).join('');
-    ['search', 'familyFilter', 'middleFilter', 'targetFilter', 'dimensionFilter'].forEach((id) => $(id).addEventListener('input', applyFilters));
-    $('exportCsv').addEventListener('click', exportCsv);
+    ['search', 'familyFilter', 'middleFilter', 'targetFilter'].forEach((id) => $(id).addEventListener('input', applyFilters));
   }
 
   function applyFilters() {
@@ -210,14 +159,12 @@ const { papers, taxonomy } = Astro.props;
     const family = $('familyFilter').value;
     const middle = $('middleFilter').value;
     const target = $('targetFilter').value;
-    const dim = $('dimensionFilter').value;
     filtered = papers.filter((paper) => {
       const familyMatch = !family || roles(paper).includes(family);
       const middleMatch = !middle || (paper.axis_B ?? []).includes(middle);
       const targetMatch = !target || [...(paper.technology ?? []), ...(paper.workloads ?? [])].includes(target);
-      const dimMatch = !dim || level(paper, dim) > 0;
       const searchMatch = !q || textBlob(paper).includes(q);
-      return familyMatch && middleMatch && targetMatch && dimMatch && searchMatch;
+      return familyMatch && middleMatch && targetMatch && searchMatch;
     });
     if (!filtered.some((p) => p.slug === selectedSlug)) selectedSlug = filtered[0]?.slug ?? papers[0]?.slug ?? null;
     renderAll();
@@ -263,7 +210,7 @@ const { papers, taxonomy } = Astro.props;
       const h = hash(paper.slug);
       const x = baseX + ((h % 29) - 14) * 1.2;
       const y = baseY + (((h >> 4) % 29) - 14) * 1.2;
-      const r = 9 + coverageTotal(paper) * 0.85;
+      const r = paper.slug === selectedSlug ? 15 : 11;
       const color = families[paper.axis_A.primary]?.color ?? '#335cff';
       const g = node('g', { tabindex: 0, role: 'button', 'aria-label': paper.title, style: 'cursor:pointer' });
       g.append(node('circle', { cx: x, cy: y, r: r + 6, fill: color, opacity: paper.slug === selectedSlug ? 0.17 : 0.06 }));
@@ -286,24 +233,9 @@ const { papers, taxonomy } = Astro.props;
     const topMiddle = Object.entries(middleCounts).sort((a, b) => b[1] - a[1])[0];
     $('filteredStats').innerHTML = [
       ['Papers', filtered.length],
-      ['Avg. coverage', average(filtered.map(coverageTotal)).toFixed(1)],
       ['Top Axis A', topRole ? `${topRole[0]} (${topRole[1]})` : '—'],
       ['Top Axis B', topMiddle ? `${topMiddle[0]} (${topMiddle[1]})` : '—']
     ].map(([label, value]) => `<div class="mini-stat"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`).join('');
-  }
-
-  function renderMatrix() {
-    const matrix = $('matrix');
-    const header = `<div class="mhead"><div class="work-h">Paper</div>${dimensions.map((d) => `<div title="${esc(d.label)}">${esc(d.short)}</div>`).join('')}</div>`;
-    const rows = filtered.map((paper) => {
-      const cells = dimensions.map((d) => {
-        const v = level(paper, d.key);
-        return `<div class="lvl level${v}" title="${esc(d.label)}: ${v}">${v}</div>`;
-      }).join('');
-      return `<div class="mrow ${paper.slug === selectedSlug ? 'selected' : ''}" data-slug="${esc(paper.slug)}"><div class="work-cell"><b>${esc(paper.title)}</b><span>${esc(paper.axis_A.primary)} · ${esc((paper.axis_B ?? []).join(', '))}</span></div>${cells}</div>`;
-    }).join('');
-    matrix.innerHTML = header + (rows || '<div class="empty">No matching rows.</div>');
-    matrix.querySelectorAll('.mrow').forEach((row) => row.addEventListener('click', () => selectPaper(row.dataset.slug)));
   }
 
   function selectPaper(slug) {
@@ -320,7 +252,6 @@ const { papers, taxonomy } = Astro.props;
     if (!paper) {
       $('workDetails').innerHTML = '<div class="empty">Add Markdown files in <code>src/content/papers</code> to populate the atlas.</div>';
       $('workMore').innerHTML = '';
-      drawCloud(null);
       return;
     }
     const color = families[paper.axis_A.primary]?.color ?? '#335cff';
@@ -345,82 +276,12 @@ const { papers, taxonomy } = Astro.props;
         <div class="kv"><b>Rewrite objects</b><ul>${(paper.axis_D_rewrite_objects ?? []).slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
       </div>
     `;
-    drawCloud(paper);
-  }
-
-  function drawCloud(paper) {
-    const svg = $('paperCloud');
-    clear(svg);
-    svg.append(node('rect', { x: 0, y: 0, width: 560, height: 360, rx: 18, fill: 'transparent' }));
-    if (!paper) return;
-    const grid = { left: 54, right: 530, top: 48, bottom: 298 };
-    const xMini = (code) => grid.left + (grid.right - grid.left) * (Math.max(0, familyCodes.indexOf(code)) / Math.max(1, familyCodes.length - 1));
-    const yMini = (code) => grid.top + (grid.bottom - grid.top) * (Math.max(0, middleCodes.indexOf(code)) / Math.max(1, middleCodes.length - 1));
-    familyCodes.forEach((code) => {
-      const x = xMini(code);
-      svg.append(node('line', { x1: x, y1: grid.top - 12, x2: x, y2: grid.bottom + 8, stroke: '#e3e8f2' }));
-      svg.append(node('text', { x, y: 20, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 800, fill: '#607086' }, code));
-    });
-    middleCodes.forEach((code) => {
-      const y = yMini(code);
-      svg.append(node('line', { x1: grid.left - 14, y1: y, x2: grid.right + 6, y2: y, stroke: '#e3e8f2' }));
-      svg.append(node('text', { x: 10, y: y + 3, 'font-size': 10, 'font-weight': 800, fill: '#607086' }, code));
-    });
-    const color = families[paper.axis_A.primary]?.color ?? '#335cff';
-    roles(paper).forEach((role) => {
-      (paper.axis_B ?? []).forEach((middle) => {
-        const isPrimary = role === paper.axis_A.primary && middle === firstMiddle(paper);
-        const x = xMini(role);
-        const y = yMini(middle);
-        svg.append(node('circle', { cx: x, cy: y, r: isPrimary ? 26 : 15, fill: families[role]?.color ?? color, opacity: isPrimary ? 0.28 : 0.12 }));
-        svg.append(node('circle', { cx: x, cy: y, r: isPrimary ? 13 : 7, fill: families[role]?.color ?? color, opacity: isPrimary ? 0.9 : 0.55 }));
-      });
-    });
-    const centerX = xMini(paper.axis_A.primary);
-    const centerY = yMini(firstMiddle(paper));
-    const activeDims = dimensions.filter((d) => level(paper, d.key) > 0);
-    activeDims.forEach((d, i) => {
-      const angle = (Math.PI * 2 * i) / Math.max(1, activeDims.length) - Math.PI / 2;
-      const ring = 54 + (i % 3) * 10;
-      const x = centerX + Math.cos(angle) * ring;
-      const y = centerY + Math.sin(angle) * ring;
-      const v = level(paper, d.key);
-      const r = 7 + v * 4;
-      svg.append(node('circle', { cx: x, cy: y, r: r + 9, fill: color, opacity: 0.08 + v * 0.03 }));
-      svg.append(node('circle', { cx: x, cy: y, r, fill: color, opacity: 0.18 + v * 0.16, stroke: '#fff', 'stroke-width': 1.5 }));
-      svg.append(node('text', { x, y: y + 3, 'text-anchor': 'middle', 'font-size': 8, 'font-weight': 900, fill: v >= 3 ? '#fff' : '#111a33' }, d.short));
-    });
-    svg.append(node('text', { x: centerX, y: Math.min(348, centerY + 106), 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 800, fill: '#314158' }, paper.title));
-  }
-
-  function exportCsv() {
-    const header = ['slug', 'title', 'axis_A_primary', 'axis_A_secondary', 'axis_B', ...dimensions.map((d) => d.key)];
-    const lines = [header.join(',')];
-    filtered.forEach((paper) => {
-      const row = [
-        paper.slug,
-        paper.title,
-        paper.axis_A.primary,
-        (paper.axis_A.secondary ?? []).join('|'),
-        (paper.axis_B ?? []).join('|'),
-        ...dimensions.map((d) => level(paper, d.key))
-      ];
-      lines.push(row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','));
-    });
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'paper-library-filtered.csv';
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   function renderAll() {
     renderLegend();
     drawAtlas();
     renderStats();
-    renderMatrix();
     renderDetails();
   }
 

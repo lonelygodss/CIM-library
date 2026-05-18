@@ -75,86 +75,6 @@
       "desc": "The central abstraction is request state, KV cache, dynamic masks, batching, placement, or host-device execution state."
     }
   },
-  "coverage_dimensions": [
-    {
-      "key": "frontend",
-      "label": "Frontend",
-      "short": "Front",
-      "desc": "Imports or captures application/model programs, such as ONNX, TorchScript, C/C++, Verilog, kernels, or task graphs."
-    },
-    {
-      "key": "graph",
-      "label": "Graph IR",
-      "short": "Graph",
-      "desc": "Represents neural-network or task graphs as an explicit transform target."
-    },
-    {
-      "key": "loop",
-      "label": "Loop / tensor schedule",
-      "short": "Loop",
-      "desc": "Uses loop, tensor, affine, polyhedral, or dataflow schedules as explicit optimization objects."
-    },
-    {
-      "key": "resource",
-      "label": "CIM resource model",
-      "short": "Resource",
-      "desc": "Models CIM hardware hierarchy and resources: macro, array, crossbar, bank, core, PE, NoC, buffer, or peripheral."
-    },
-    {
-      "key": "mapping",
-      "label": "Mapping / DSE",
-      "short": "Map",
-      "desc": "Optimizes placement, tiling, replication, partitioning, routing, or hardware design choices."
-    },
-    {
-      "key": "isa",
-      "label": "ISA / meta-op",
-      "short": "ISA",
-      "desc": "Defines instructions, pseudo-instructions, meta-ops, command traces, or microprograms."
-    },
-    {
-      "key": "sim",
-      "label": "Simulator / cost",
-      "short": "Sim",
-      "desc": "Provides latency, energy, area, utilization, accuracy, or cycle/performance modeling."
-    },
-    {
-      "key": "accuracy",
-      "label": "Accuracy / nonideality",
-      "short": "Acc",
-      "desc": "Tracks quantization, analog nonidealities, faults, approximate arithmetic, or chip-calibrated errors."
-    },
-    {
-      "key": "runtime",
-      "label": "Runtime / state",
-      "short": "Run",
-      "desc": "Manages dynamic placement, batching, KV state, host-device transfer, DPU/tasklet state, or execution control."
-    },
-    {
-      "key": "macro",
-      "label": "Macro / circuit generation",
-      "short": "Macro",
-      "desc": "Generates or optimizes RTL, layouts, macros, circuit templates, cells, or physical-design artifacts."
-    },
-    {
-      "key": "real",
-      "label": "Real hardware / chip loop",
-      "short": "Chip",
-      "desc": "Uses measured silicon, real UPMEM-class systems, chip-in-loop emulation, or silicon-calibrated validation."
-    },
-    {
-      "key": "artifact",
-      "label": "Artifact / benchmark",
-      "short": "Art",
-      "desc": "Provides a reusable artifact, benchmark suite, public tool, or reproducible workflow evidence."
-    }
-  ],
-  "levels": {
-    "0": "not central / not reported",
-    "1": "supporting or mentioned",
-    "2": "explicit component",
-    "3": "primary evidenced strength"
-  },
   "rewrite_types": {
     "hardware-template": "hardware template / macro choice",
     "graph": "operator graph transformation",
@@ -181,7 +101,6 @@
     "sparsity / masks",
     "benchmark API",
     "chip / emulator address",
-    "memory service properties",
-    "space-time value trajectory"
+    "memory service properties"
   ]
 }

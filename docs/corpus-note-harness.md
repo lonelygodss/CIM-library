@@ -2,6 +2,8 @@
 
 Use this harness when converting one CIM stack paper into a public corpus note.
 
+For the current raw-note migration, most notes already follow this harness. The task is usually to promote their `## 12. Suggested metadata entry` YAML into Astro frontmatter, not to regenerate the full note.
+
 ## Input Contract
 
 ```text
@@ -44,7 +46,7 @@ Preferred phrasing:
 | Primary stack role, Axis A | A1/A2/A3/A4/A5/A6, or hybrid | 1-3 sentences |
 | Middle-layer style, Axis B | B1-B7, possibly multiple | 1-3 sentences |
 | First-class CIM objects, Axis C | Concrete objects | What is named or represented directly |
-| Rewrite object, Axis D | Graph / loop / mapping / instruction / numeric format / runtime state / flow trajectory / other | What transformations the work performs |
+| Rewrite object, Axis D | Graph / loop / mapping / instruction / numeric format / runtime state / other | What transformations the work performs |
 | Best corpus tags | 5-10 tags | Concrete tags |
 | Closest comparison baselines | 3-6 works | Why they are close |
 
@@ -91,7 +93,6 @@ For each selected style, state the named middle representation, decisions made t
 | Partial-sum accumulation path | First-class / costed / implicit / not applicable | Source |
 | Reconstruction / shift-add tree | First-class / hard-coded / implicit / not applicable | Source |
 | Runtime state, masks, KV cache, batching, sparsity | First-class / parameter / implicit / not applicable | Source |
-| Value trajectory / flow path | First-class / approximated / implicit / not applicable | Source |
 
 ### 5.4 Axis D -- rewrite object
 State what the compiler/tool rewrites, what transformations are legal, what equivalences are exploited, what information must be preserved, and what would require an additional abstraction.
@@ -126,8 +127,28 @@ Use section 9 to fill `src/content/papers/<slug>.md` frontmatter:
 - `axis_B`: section 5.2.
 - `axis_C_first_class_objects`: section 5.3 concrete named objects.
 - `axis_D_rewrite_objects`: section 5.4 rewrite targets.
-- `coverage`: descriptive evidence levels from `src/data/taxonomy.json`.
 - `artifact`: section 7.
 - `tags`, `baselines`, `integration_roles`, `takeaways`: sections 1, 8, 9, and 10.
 
-Keep coverage levels evidence-based. A level `3` means the paper strongly evidences that dimension as a primary contribution; it does not mean the work is better overall.
+## Existing Raw Note Adapter
+
+When a note already has `## 12. Suggested metadata entry`:
+
+1. Extract the fenced YAML block under that heading.
+2. Use it as the frontmatter candidate.
+3. Normalize the file path to `src/content/papers/<slug>.md`.
+4. Remove the `## 12. Suggested metadata entry` section from the rendered body.
+5. Remove any generated section titled `## 9. Relation to a value-trajectory CIM IR project`.
+6. Renumber `## 10. Comparison to nearby works` to section 9 and `## 11. Corpus-ready final takeaway` to section 10.
+7. Keep the title and remaining public sections intact.
+8. Check the candidate against `docs/metadata-template.md` and `src/content.config.ts`.
+
+Conservative defaults for missing fields:
+
+- missing optional URL: blank/null;
+- missing arrays: `[]`;
+- missing `artifact.status`: `unknown`;
+- missing `artifact.last_checked`: current project date if the note clearly reflects current checked sources, otherwise blank/null;
+- missing `reproducibility_level`: `unknown`;
+
+Ignore obsolete `trajectory_IR_relevance` fields in generated notes. Never invent artifact links, licenses, paper venues, years, or research claims. If a suggested metadata block conflicts with the prose, keep the more conservative value and leave a short `notes` entry.

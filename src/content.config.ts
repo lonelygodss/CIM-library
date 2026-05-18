@@ -2,7 +2,6 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-const coverageLevel = z.number().int().min(0).max(3);
 const axisA = z.enum(['A1', 'A2', 'A3', 'A4', 'A5', 'A6']);
 const axisB = z.enum(['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7']);
 const optionalText = z.string().nullable().optional();
@@ -35,20 +34,6 @@ const papers = defineCollection({
     axis_B: z.array(axisB).min(1),
     axis_C_first_class_objects: z.array(z.string()).default([]),
     axis_D_rewrite_objects: z.array(z.string()).default([]),
-    coverage: z.object({
-      frontend: coverageLevel.default(0),
-      graph: coverageLevel.default(0),
-      loop: coverageLevel.default(0),
-      resource: coverageLevel.default(0),
-      mapping: coverageLevel.default(0),
-      isa: coverageLevel.default(0),
-      sim: coverageLevel.default(0),
-      accuracy: coverageLevel.default(0),
-      runtime: coverageLevel.default(0),
-      macro: coverageLevel.default(0),
-      real: coverageLevel.default(0),
-      artifact: coverageLevel.default(0)
-    }),
     artifact: z.object({
       status: z.string(),
       url: optionalUrl,

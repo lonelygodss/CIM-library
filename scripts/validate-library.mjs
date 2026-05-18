@@ -8,8 +8,7 @@ const papersDir = path.join(root, 'src/content/papers');
 const taxonomy = JSON.parse(fs.readFileSync(taxonomyPath, 'utf8'));
 const familyCodes = new Set(Object.keys(taxonomy.families));
 const middleCodes = new Set(Object.keys(taxonomy.middles));
-const dimensionKeys = taxonomy.coverage_dimensions.map((d) => d.key);
-const requiredTopLevel = ['slug', 'title', 'summary', 'axis_A', 'axis_B', 'coverage'];
+const requiredTopLevel = ['slug', 'title', 'summary', 'axis_A', 'axis_B'];
 
 function frontmatter(markdown, file) {
   const match = markdown.match(/^---\n([\s\S]*?)\n---/);
@@ -73,14 +72,6 @@ for (const file of files) {
   bCodes.forEach((code) => {
     if (!middleCodes.has(code)) fail(`${file}: invalid axis_B code "${code}"`);
   });
-
-  const coverageBlock = getBlock(fm, 'coverage');
-  for (const key of dimensionKeys) {
-    const match = coverageBlock.match(new RegExp(`^\\s+${key}:\\s*(\\d)`, 'm'));
-    if (!match) fail(`${file}: coverage missing dimension "${key}"`);
-    const value = Number(match[1]);
-    if (value < 0 || value > 3) fail(`${file}: coverage.${key} must be 0..3`);
-  }
 }
 
 if (!process.exitCode) {

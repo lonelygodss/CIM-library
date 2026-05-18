@@ -1,3 +1,81 @@
+---
+slug: ares
+title: "ARES: A Mapping Framework of DNNs towards Diverse PIMs with General Abstractions"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "ICCAD 2023"
+authors_or_group: "Xiuping Cui, Size Zheng, Tianyu Jia, Le Ye, Yun Liang"
+summary: >-
+  ARES is a compiler-mapping framework for placing static DNN tensor operators onto multiple PIM/CIM-like hardware classes. Its main contribution is a pair of reusable abstractions: a compute abstraction that describes a PIM primitive as a tensorized compute equation, and a memory abstraction that encodes bit-level operand placement through mapping matrices and offsets. These abstractions are used to derive a mapping space over tensor binding, loop binding, loop sizes, resource allocation, execution order, and data movement. The demonstrated setting is simulator-backed DNN inference mapping on four adapted platforms: logic-DRAM, logic-SRAM, MVM-ReRAM, and near-DRAM / PIM-HBM-like hardware.
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "DRAM-PIM"
+  - "ReRAM-CIM"
+  - "MVM-based PUM"
+  - "logic-based PUM"
+  - "PNM"
+  - "analog-CIM"
+  - "digital-CIM"
+  - "hybrid"
+workloads:
+  - "ResNet50"
+  - "ResNeXt-50"
+  - "MobileNet"
+  - "BERT"
+  - "GoogleNet"
+  - "DenseNet"
+  - "ResNet18 conv2D layers"
+  - "GEMM"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A4]
+axis_B: [B4, B3, B1]
+axis_C_first_class_objects:
+  - "compute_abstraction"
+  - "memory_abstraction"
+  - "bit_level_mapping_matrix"
+  - "offset_vector"
+  - "compute_dimension"
+  - "parallel_dimension"
+  - "reduction_dimension"
+  - "operand_binding"
+  - "loop_binding"
+  - "array_spatial_location"
+  - "data_transfer_schedule"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "array_binding"
+  - "memory_layout"
+  - "tensor_schedule"
+  - "loop_tiling"
+  - "loop_order"
+  - "resource_allocation"
+artifact:
+  status: "no public artifact found"
+  url:
+  license:
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+reproducibility_level: low
+notes:
+  - "Best classified as a PIM/CIM mapping framework rather than a full public compiler dialect or ISA stack."
+  - "Memory abstraction is the most reusable IR idea: bit-level layout legality via mapping matrices and offsets."
+  - "Simulator-backed experiments cover four adapted PIM platforms; public simulator/code artifact was not found."
+  - "Useful bridge between tensor access-matrix semantics and PIM-specific operand placement constraints."
+takeaways: []
+---
+
 # ARES — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -14,7 +92,7 @@
 
 ## 2. One-paragraph public summary
 
-**ARES** is a compiler-mapping framework for placing static DNN tensor operators onto multiple PIM/CIM-like hardware classes. Its main contribution is a pair of reusable abstractions: a **compute abstraction** that describes a PIM primitive as a tensorized compute equation, and a **memory abstraction** that encodes bit-level operand placement through mapping matrices and offsets. These abstractions are used to derive a mapping space over tensor binding, loop binding, loop sizes, resource allocation, execution order, and data movement. The demonstrated setting is simulator-backed DNN inference mapping on four adapted platforms: logic-DRAM, logic-SRAM, MVM-ReRAM, and near-DRAM / PIM-HBM-like hardware. For CIM compiler/IR research, ARES is most useful as an example of making PIM-specific operand layout and legality constraints first-class, while leaving instruction lowering, analog nonideality, and trajectory-level value semantics mostly outside the public interface. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf))
+**ARES** is a compiler-mapping framework for placing static DNN tensor operators onto multiple PIM/CIM-like hardware classes. Its main contribution is a pair of reusable abstractions: a **compute abstraction** that describes a PIM primitive as a tensorized compute equation, and a **memory abstraction** that encodes bit-level operand placement through mapping matrices and offsets. These abstractions are used to derive a mapping space over tensor binding, loop binding, loop sizes, resource allocation, execution order, and data movement. The demonstrated setting is simulator-backed DNN inference mapping on four adapted platforms: logic-DRAM, logic-SRAM, MVM-ReRAM, and near-DRAM / PIM-HBM-like hardware. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf))
 
 ## 3. Claimed contribution vs evidenced contribution
 
@@ -82,18 +160,6 @@ The user provides hardware descriptions using the proposed abstractions, and the
 
 ### 5.3 Axis C — first-class CIM objects
 
-| CIM object | Status in this paper | Evidence |
-|---|---|---|
-| Crossbar / array / macro hierarchy | **First-class / parameter** | PIM units directly access memory arrays; MVM-ReRAM uses crossbar size and hierarchy parameters; mapping includes spatial location of memory arrays. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Bit-slicing / bit significance | **First-class for placement; partially parameterized for significance** | Memory abstraction takes bit position `b` as an input and maps bits to memory addresses; logic PUM is described as bit-serial from low bit to high bit. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| ADC/DAC precision or sensing | **Parameter / implicit** | MVM figures include ADC and shift-add; text states that input data exceeding wordline width or DAC precision are supplied over multiple cycles and accumulated with shift-and-add. The experiment fixes weights and input data at 8-bit precision. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Analog-to-digital or domain transition | **Implicit / simulator-side** | MVM-based PUM describes analog-style bitline accumulation and ADC/DAC-related limits, but the mapping abstraction centers on compute dimensions and bit layout rather than explicit domain-transition nodes. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Peripheral circuits as path nodes | **Parameter / implicit** | The hardware overview names registers/buffers, processing logic, control units, ADC, shift-add, SIMD/FPU, and reduction. These appear as architectural resources, not as a public path-node IR. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Partial-sum accumulation path | **First-class at reduction-dimension level; path details implicit** | Hardware dimensions are classified as parallel or reduction dimensions; logic PUM examples use reduction dimensions `k1` and `k2`, and MVM uses reduction dimension `DK`. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Reconstruction / shift-add tree | **Paper-described / implicit** | MVM-based PUM combines adjacent-cell or multi-cycle results using shift-and-add units, but shift-add is not exposed as a rewriteable IR node. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Runtime state, masks, KV cache, batching, sparsity | **Mostly not applicable / implicit** | Batch is a loop dimension in conv2D workloads; the demonstrated mapping is static DNN inference. Runtime masks, KV cache, dynamic batching, and sparse runtime state are outside the demonstrated abstraction. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-| Value trajectory / flow path | **Approximated** | ARES names bit addresses, compute dimensions, spatial locations, begin times, and data transfers. It approximates value movement through mapping/scheduling, while trajectory identity across sensing, reconstruction, and storage would require extra metadata. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) |
-
 ### 5.4 Axis D — rewrite object
 
 ARES rewrites **hardware mapping and tensor schedule**. The concrete rewrite objects are:
@@ -106,8 +172,6 @@ ARES rewrites **hardware mapping and tensor schedule**. The concrete rewrite obj
 - operand data layout through the memory mapping matrix and offset.
 
 The legal transformations include operand binding, dimension binding, memory-constrained binding-size selection, tiling, reordering, parallelization, and resource-allocation changes. The main equivalence exploited is that multiple loop-to-hardware bindings may compute the same tensor operator, provided tensor reuse semantics and hardware reuse semantics agree. The paper’s access-matrix rule preserves tensor identity: a tensor is reusable along a loop dimension when that loop dimension does not participate in the tensor’s access indexing. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf))
-
-The information that must be preserved across lowering includes tensor access matrices, operand-to-hardware binding, parallel versus reduction dimension roles, bit-level address legality, array-size constraints, data-transfer requirements, and the selected schedule. The representation is especially well suited to searching alternative static mappings of DNN operators onto PIM resources; expressing trajectory rewrites such as ADC retiming, reconstruction fusion, or cross-operator bit-sliced partial-sum propagation would likely require an additional abstraction for value identity, domain transitions, and reconstruction stages.
 
 ## 6. Technical mechanism reading
 
@@ -226,24 +290,7 @@ The experiments use four adapted platforms: Ambit-like logic-DRAM using DDR4 par
 **Integration effort estimate: High.**  
 Integration would be most direct through a small reimplementation that extracts ARES’s operator access-matrix model, compute abstraction, memory mapping matrix, binding legality rules, and schedule-genome fields. The missing public artifact means the simulator interface, data formats, and exact search workflow would need to be reconstructed from the paper.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-ARES provides useful ingredients for a value-trajectory IR, especially **bit-level operand placement**, **parallel/reduction compute dimensions**, **spatial array assignment**, and **dataflow scheduling**. The closest approximation to trajectory semantics is the memory abstraction’s mapping from a tensor bit to a memory address, combined with scheduling’s assignment of hardware primitive invocations to array locations and times. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf))
-
-For value identity, the paper’s demonstrated abstraction centers on tensor operands, access matrices, and mapping legality. It does not preserve a named value token across analog partial sums, sensing, digital accumulation, shift-add reconstruction, reduction, and storage as a first-class trajectory object. MVM-based PUM does describe ADC/DAC-related precision limits and shift-add accumulation, but these appear as hardware behavior rather than rewriteable path nodes. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf))
-
-Type-like information is partially present: bit index `b`, bit width `B`, compute dimension, memory coordinate, parallel/reduction role, spatial location, and time. Channel rate, precision stage, analog/digital domain, ADC conversion point, and reconstruction stage would need additional attributes. A trajectory-level extension would likely attach value-flow metadata to the compute abstraction operands and memory abstraction outputs: bit-slice ID, significance, accumulation domain, conversion node, reconstruction node, storage location, and downstream reduction consumer.
-
-For the trajectory rewrites you listed:
-
-- **Fusing reconstruction with downstream reduction:** ARES has reduction dimensions and shift-add discussion, but fusion would need reconstruction nodes and downstream consumer identity.
-- **Delaying or retiming ADC conversion:** ARES mentions ADC/DAC limits for MVM-style PUM, but retiming conversion would need explicit domain-transition operations.
-- **Carrying bit-sliced partial sums across operator boundaries:** ARES can represent bit placement within an operator mapping; cross-operator bit-sliced partial-sum residency would need persistent value identity across layers.
-- **Changing reduction tree structure:** ARES models reduction dimensions and scheduling, while alternative tree topology would need a first-class reduction-path object.
-- **Routing values through alternative peripheral paths:** The hardware overview names peripherals, but path alternatives would need explicit peripheral graph nodes.
-- **Co-optimizing data movement and numeric reconstruction:** ARES already co-optimizes data movement and mapping at a schedule level; numeric reconstruction would need shift-add / accumulation semantics as rewriteable operations.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -254,87 +301,4 @@ For the trajectory rewrites you listed:
 | **PIM-DL** | Data-layout optimization for DNN inference on digital PIM | PIM-DL is cited as a fixed/template-style baseline family; ARES broadens the object from data layout alone to compute binding, memory mapping, and schedule search. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) | Tag PIM-DL closer to layout optimization; tag ARES as mapping-space construction. |
 | **AMOS** | Automatic mapping for tensor computations with hardware abstraction | AMOS is a general spatial-accelerator mapper; ARES imports that style of hardware abstraction/search into PIM-specific constraints such as bit-level memory layout and compute-in-memory operand legality. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) | ARES belongs in the “tensor mapping with PIM-specific layout legality” branch of the corpus. |
 
-## 11. Corpus-ready final takeaway
-
-- ARES’s core contribution is a **PIM hardware abstraction for mapping**, pairing a tensorized compute equation with a bit-level memory mapping matrix and offset.
-- Its strongest reusable stack layer is **mapping-space construction**: operand binding, loop binding, binding-size constraints, resource allocation, execution order, and data transfer.
-- The evidenced scope is **static DNN inference mapping** for conv/GEMM-style operators and full networks on simulator-backed logic-DRAM, logic-SRAM, MVM-ReRAM, and near-DRAM platforms.
-- The most important first-class CIM object is the **bit-level operand layout constraint**, represented as `addr = A·[j,b]^T + offset`.
-- The hidden IR is the combination of **access matrices + compute/memory abstraction + binding legality + GA genome + simulator timing model**.
-- Artifact status: **no public artifact found**. Public evidence consists of the paper PDF, equations, examples, hardware parameters, workload descriptions, and plotted results.
-- Integration is most practical as **IR inspiration and mapper/scheduler reimplementation**, rather than direct code reuse.
-- For value-trajectory IR work, ARES is highly relevant as a source of **layout and legality mechanisms**, while trajectory-level value identity, domain transitions, and reconstruction nodes would need additional abstractions.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "ARES: A Mapping Framework of DNNs towards Diverse PIMs with General Abstractions"
-year: 2023
-venue: "ICCAD 2023"
-authors_or_group: "Xiuping Cui, Size Zheng, Tianyu Jia, Le Ye, Yun Liang"
-technology:
-  - SRAM-CIM
-  - DRAM-PIM
-  - ReRAM-CIM
-  - MVM-based PUM
-  - logic-based PUM
-  - PNM
-  - analog-CIM
-  - digital-CIM
-  - hybrid
-workloads:
-  - ResNet50
-  - ResNeXt-50
-  - MobileNet
-  - BERT
-  - GoogleNet
-  - DenseNet
-  - ResNet18 conv2D layers
-  - GEMM
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A2_simulator_cost_model
-    - A4_adjacent_IR_abstraction
-axis_B:
-  - B4_hardware_resource_IR
-  - B3_loop_tensor_schedule_IR
-  - B1_config_as_IR_paper_level
-axis_C_first_class_objects:
-  - compute_abstraction
-  - memory_abstraction
-  - bit_level_mapping_matrix
-  - offset_vector
-  - compute_dimension
-  - parallel_dimension
-  - reduction_dimension
-  - operand_binding
-  - loop_binding
-  - array_spatial_location
-  - data_transfer_schedule
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - array_binding
-  - memory_layout
-  - tensor_schedule
-  - loop_tiling
-  - loop_order
-  - resource_allocation
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: null
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as a PIM/CIM mapping framework rather than a full public compiler dialect or ISA stack."
-  - "Memory abstraction is the most reusable IR idea: bit-level layout legality via mapping matrices and offsets."
-  - "Simulator-backed experiments cover four adapted PIM platforms; public simulator/code artifact was not found."
-  - "Useful bridge between tensor access-matrix semantics and PIM-specific operand placement constraints."
-```
+## 10. Corpus-ready final takeaway

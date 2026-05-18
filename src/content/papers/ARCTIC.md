@@ -1,3 +1,69 @@
+---
+slug: arctic
+title: "ARCTIC: Agile and Robust Compute-In-Memory Compiler with Parameterized INT/FP Precision and Built-In Self Test"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DATE 2024"
+authors_or_group: "Hongyi Zhang, Haozhe Zhu, Siqi He, Mengjie Li, Chengchen Wang, Xiankui Xiong, Haidong Tian, Xiaoyang Zeng, Chixiao Chen"
+summary: >-
+  **ARCTIC: Agile and Robust Compute-In-Memory Compiler with Parameterized INT/FP Precision and Built-In Self Test** is best read as a physical digital-CIM macro compiler for SRAM-based DCIM. Its main contribution is a parameterized macro-generation flow that accepts hardware-level specifications—timing and area constraints, memory depth and width, mantissa width, exponent width, exponent offset, and INT/FP format—and produces low-level RTL, MarchCIM BIST logic, and placed-and-routed 28 nm macro layouts through commercial EDA flows. The paper strengthens the lower hardware-generation layer of the CIM stack, especially precision-specialized INT/FP macro construction and DCIM-aware BIST, rather than the model-frontend or tensor-mapping layer. For CIM compiler/IR research, ARCTIC is useful as evidence that numeric-format fields, mantissa/exponent placement, BIST test modes, and physical macro hierarchy are important first-class backend objects, even though the paper foregrounds a template/EDA flow rather than a standalone auditable IR. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "Macro-level INT/FP MAC evaluation"
+  - "No DNN graph-level workload found in checked sources"
+tags: []
+baselines: []
+axis_A:
+  primary: A1
+  secondary: [A5]
+axis_B: [B1, B4, B6]
+axis_C_first_class_objects:
+  - "SRAM memory array"
+  - "8T memory cell"
+  - "read-out compute logic"
+  - "adder tree"
+  - "comparator tree"
+  - "mantissa array"
+  - "exponent array"
+  - "shared exponent"
+  - "normalization module"
+  - "sub-array partitioning"
+  - "clock gating"
+  - "MarchCIM BIST controller/counter/decoder/comparator"
+  - "BIST test vectors and masks"
+axis_D_rewrite_objects:
+  - "numeric format"
+  - "macro topology"
+  - "hardware mapping"
+  - "memory layout"
+  - "BIST/test-vector flow"
+  - "EDA flow sequence"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best viewed as a precision-parameterized physical DCIM macro generator."
+  - "Most useful IR ingredients are precision fields, mantissa/exponent placement, normalization path, and MarchCIM BIST state."
+  - "The paper evidences macro-level PPA and BIST overhead, not model-frontend compilation or tensor-to-array scheduling."
+takeaways: []
+---
+
 # ARCTIC — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -8,7 +74,7 @@
 | Secondary stack role, Axis A | **A5 — Narrow end-to-end co-design** | It spans from macro-level hardware parameters to placed-and-routed macro layouts, but the demonstrated end-to-end scope is macro generation rather than DNN graph compilation or runtime execution. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
 | Middle-layer style, Axis B | **B1 Config-as-IR; B4 Hardware-resource IR** | The paper’s middle representation is clearest as a structured hardware configuration: timing/area constraints, memory depth/width, mantissa width, exponent width, exponent offset, precision format, and template-selected macro resources. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
 | First-class CIM objects, Axis C | **SRAM memory array, read-out compute logic, adder/comparator tree, mantissa/exponent arrays, shared exponent, normalization module, sub-array partitioning, BIST controller/counter/decoder/comparator/test vectors** | These objects are named directly in the macro topology and BIST sections; they are represented as hardware-generation and verification objects rather than as a reusable compiler IR. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Rewrite object, Axis D | **Numeric format, macro topology, array/memory layout, BIST/test-vector flow, EDA flow trajectory** | Transformations occur by specializing templates and backend constraints: INT/FP precision selection, mantissa/exponent organization, bit-line division, sub-array clock gating, adder-tree sharing, common-exponent placement, and BIST insertion. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
+| Rewrite object, Axis D | **Numeric format, macro topology, array/memory layout, BIST/test-vector flow, EDA flow sequence** | Transformations occur by specializing templates and backend constraints: INT/FP precision selection, mantissa/exponent organization, bit-line division, sub-array clock gating, adder-tree sharing, common-exponent placement, and BIST insertion. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
 | Best corpus tags | `SRAM-CIM`, `digital-CIM`, `macro-compiler`, `RTL-generation`, `physical-design-flow`, `INT-FP-precision`, `floating-point-CIM`, `BIST`, `DFT`, `MarchCIM` | Tags reflect the demonstrated macro-generator and DFT focus. |
 | Closest comparison baselines | **AutoDCIM, ALPINE, SynDCIM, CiMLoop, CIMFlow, OpenACM/OpenACMv2** | AutoDCIM and ALPINE are prior DCIM macro compilers cited by ARCTIC; SynDCIM is a later performance-aware DCIM macro compiler; CiMLoop and CIMFlow are broader modeling/stack frameworks with explicit artifacts; OpenACM is a later open-source macro-generation flow. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
 
@@ -92,18 +158,6 @@ The FP path includes exponent comparison, maximum activation exponent, exponent 
 
 ## 5.3 Axis C — first-class CIM objects
 
-| CIM object | Status in this paper | Evidence |
-|---|---|---|
-| Crossbar / array / macro hierarchy | **First-class macro object** | ARCTIC generates memory arrays, macro topology, and placed layouts; Figure 4 and Section III describe memory-array depth/width and macro layout generation. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Bit-slicing / bit significance | **Parameter / implicit** | INT computation uses fixed-bit-width shifting; FP mantissa/exponent widths are parameters. The paper does not present a general bit-slice IR, but bit width and format drive hardware generation. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| ADC/DAC precision or sensing | **Not applicable** | The work is SRAM-based digital CIM; Table III identifies the architecture as DCIM and the topology uses digital read-out compute logic rather than analog ADC/DAC paths. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Analog-to-digital or domain transition | **Not applicable** | The demonstrated path is digital-domain SRAM CIM with latch/AND read-out logic and adder-tree accumulation. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Peripheral circuits as path nodes | **First-class hardware objects** | Write driver, address decoder, read-out compute logic, adder tree, comparator tree, shifting/normalization, and BIST comparator/controller are named as macro resources. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Partial-sum accumulation path | **First-class / hard-wired datapath** | INT MAC uses in-memory multiplication and fixed shifting; FP MAC uses shifted mantissa results fed to an adder tree for accumulation. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Reconstruction / shift-add tree | **First-class numeric datapath component** | FP computation includes exponent comparison/subtraction, shifting window, adder tree, and normalization module based on user-provided format parameters. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Runtime state, masks, KV cache, batching, sparsity | **Partial / parameter-level** | The latch includes an enable signal for gating in specific sparsity scenarios; BIST uses masking of other mantissa/exponent cells during test. KV cache, batching, or runtime scheduling state are not part of the demonstrated abstraction. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-| Value trajectory / flow path | **Approximated by datapath topology** | The paper names the MAC path through weight/activation, read-out compute, shifting, adder tree, and normalization, but this is presented as macro datapath design rather than a value-identity IR. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) |
-
 ### 5.4 Axis D — rewrite object
 
 ARCTIC rewrites **numeric format and macro hardware structure**. The legal transformations are template-driven: selecting INT versus FP format, setting mantissa/exponent widths and offset, generating memory/adder/comparator structures, choosing shared-exponent FP organization, placing exponent bits relative to mantissa storage, dividing bit lines, gating sub-arrays, sharing adder trees, and inserting MarchCIM BIST logic. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))
@@ -166,10 +220,6 @@ The energy-efficiency comparison in Table III places ARCTIC-generated INT4, INT8
 
 ### Insight 4 — Shared exponent placement is a physical/numeric co-design point
 
-- **Observation:** ARCTIC uses a shared-exponent FP scheme and physically places common exponent bits in the middle of the mantissa array for routing and energy. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))  
-- **Why it matters for CIM compiler/IR work:** Numeric representation and physical locality are coupled; a format choice changes not only arithmetic but also layout, routing, and BIST behavior.  
-- **Reusable lesson:** A value-trajectory or hardware-resource IR should allow numeric fields to carry placement implications, not merely arithmetic precision.
-
 ### Insight 5 — BIST recovers direct-comparison semantics by controlling operand identity
 
 - **Observation:** MarchCIM sets one operand to numerical 1 and masks unrelated cells so the MAC output can be compared against a test vector. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))  
@@ -221,24 +271,7 @@ The bibliographic record identifies the work as DATE 2024 with DOI `10.23919/DAT
 
 **Integration effort estimate: High.** Integration would be most direct through a new adapter that reconstructs ARCTIC’s macro config as a public JSON/YAML schema and maps it to an available RTL/EDA backend. The most valuable reusable boundary appears to be the precision-aware macro/BIST hardware contract. Practical reuse is constrained by the absence of public templates, generated files, and scripts, and by dependence on commercial EDA characterization and post-layout flows.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-ARCTIC provides useful ingredients for a value-trajectory IR, especially around numeric-format propagation and macro-internal datapath naming. It names parts of the value path: weights and activations enter the DCIM array, read-out logic performs multiplication, INT values use fixed shifting, FP values pass through exponent comparison/subtraction, mantissa shifting, adder-tree accumulation, and normalization. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))
-
-The closest approximation to trajectory semantics is the FP MAC datapath: activation exponent comparison produces `ActE`, exponent differences determine shift amounts, mantissa products are shifted, shifted values are accumulated, and normalization reconstructs a standard FP result. This is a good seed for a trajectory type carrying `{domain=digital-CIM, mantissa_bits, exponent_bits, exponent_offset, shared_weight_exponent, shift_window, accumulation_tree, normalization_stage}`. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))
-
-The work’s demonstrated abstraction centers on macro topology and numeric specialization. A trajectory-level extension would likely attach value identity to the mantissa/exponent arrays, read-out compute logic, shift window, adder tree, normalization module, and BIST comparator path. That extension would allow rewrites such as changing reduction-tree structure, fusing normalization with downstream reduction, or routing through alternative peripheral paths to be represented explicitly rather than embedded in macro templates.
-
-For the specific trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** ARCTIC provides a normalization stage, but downstream operator boundaries are outside the demonstrated stack.
-- **Delaying or retiming ADC conversion:** Not applicable for this digital SRAM-CIM design.
-- **Carrying bit-sliced partial sums across operator boundaries:** The paper names shifting and accumulation inside a macro; cross-operator value identity would require a graph/tensor abstraction.
-- **Changing reduction tree structure:** Adder-tree sharing is a named layout tradeoff, so this is a plausible extension point.
-- **Routing values through alternative peripheral paths:** Peripheral nodes are named, but alternative path selection would need an explicit path representation.
-- **Co-optimizing data movement and numeric reconstruction:** The shared-exponent and exponent-placement design suggests this direction, but the paper evaluates it at macro-layout level rather than as a general compiler rewrite. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -249,73 +282,4 @@ For the specific trajectory rewrites:
 | **CIMFlow** | Digital CIM stack infrastructure. ([CIMFlow](https://www.cimflow.org/)) | CIMFlow exposes ISA, MLIR compiler, and SystemC simulator, while ARCTIC operates at RTL/layout macro generation. | Useful contrast between A4 explicit IR/ISA stack and A1 macro/circuit generation. |
 | **OpenACM / OpenACMv2** | Open-source DCIM macro generation and backend physical flow. ([GitHub](https://github.com/ShenShan123/OpenACM)) | OpenACM exposes code, configs, OpenROAD flow, and approximate multiplier/SRAM/PE generators; ARCTIC’s public evidence is paper-only. | Useful artifact-rich comparison for reusable macro-generator interfaces and config-as-IR design. |
 
-## 11. Corpus-ready final takeaway
-
-- ARCTIC is a **SRAM-based digital-CIM macro compiler**, centered on hardware-parameterized macro generation rather than DNN graph compilation.
-- The strongest reusable stack layer is **macro backend generation**: precision-specialized RTL, BIST insertion, and physical-design feedback.
-- The evidenced scope is **28 nm post-layout macro evaluation** at 0.9 V and 200 MHz, with BIST overhead and energy-efficiency comparisons across selected INT/FP formats. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf))
-- First-class objects include **memory arrays, read-out compute logic, adder/comparator trees, mantissa/exponent arrays, shared exponent, normalization module, sub-array/bit-line layout choices, and MarchCIM BIST state**.
-- The hidden IR is the combination of **macro config + precision tuple + hardware templates + EDA constraints + BIST test-vector state**.
-- **Artifact status: no public artifact found.**
-- Integration value is highest as **IR inspiration and backend contract** for precision-aware CIM macro generation and CIM-specific DFT/BIST.
-- For a value-trajectory IR, ARCTIC is most useful for modeling **format-aware intra-macro value flow**, especially mantissa/exponent handling, shift/accumulate/normalize stages, and verification-mode operand forcing.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "ARCTIC: Agile and Robust Compute-In-Memory Compiler with Parameterized INT/FP Precision and Built-In Self Test"
-year: 2024
-venue: "DATE 2024"
-authors_or_group: "Hongyi Zhang, Haozhe Zhu, Siqi He, Mengjie Li, Chengchen Wang, Xiankui Xiong, Haidong Tian, Xiaoyang Zeng, Chixiao Chen"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - "Macro-level INT/FP MAC evaluation"
-  - "No DNN graph-level workload found in checked sources"
-axis_A:
-  primary: "A1 Macro / circuit generator"
-  secondary: "A5 Narrow end-to-end co-design"
-axis_B:
-  - "B1 Config-as-IR"
-  - "B4 Hardware-resource IR"
-  - "B6 Accuracy / numeric-format modeling, limited to precision-format support"
-axis_C_first_class_objects:
-  - "SRAM memory array"
-  - "8T memory cell"
-  - "read-out compute logic"
-  - "adder tree"
-  - "comparator tree"
-  - "mantissa array"
-  - "exponent array"
-  - "shared exponent"
-  - "normalization module"
-  - "sub-array partitioning"
-  - "clock gating"
-  - "MarchCIM BIST controller/counter/decoder/comparator"
-  - "BIST test vectors and masks"
-axis_D_rewrite_objects:
-  - "numeric format"
-  - "macro topology"
-  - "hardware mapping"
-  - "memory layout"
-  - "BIST/test-vector flow"
-  - "EDA flow trajectory"
-artifact:
-  status: "no public artifact found"
-  url: ""
-  license: "unknown"
-  last_checked: "2026-05-15"
-integration_roles:
-  - "IR inspiration"
-  - "cost_model"
-  - "backend"
-  - "benchmark"
-  - "validation"
-reproducibility_level: "low"
-trajectory_IR_relevance: "medium"
-notes:
-  - "Best viewed as a precision-parameterized physical DCIM macro generator."
-  - "Most useful IR ingredients are precision fields, mantissa/exponent placement, normalization path, and MarchCIM BIST state."
-  - "The paper evidences macro-level PPA and BIST overhead, not model-frontend compilation or tensor-to-array scheduling."
-```
+## 10. Corpus-ready final takeaway

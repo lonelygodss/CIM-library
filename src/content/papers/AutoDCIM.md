@@ -1,3 +1,63 @@
+---
+slug: autodcim
+title: "AutoDCIM: An Automated Digital CIM Compiler"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "DAC 2023"
+authors_or_group: "Jia Chen, Fengbin Tu, Kunming Shao, Fengshi Tian, Xiao Huo, Chi-Ying Tsui, Kwang-Ting Cheng"
+summary: >-
+  AutoDCIM is best classified as a digital-CIM macro compiler rather than a workload compiler or explicit IR stack. Its public contribution is a spec-to-layout hardware generation flow that takes user macro specifications, builds a DCIM macro architecture, and produces an optimized physical layout using template-based generation plus a layout exploration loop over array partitioning choices. The demonstrated stack slice is the hardware-EDA layer: customized SRAM-based digital CIM cells, compute/peripheral structures, array partitioning, and layout generation.
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "AI inference / DCIM macro use cases"
+  - "exact benchmark models: \"Unknown / not found in checked public sources\""
+tags: []
+baselines: []
+axis_A:
+  primary: A1
+  secondary: [A3, A5]
+axis_B: [B1, B4]
+axis_C_first_class_objects:
+  - "DCIM_macro"
+  - "SRAM_memory_array"
+  - "array_partitioning"
+  - "customized_compute_cell"
+  - "multiplexer_multiplier_path"
+  - "adder_tree"
+  - "shift_add_accumulation_path"
+  - "layout_template_metadata"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "array_binding"
+  - "memory_layout"
+  - "template_instantiation"
+  - "macro_configuration"
+artifact:
+  status: "no public artifact found"
+  url:
+  license: "Unknown / not found"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best treated as a spec-to-layout DCIM macro compiler, not a workload compiler or explicit graph/ISA IR stack."
+  - "Public evidence is strongest for template-based macro generation and array-partitioning/layout exploration."
+  - "Follow-on work characterizes AutoDCIM as fixed-point/integer, closed-source, and commercial-EDA-dependent."
+takeaways: []
+---
+
 # AutoDCIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -8,7 +68,7 @@
 | Secondary stack role, Axis A | **A3 Mapping / scheduling / DSE framework**, narrow **A5** | The paper claims a layout exploration loop over DCIM array partitioning schemes. Follow-on comparisons describe AutoDCIM as an end-to-end automated DCIM flow, but with user-defined trade-off decisions rather than an automatic Pareto DSE. ([HKUST](https://researchportal.hkust.edu.hk/en/publications/autodcim-an-automated-digital-cim-compiler/)) |
 | Middle-layer style, Axis B | **B1 Config-as-IR**, **B4 Hardware-resource IR** | The apparent middle object is a hardware/macro configuration: user specs, array partitioning, handcrafted templates, and layout parameters. No public evidence shows a graph IR, dialect, instruction IR, or runtime abstraction. |
 | First-class CIM objects, Axis C | DCIM macro, array partitioning, SRAM cell / memory array, customized compute cell, multiplexer, adder tree, shift-add / accumulation path, layout template metadata | Public evidence names macro architecture, template-based generation, array partitioning, layout optimization, and DCIM subcircuits. Later SynDCIM text specifically attributes a **1T passing-gate multiplexer** design choice to AutoDCIM. ([HKUST](https://researchportal.hkust.edu.hk/en/publications/autodcim-an-automated-digital-cim-compiler/)) |
-| Rewrite object, Axis D | **Hardware mapping / array partitioning / layout trajectory / template instantiation** | The transformations are from specification to DCIM macro architecture and physical layout. The rewrite object is not an operator graph or loop nest; it is closer to macro resource binding plus placement/layout realization. |
+| Rewrite object, Axis D | **Hardware mapping / array partitioning / layout flow / template instantiation** | The transformations are from specification to DCIM macro architecture and physical layout. The rewrite object is not an operator graph or loop nest; it is closer to macro resource binding plus placement/layout realization. |
 | Best corpus tags | `digital-CIM`, `SRAM-CIM`, `macro-generator`, `spec-to-layout`, `hardware-compiler`, `template-based-generation`, `layout-optimization`, `array-partitioning`, `EDA-flow`, `fixed-point-DCIM` | Tags reflect the public claim and follow-on classification: AutoDCIM is a DCIM macro compiler with template-based layout generation, apparently focused on fixed-point / integer DCIM. ([arXiv](https://arxiv.org/html/2505.09451v1)) |
 | Closest comparison baselines | **OpenC2**, **SynDCIM**, **SEGA-DCIM**, **ARCTIC**, **EasyACIM**, **OpenACM** | These works are close because they also automate CIM or DCIM macro generation, physical design, precision support, DSE, or open-source compiler infrastructure. OpenC2 and OpenACM explicitly position themselves relative to AutoDCIM. ([zyh0911.github.io](https://zyh0911.github.io/assets/pdf/OpenC2.pdf)) |
 
@@ -79,18 +139,6 @@ The checked public sources do not show a graph-as-IR, tensor schedule IR, instru
 
 ### 5.3 Axis C — first-class CIM objects
 
-| CIM object | Status in this paper | Evidence |
-|---|---|---|
-| Crossbar / array / macro hierarchy | **First-class** | Public abstract names DCIM macro architecture, optimized layout, and array partitioning schemes. ([HKUST](https://researchportal.hkust.edu.hk/en/publications/autodcim-an-automated-digital-cim-compiler/)) |
-| Bit-slicing / bit significance | **Parameter / implicit** | Follow-on comparisons characterize AutoDCIM as fixed-point / integer. DCIM descriptions use bit-serial activations and adder/shift structures, but AutoDCIM’s public schema is not exposed. ([arXiv](https://arxiv.org/html/2601.11292)) |
-| ADC/DAC precision or sensing | **N/A** | AutoDCIM is digital CIM / SRAM-CIM oriented; public evidence centers on digital logic inside SRAM arrays, not analog sensing or ADC/DAC design. ([arXiv](https://arxiv.org/html/2505.09451v1)) |
-| Analog-to-digital or domain transition | **N/A** | The demonstrated abstraction is digital DCIM macro generation. |
-| Peripheral circuits as path nodes | **Parameter / implicit** | DCIM subcircuits include WL/BL driver, multiplier/multiplexer, adder tree, shift-and-add, and output fusion; AutoDCIM’s public flow does not expose a path-node IR. ([arXiv](https://arxiv.org/html/2411.16806v1)) |
-| Partial-sum accumulation path | **First-class / costed at macro level** | DCIM operation accumulates partial sums using adder tree and shift adder; OpenC2 later notes AutoDCIM’s adder-tree sharing mechanism. ([arXiv](https://arxiv.org/html/2411.16806v1)) |
-| Reconstruction / shift-add tree | **Implicit / template-encoded** | The path is visible in DCIM macro structure, but a public, rewriteable reconstruction object was not found. |
-| Runtime state, masks, KV cache, batching, sparsity | **Not found in checked sources** | Public evidence does not indicate runtime-level state management. |
-| Value trajectory / flow path | **Approximated by hardware datapath** | The closest public object is macro datapath/layout: memory cell → multiplier/mux → adder tree → shift/add output. No value-identity IR is exposed. |
-
 ### 5.4 Axis D — rewrite object
 
 AutoDCIM rewrites **hardware configuration and layout state**. The transformation is:
@@ -100,8 +148,6 @@ AutoDCIM rewrites **hardware configuration and layout state**. The transformatio
 Legal transformations evidenced publicly include template instantiation, array partitioning exploration, and layout optimization. Secondary evidence suggests AutoDCIM includes adder-tree sharing and a specific multiplexer implementation choice, both of which affect area, latency, and parallelism. ([arXiv](https://arxiv.org/html/2411.16806v1))
 
 The equivalences exploited are hardware-generation equivalences: different array partitions and layout organizations can implement the same specified macro behavior. Across lowering, the flow must preserve DCIM MAC semantics, storage capacity, precision assumptions, array dimensions, connectivity, timing legality, and physical-design constraints.
-
-The representation is especially well suited to **macro-level resource/layout exploration**. Expressing cross-layer scheduling, operator fusion, runtime batching, sparsity masks, or value-trajectory retiming would likely require an additional abstraction above the macro specification and below the workload graph.
 
 ## 6. Technical mechanism reading
 
@@ -136,7 +182,7 @@ The public abstract states that AutoDCIM-generated macros show competitive effic
 ### Insight 1 — The compiler object is a macro layout state
 
 - **Observation:** AutoDCIM’s named input/output boundary is not model graph → executable, but user macro specification → generated DCIM macro layout.
-- **Why it matters for CIM compiler/IR work:** It shows that a CIM “compiler” corpus should include hardware EDA compilers whose IR-like object is a macro configuration and layout trajectory.
+- **Why it matters for CIM compiler/IR work:** It shows that a CIM “compiler” corpus should include hardware EDA compilers whose IR-like object is a macro configuration and layout flow.
 - **Reusable lesson:** Future stacks could expose this hidden state explicitly as a hardware-resource IR with fields for array partition, cell template, peripheral path, accumulation tree, and layout constraints.
 
 ### Insight 2 — Array partitioning is the clearest rewriteable decision
@@ -152,10 +198,6 @@ The public abstract states that AutoDCIM-generated macros show competitive effic
 - **Reusable lesson:** Future compilers can use template-backed lowering while still exposing a serialized pre-template IR for audit, debugging, and cross-tool comparison.
 
 ### Insight 4 — Digital CIM removes ADC/DAC objects but preserves trajectory questions
-
-- **Observation:** Because AutoDCIM targets digital SRAM-CIM, ADC/DAC precision is not the core object. The relevant value path is digital storage, bit-serial input, multiplication/muxing, adder-tree accumulation, and shift-add reconstruction.
-- **Why it matters for CIM compiler/IR work:** Value-trajectory IRs should not be analog-only; digital CIM still needs to represent bit significance, partial-sum location, accumulation width, and reconstruction timing.
-- **Reusable lesson:** A trajectory IR for DCIM could attach bit position, accumulation stage, and layout location to values as they move through SRAM cells, muxes, adders, and shift-add paths.
 
 ### Insight 5 — Follow-on work clarifies AutoDCIM’s corpus boundary
 
@@ -207,17 +249,7 @@ The public abstract states that AutoDCIM-generated macros show competitive effic
 
 **Integration effort estimate: High.** The conceptual interface is clear—macro specs to DCIM layout—but the executable boundary is not public. Reuse would benefit from a small adapter that extracts a normalized macro specification and emits an open DCIM-template generator format, such as the style exposed by OpenC2 or later open-source DCIM compiler efforts.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-AutoDCIM provides useful ingredients for a value-trajectory IR, especially the hardware path through a digital CIM macro: SRAM storage, input driving, mux/multiply logic, adder-tree accumulation, and shift-add output formation. The closest approximation to trajectory semantics is the macro datapath and layout configuration, not a named value-flow IR.
-
-- **Does the paper name the path a value takes through CIM resources?** Public sources name macro architecture, array partitioning, and layout generation. Follow-on DCIM descriptions identify the path as SRAM cells / WL drivers / multiplier-multiplexer / adder tree / shift-add. ([arXiv](https://arxiv.org/html/2411.16806v1))
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** The demonstrated abstraction centers on digital macro generation. Value identity across accumulation and reconstruction appears embedded in templates/datapath, not represented as an inspectable IR object.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Fixed-point / integer precision is part of the macro design space according to follow-on comparisons, but public sources do not expose type-like propagation of bit significance or placement. ([arXiv](https://arxiv.org/html/2505.09451v1))
-- **Could it express trajectory rewrites?** The representation is suitable for rewrites such as array partitioning and possibly adder-tree/layout organization. Trajectory-level rewrites—fusing reconstruction with downstream reduction, carrying bit-sliced partial sums across operator boundaries, changing reduction trees across layers, or co-optimizing data movement with numeric reconstruction—would likely add a value-flow abstraction above the macro templates.
-- **Trajectory-level extension:** A future extension would likely attach `(bit_position, precision_stage, array_partition, accumulation_stage, physical_region, reconstruction_rule)` metadata to each generated macro datapath segment.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -228,69 +260,4 @@ AutoDCIM provides useful ingredients for a value-trajectory IR, especially the h
 | **EasyACIM** | End-to-end CIM macro automation and DSE | EasyACIM targets analog CIM and uses MOGA-based design-space exploration to generate ACIM layouts. ([arXiv](https://arxiv.org/abs/2404.13062)) | Useful cross-technology comparison: AutoDCIM removes ADC/DAC trajectory issues but keeps macro-generation and layout-DSE issues. |
 | **OpenACM** | Open-source DCIM compiler infrastructure | OpenACM classifies AutoDCIM as fixed-point, closed-source, basic SRAM analysis, adder-tree based; it adds configurable approximation and advanced SRAM analysis. ([arXiv](https://arxiv.org/html/2601.11292)) | The corpus should record whether approximation/accuracy is a first-class object or outside the demonstrated scope. |
 
-## 11. Corpus-ready final takeaway
-
-- AutoDCIM is a **digital SRAM-CIM macro compiler** whose public contribution is specification-to-layout macro generation.
-- Its strongest reusable stack layer is **hardware-resource/config-as-IR**, especially array partitioning, template instantiation, and layout exploration.
-- The demonstrated scope is macro architecture and physical layout generation, not DNN graph import, tensor scheduling, ISA generation, runtime management, or simulator infrastructure.
-- First-class CIM objects include the DCIM macro, array partitioning, customized SRAM/compute-cell templates, multiplexer/multiplier path, adder tree, and shift-add accumulation path.
-- The hidden IR is likely the combination of user specs, array partition candidates, template parameters, layout constraints, and PPA/layout evaluation state.
-- **Artifact status: no public artifact found.** Follow-on papers describe AutoDCIM as closed/private and dependent on commercial EDA tooling.
-- Integration into a future open CIM stack would be most direct through a reimplemented macro-spec-to-layout backend or by borrowing its array-partition/config abstraction.
-- For value-trajectory IR work, AutoDCIM is a useful digital-CIM datapath case: trajectory semantics would need to be lifted out of templates into explicit bit-position, accumulation-stage, and layout-location metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "AutoDCIM: An Automated Digital CIM Compiler"
-year: 2023
-venue: "DAC 2023"
-authors_or_group: "Jia Chen, Fengbin Tu, Kunming Shao, Fengshi Tian, Xiao Huo, Chi-Ying Tsui, Kwang-Ting Cheng"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - AI inference / DCIM macro use cases
-  - exact benchmark models: "Unknown / not found in checked public sources"
-axis_A:
-  primary: A1_macro_circuit_generator
-  secondary:
-    - A3_mapping_scheduling_DSE_framework
-    - A5_narrow_end_to_end_hardware_flow
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-axis_C_first_class_objects:
-  - DCIM_macro
-  - SRAM_memory_array
-  - array_partitioning
-  - customized_compute_cell
-  - multiplexer_multiplier_path
-  - adder_tree
-  - shift_add_accumulation_path
-  - layout_template_metadata
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - array_binding
-  - memory_layout
-  - template_instantiation
-  - macro_configuration
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "Unknown / not found"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best treated as a spec-to-layout DCIM macro compiler, not a workload compiler or explicit graph/ISA IR stack."
-  - "Public evidence is strongest for template-based macro generation and array-partitioning/layout exploration."
-  - "Follow-on work characterizes AutoDCIM as fixed-point/integer, closed-source, and commercial-EDA-dependent."
-  - "A value-trajectory extension would make bit significance, accumulation stage, physical partition, and reconstruction path explicit."
-```
+## 10. Corpus-ready final takeaway

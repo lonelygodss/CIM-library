@@ -1,3 +1,67 @@
+---
+slug: adap-cim
+title: "AdaP-CIM: Compute-in-Memory Based Neural Network Accelerator using Adaptive Posit"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DATE 2024"
+authors_or_group: "Jingyu He, Fengbin Tu, Kwang-Ting Cheng, Chi-Ying Tsui; HKUST"
+summary: >-
+  **AdaP-CIM** is best read as a hardware–numeric-format co-design paper for CIM inference rather than as a compiler or IR stack. Its main contribution is **Adaptive Posit**, a Posit-derived format that bounds the regime length with parameter `rs` and adds an exponent-extension encoding mode, paired with a **speculative alignment unit** that computes the maximum effective exponent before CIM MAC execution. The demonstrated scope is BERT-Base-Uncased quantization on three GLUE tasks and synthesis of a 256×64 SRAM-CIM macro in TSMC 28 nm against a Posit/CT-based baseline. For CIM compiler/IR research, the reusable interface is clearest at the numeric type and alignment-state boundary: `AdaP(n, es, rs)`, effective exponent, encoding flag, exponent extension, fraction, `Emax`, and exponent-offset shift become the objects that a future IR would need to name, type, preserve, and lower. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+  - "posit"
+  - "numeric-format"
+workloads:
+  - "BERT-Base-Uncased"
+  - "GLUE CoLA"
+  - "GLUE STS-B"
+  - "GLUE MNLI"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A1, A2]
+axis_B: [B6, B1, B4]
+axis_C_first_class_objects:
+  - "AdaP numeric fields"
+  - "bounded regime length"
+  - "exponent-extension mode"
+  - "effective exponent"
+  - "speculative alignment unit"
+  - "max-exponent finder"
+  - "AdaP decoder"
+  - "offset-and-shift unit"
+  - "SRAM-CIM macro"
+axis_D_rewrite_objects:
+  - "numeric format"
+  - "exponent-alignment state"
+  - "fraction shift"
+  - "backend datapath lowering"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best classified as hardware-software co-design, not an explicit compiler/IR stack."
+  - "Reusable semantics are clearest around AdaP type parameters and lane-scope exponent alignment."
+  - "PPA evidence is macro synthesis in TSMC 28 nm; no public RTL or scripts were found."
+takeaways: []
+---
+
 # AdaP-CIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -76,18 +140,6 @@ The hardware resource abstraction is the macro/module breakdown: decoder, SAU, o
 
 ### 5.3 Axis C — first-class CIM objects
 
-| CIM object | Status in this paper | Evidence |
-|---|---|---|
-| Crossbar / array / macro hierarchy | **Parameter / module-level first-class** | The evaluated macro is 256×64 SRAM-CIM; Table II separates SRAM-CIM from decoder, SAU, and offset/shift blocks. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf)) |
-| Bit-slicing / bit significance | **First-class for exponent-bit comparison; implicit for data MAC** | SAU groups exponent bits by bit position and computes `Emax[j]`; generic tensor bit-slicing is not exposed as a compiler object. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf)) |
-| ADC/DAC precision or sensing | **Not applicable / not exposed** | The paper’s demonstrated macro is SRAM/digital-CIM oriented and does not name ADC/DAC parameters in the stack interface. |
-| Analog-to-digital or domain transition | **Not applicable / implicit** | The paper frames CIM as focusing on integer MAC after FP-like input alignment, without an analog sensing/reconstruction interface. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf)) |
-| Peripheral circuits as path nodes | **First-class at module level** | AdaP decoder, SAU, offset calculation, and shifters are separately named and costed. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf)) |
-| Partial-sum accumulation path | **Implicit** | MAC execution in CIM is the target operation, but partial-sum lifetime, reduction tree, and storage are not represented as explicit compiler objects. |
-| Reconstruction / shift-add tree | **Hard-coded / costed at offset-shift level** | “OC & Shift” is costed in Table II; a general reconstruction tree abstraction is not exposed. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf)) |
-| Runtime state, masks, KV cache, batching, sparsity | **Not applicable** | The evaluated workload is BERT inference accuracy, but runtime batching, KV cache, masks, and sparsity are not stack objects in the paper. |
-| Value trajectory / flow path | **Approximated** | The closest trajectory object is the path from encoded exponent/fraction fields to `Emax`, offset shift, and integer CIM MAC. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf)) |
-
 ### 5.4 Axis D — rewrite object
 
 The work rewrites **numeric format** and **alignment state**. It transforms conventional Posit-style representation into AdaP representation with bounded regime and optional exponent extension, and it transforms a set of per-input effective exponents into a shared `Emax` plus per-input shift offsets.
@@ -159,12 +211,6 @@ The cost model is therefore **measurement-table/synthesis backed**, not an inspe
 - **Why it matters for CIM compiler/IR work:** This boundary is narrower and more reusable than the whole accelerator claim: a compiler could target this numeric/alignment contract even if its graph scheduler, placement, or memory hierarchy differs.
 - **Reusable lesson:** Corpus entries should distinguish “full stack compiler” from “backend datatype/path contract” when classifying CIM co-design papers.
 
-### Insight 5 — The paper suggests a type-system route for value-trajectory IR
-
-- **Observation:** AdaP values carry mode-dependent exponent interpretation, while SAU creates a shared exponent context.
-- **Why it matters for CIM compiler/IR work:** Value trajectory through CIM often depends on metadata such as exponent base, bit significance, and alignment domain.
-- **Reusable lesson:** A future trajectory IR could attach `encoded_domain`, `effective_exponent`, `alignment_group`, and `fraction_shift` attributes to values as they pass through decoder, alignment, CIM MAC, and accumulation.
-
 ## 8. Reproducibility, auditability, and integration helper
 
 ### 8.1 Artifact status
@@ -209,26 +255,7 @@ The cost model is therefore **measurement-table/synthesis backed**, not an inspe
 
 **Integration effort estimate: High.** Integration would be most direct through a small numeric-format and alignment-state adapter, but the absence of a public artifact means a future stack would need to reimplement the AdaP codec, parameter selection, SAU cost model, and benchmark harness. The most valuable reusable boundary appears to be the parametric numeric type plus lane-scope exponent-alignment primitive.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially the path from AdaP-encoded value fields to exponent alignment and CIM MAC input preparation. The paper names a partial value path: exponent or exponent-extension fields are decoded, a shared `Emax` is computed by SAU, each input fraction is shifted by `Emax − Ei`, and the CIM macro executes integer MAC. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/1077_pdf_upload.pdf))
-
-The paper’s demonstrated abstraction centers on **numeric encoding and pre-MAC alignment**. It does not preserve full value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage; in this digital SRAM-CIM setting, the closest approximation to trajectory semantics is the exponent/fraction metadata path through decoder, SAU, and shifter. Bit significance is first-class for exponent comparison, precision is represented through bit width and AdaP parameters, and domain transition is represented as an alignment step into integer-CIM MAC rather than as a general typed resource transition.
-
-A trajectory-level extension would likely attach the following to tensor values or lanes:
-
-```text
-encoded_type: AdaP(n, es, rs)
-encoding_mode: posit_like | exponent_extension
-effective_exponent: E or T + Eext
-alignment_scope: set of lanes sharing Emax
-fraction_shift: Emax - Ei
-compute_domain: encoded_value -> aligned_fraction -> CIM_integer_MAC -> accumulated_result
-```
-
-With those additions, a future IR could express trajectory rewrites such as fusing reconstruction with downstream reduction, carrying aligned partial sums across operator boundaries, changing reduction tree structure, or routing values through alternative decoder/shift paths. Retiming ADC conversion is not a direct fit for the demonstrated digital-SRAM path, but the same IR idea could generalize to analog-CIM backends by adding sensing-domain and conversion-stage attributes.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -239,75 +266,4 @@ With those additions, a future IR could express trajectory rewrites such as fusi
 | **CIMFlow** | Full-stack digital CIM framework with compiler and simulator. | CIMFlow’s public repo describes ONNX input, compiler-generated ISA, cycle-accurate simulation, configs, Docker, and IR/ISA debug outputs; AdaP-CIM provides paper-level equations and PPA/accuracy tables. ([GitHub](https://github.com/BUAA-CI-LAB/CIMFlow)) | Public corpus notes should track artifact surface separately from conceptual stack relevance. |
 | **DPE-CIM** | Posit-derived dynamic encoding and speculative alignment. | DPE-CIM appears to continue the AdaP-CIM direction under “dynamic Posit encoding,” with a five-page ISCAS 2025 publication and broader software/hardware synthesis claims. ([HKUST](https://researchportal.hkust.edu.hk/en/publications/dpe-cim-compute-in-memory-accelerator-using-dynamic-posit-encodin/)) | Treat DPE-CIM as a related successor/near neighbor, while keeping AdaP-CIM’s evidenced scope tied to the DATE 2024 two-page version. |
 
-## 11. Corpus-ready final takeaway
-
-- AdaP-CIM’s real contribution is a **Posit-derived numeric format plus CIM alignment datapath**, centered on bounded regime length, exponent-extension encoding, and speculative max-exponent computation.
-- The strongest reusable stack layer is the **backend numeric/type contract**: `AdaP(n, es, rs)`, encoding mode, effective exponent, fraction, `Emax`, and offset shift.
-- The evidenced workload scope is **BERT-Base-Uncased on CoLA, STS-B, and MNLI** at 7/8/9 bits, compared against Posit and AdaptivFloat.
-- The evidenced hardware scope is a **256×64 SRAM-CIM macro** synthesized in TSMC 28 nm at 250 MHz, with module-level area/power for decoder, SAU, offset/shift, and SRAM-CIM.
-- First-class CIM objects include the **AdaP decoder, SAU, exponent bit positions, offset/shift unit, and SRAM-CIM macro**; graph, schedule, instruction stream, and array placement objects are outside the demonstrated interface.
-- The hidden IR is the **numeric-alignment state** passed from encoded values to SAU and fraction shifting before integer CIM MAC.
-- **Artifact status: no public artifact found.** Reproduction would require reimplementing the quantizer, SAU model, and synthesis/evaluation flow.
-- For a value-trajectory IR, AdaP-CIM is most relevant as a case study in making **precision fields and alignment metadata** explicit along the value path.
-
-## 12. Suggested metadata entry
-
-Metadata fields below reflect the DATE/HKUST publication metadata and the paper’s reported evaluation/hardware scope. ([HKUST](https://researchportal.hkust.edu.hk/en/publications/adap-cim-compute-in-memory-based-neural-network-accelerator-using/))
-
-```yaml
-paper: "AdaP-CIM: Compute-in-Memory Based Neural Network Accelerator using Adaptive Posit"
-year: 2024
-venue: "DATE 2024"
-authors_or_group: "Jingyu He, Fengbin Tu, Kwang-Ting Cheng, Chi-Ying Tsui; HKUST"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-  - posit
-  - numeric-format
-workloads:
-  - BERT-Base-Uncased
-  - GLUE CoLA
-  - GLUE STS-B
-  - GLUE MNLI
-axis_A:
-  primary: A5
-  secondary:
-    - A1-adjacent
-    - A2-adjacent
-axis_B:
-  - B6
-  - B1
-  - B4
-axis_C_first_class_objects:
-  - AdaP numeric fields
-  - bounded regime length
-  - exponent-extension mode
-  - effective exponent
-  - speculative alignment unit
-  - max-exponent finder
-  - AdaP decoder
-  - offset-and-shift unit
-  - SRAM-CIM macro
-axis_D_rewrite_objects:
-  - numeric format
-  - exponent-alignment state
-  - fraction shift
-  - backend datapath lowering
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as hardware-software co-design, not an explicit compiler/IR stack."
-  - "Reusable semantics are clearest around AdaP type parameters and lane-scope exponent alignment."
-  - "PPA evidence is macro synthesis in TSMC 28 nm; no public RTL or scripts were found."
-```
+## 10. Corpus-ready final takeaway

@@ -24,12 +24,25 @@ Do not treat generated legacy notes as ground truth. Use them as hypotheses to c
 
 - `src/content/papers/*.md` is the paper database. Each file has YAML frontmatter plus a Markdown corpus note.
 - `src/content.config.ts` is the strict Astro schema.
-- `src/data/taxonomy.json` is the Axis A/B vocabulary and the coverage-dimension vocabulary.
+- `src/data/taxonomy.json` is the Axis A/B vocabulary plus supporting object/rewrite vocabulary.
 - `src/pages/library.astro` renders the atlas route at `/library/`.
 - `src/pages/papers/[slug].astro` renders individual paper notes.
-- `src/components/TaxonomyAtlas.astro` owns filtering, the Axis A x Axis B atlas, the selected-paper panel, and the coverage matrix.
+- `src/components/TaxonomyAtlas.astro` owns filtering, the Axis A x Axis B atlas, and the selected-paper panel.
+
+## Migration State
+
+The project may temporarily contain raw long-form notes in `src/content/papers/` that are not yet valid Astro content entries. There are 62 paper notes total:
+
+- `accelcim.md`, `adap-cim.md`, `arctic.md`, `ares.md`, `autodcim.md`, `cimflow.md`, and `turbo-charged-mapper.md` are structured entries.
+- The remaining 55 notes are raw corpus notes that usually include `## 12. Suggested metadata entry` with a fenced YAML block.
+
+Do not weaken `src/content.config.ts` to make raw notes silently pass. The correct next step is to promote each raw note's suggested metadata into frontmatter, normalize the filename to the slug, remove obsolete value-trajectory IR project sections, and keep the remaining public note body.
+
+Use `docs/future-development-plan.md` for the migration plan and `docs/next-session-prompt.md` for a restart prompt.
 
 ## Paper Entry Workflow
+
+For a new paper:
 
 1. Create a stub with `npm run new:paper -- <slug> "<Paper Title>"`.
 2. Fill frontmatter first; keep arrays inline where readable.
@@ -38,6 +51,17 @@ Do not treat generated legacy notes as ground truth. Use them as hypotheses to c
 5. Separate claimed contribution from evidenced contribution.
 6. Mark uncertain facts as `Unknown / not found in the checked sources`.
 7. Run `npm run validate` before considering the entry ready.
+
+For an imported raw note:
+
+1. Locate `## 12. Suggested metadata entry`.
+2. Promote its fenced YAML block to frontmatter.
+3. Normalize the filename to the `slug` value.
+4. Remove section 12 from the rendered body after promotion.
+5. Remove generated `## 9. Relation to a value-trajectory CIM IR project` sections and renumber comparison/final-takeaway sections.
+6. Preserve the remaining public note body unless malformed.
+7. Fill missing schema fields conservatively.
+8. Validate before moving to the next batch.
 
 Use `docs/metadata-template.md` for the full frontmatter shape and `docs/corpus-note-harness.md` for the long-form note structure.
 
@@ -62,14 +86,7 @@ Axis B is the operative middle-layer style:
 - `B6` accuracy / nonideality model
 - `B7` runtime-state abstraction
 
-Coverage values are descriptive levels, not quality scores:
-
-- `0`: not central / not reported
-- `1`: supporting or mentioned
-- `2`: explicit component
-- `3`: primary evidenced strength
-
-The current atlas uses the sum of the twelve coverage levels as a visualization size/summary value. Do not introduce a separate ranking or scoring model unless explicitly requested.
+Do not introduce a coverage score, ranking score, or trajectory-IR relevance field unless explicitly requested. The current public metadata contract is descriptive: Axis A/B placement, first-class objects, rewrite objects, artifact status, integration roles, notes, and takeaways.
 
 ## Development Commands
 
