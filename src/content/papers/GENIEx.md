@@ -1,3 +1,67 @@
+---
+slug: geniex
+title: "GENIEx"
+subtitle: "Scoped CIM stack note"
+year: 2020
+venue: "DAC 2020 / arXiv 2020"
+authors_or_group: "Indranil Chakraborty, Mustafa Fayez Ali, Dong Eun Kim, Aayush Ankit, Kaushik Roy"
+summary: >-
+  GENIEx is best read as a calibrated nonideality-modeling layer for analog memristive-crossbar CIM, coupled to a PyTorch functional simulator for DNN accuracy studies. Its central technical contribution is a learned surrogate for data-dependent MVM nonidealities: the model consumes an input-voltage vector and conductance matrix, predicts a per-column current correction ratio, and is trained from HSPICE-generated crossbar data. The demonstrated stack path replaces selected PyTorch convolution and linear layers with tiled, bit-sliced MVM execution, injects GENIEx nonideal current behavior, reconstructs digital outputs through ADC and shift-add operations, and evaluates classification accuracy on ResNet-style image-classification workloads. For CIM compiler/IR research, the reusable boundary is clearest as a backend accuracy plugin and as a concrete example of how bit-slice, tile, ADC, and parasitic parameters can be carried through functional simulation, while compiler-facing IR, pass interfaces, instruction streams, runtime scheduling, memory/communication timing, and energy/area modeling are outside the demonstrated abstraction. ([arXiv](https://arxiv.org/pdf/2003.06902))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "analog-CIM"
+  - "RRAM-CIM"
+  - "memristive-crossbar"
+workloads:
+  - "ResNet-20 on CIFAR-100"
+  - "ResNet-18 on ImageNet subset"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A5]
+axis_B: [B6, B1, B2, B4]
+axis_C_first_class_objects:
+  - "crossbar_size"
+  - "conductance_matrix"
+  - "input_voltage_vector"
+  - "nonideal_current_ratio"
+  - "bit_slice"
+  - "bit_stream"
+  - "ADC_precision"
+  - "accumulator_width"
+  - "shift_add_reconstruction"
+  - "positive_negative_weight_paths"
+axis_D_rewrite_objects:
+  - "operator_graph_to_MVM_layer"
+  - "tensor_tiling"
+  - "array_binding"
+  - "numeric_format"
+  - "accuracy_model_injection"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/Aayush-Ankit/puma-functional-model"
+  license: "Unknown / not found in checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best used as a calibrated analog-CIM MVM nonideality backend."
+  - "Functional simulator path is PyTorch layer replacement rather than explicit compiler IR."
+  - "Paper explicitly scopes simulator to analog compute and ignores memory and communication effects."
+  - "Paper-exact reproduction appears to require external checkpoints and SPICE calibration assets."
+takeaways: []
+---
+
 # GENIEx — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -247,17 +311,7 @@ The paper explicitly states that the simulator extracts the analog-computing asp
 **Integration effort estimate: Medium.**  
 Integration as an accuracy backend is relatively direct because the artifact already exposes PyTorch modules and configuration parameters. Integration into a compiler/IR stack would benefit from a small adapter that extracts operator shapes, tile assignments, bit-slice metadata, and GENIEx model bindings into a typed intermediate object. Paper-exact reproduction would require additional assets or reconstruction of the HSPICE datasets and model checkpoints.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-GENIEx provides useful ingredients for a value-trajectory IR, especially the explicit decomposition of DNN layers into bit-sliced, bit-streamed crossbar MVM events and the learned mapping from voltage/conductance state to nonideal current behavior. The closest approximation to trajectory semantics is the simulator path: input tensor → voltage stream → crossbar conductance slice → analog output current → ADC quantized value → shift-add reconstruction → digital layer output. ([arXiv](https://arxiv.org/pdf/2003.06902))
-
-The paper names several path stages, but it does not preserve value identity as a first-class object across analog partial sums, sensing, reconstruction, inter-tile reduction, storage, and later operators. Bit significance, stream width, slice width, ADC bits, accumulator bits, and tile placement are represented as parameters and tensor dimensions rather than type-like annotations attached to values. ([arXiv](https://arxiv.org/pdf/2003.06902))
-
-A trajectory-level extension would likely attach metadata such as bit significance, slice index, stream index, crossbar coordinate, voltage range, conductance range, analog/digital domain, ADC stage, accumulator format, and reconstruction rule to each partial value. That extension would make it easier to express rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, routing values through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction.
-
-In corpus terms, GENIEx is valuable as a **backend-calibration and numeric-trajectory ingredient** rather than as a full trajectory IR. It shows exactly why trajectory metadata matters: changing bit slicing, stream width, crossbar size, or conductance range changes observed accuracy, so a future IR should make those fields visible to analysis and transformation passes. ([arXiv](https://arxiv.org/pdf/2003.06902))
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -268,7 +322,7 @@ In corpus terms, GENIEx is valuable as a **backend-calibration and numeric-traje
 | **PUMA** | Programmable memristor-crossbar accelerator stack | PUMA includes a specialized ISA, compiler, graph partitioning, scheduling, register allocation, and architecture simulation; GENIEx’s public artifact is housed in a PUMA functional-model repository but the GENIEx paper’s evidenced contribution is the nonideality simulator layer. ([arXiv](https://arxiv.org/abs/1901.10351?utm_source=chatgpt.com)) | Use PUMA as a contrast point for A4 compiler/ISA stacks; GENIEx can be cataloged as a backend accuracy model that such stacks could call. |
 | **X-Changr / AMS-style analog simulation** | Analog crossbar modeling and simulation methodology | These are closer to modeling/simulation than compiler IR. GENIEx’s paper emphasizes data-dependent nonlinearities and large-DNN PyTorch integration relative to prior simulation tools listed in its comparison table. ([arXiv](https://arxiv.org/pdf/2003.06902)) | Related-work tables can overstate stack similarity; classify by reusable object: simulator, cost model, compensation method, compiler, or ISA. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - GENIEx’s real reusable contribution is a **learned SPICE-calibrated nonideality model** for analog memristive-crossbar MVM, not a standalone compiler IR.
 
@@ -285,63 +339,3 @@ In corpus terms, GENIEx is valuable as a **backend-calibration and numeric-traje
 - Integration is most direct as a **backend simulator plugin** or **accuracy-cost model** for a future CIM compiler stack.
 
 - For a value-trajectory IR project, GENIEx is useful because it shows how bit significance, analog domain transition, ADC precision, and reconstruction affect functional accuracy, while trajectory-level rewrites would require additional first-class metadata for value identity and path state.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "GENIEx"
-year: 2020
-venue: "DAC 2020 / arXiv 2020"
-authors_or_group: "Indranil Chakraborty, Mustafa Fayez Ali, Dong Eun Kim, Aayush Ankit, Kaushik Roy"
-technology:
-  - analog-CIM
-  - RRAM-CIM
-  - memristive-crossbar
-workloads:
-  - ResNet-20 on CIFAR-100
-  - ResNet-18 on ImageNet subset
-axis_A:
-  primary: "A2 Simulator & cost model"
-  secondary:
-    - "A5 Narrow end-to-end co-design"
-axis_B:
-  - "B6 Accuracy / nonideality modeling"
-  - "B1 Config-as-IR"
-  - "B2 Graph-as-IR, limited PyTorch module graph"
-  - "B4 Hardware-resource IR, partial"
-axis_C_first_class_objects:
-  - crossbar_size
-  - conductance_matrix
-  - input_voltage_vector
-  - nonideal_current_ratio
-  - bit_slice
-  - bit_stream
-  - ADC_precision
-  - accumulator_width
-  - shift_add_reconstruction
-  - positive_negative_weight_paths
-axis_D_rewrite_objects:
-  - operator_graph_to_MVM_layer
-  - tensor_tiling
-  - array_binding
-  - numeric_format
-  - accuracy_model_injection
-artifact:
-  status: "public artifact found"
-  url: "Aayush-Ankit/puma-functional-model"
-  license: "Unknown / not found in checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best used as a calibrated analog-CIM MVM nonideality backend."
-  - "Functional simulator path is PyTorch layer replacement rather than explicit compiler IR."
-  - "Paper explicitly scopes simulator to analog compute and ignores memory and communication effects."
-  - "Paper-exact reproduction appears to require external checkpoints and SPICE calibration assets."
-```

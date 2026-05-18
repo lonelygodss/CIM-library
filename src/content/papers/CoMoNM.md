@@ -1,3 +1,83 @@
+---
+slug: comonm
+title: "CoMoNM: A Cost Modeling Framework for Compute-Near-Memory Systems"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "arXiv:2508.11451, cs.ET / cs.PL"
+authors_or_group: "Hamid Farzaneh, Asif Ali Khan, Jeronimo Castrillon; TU Dresden / ScaDS.AI"
+summary: >-
+  CoMoNM is best classified as a CNM latency cost-model framework with a reusable mapping and virtual-instruction interface. It accepts a high-level or low-level application representation, a target CNM configuration, and an explicit hierarchical mapping, then estimates execution time through a split compute-engine/memory-engine execution model. The paper strengthens the cost-model and design-space-exploration layer of the CIM/CNM stack: its most concrete compiler-facing abstractions are the mapping vector, the custom CNM IR, and the `llvcnm` virtual assembly. The demonstrated scope covers UPMEM hardware and Samsung HBM-PIM simulation, with workloads from PrIM and ML kernels/models, and the strongest evidence is latency-prediction accuracy and mapping/hardware what-if exploration rather than end-to-end code generation deployment. ([arXiv](https://arxiv.org/pdf/2508.11451v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "DRAM-CNM"
+  - "HBM-PIM"
+  - "digital-CIM"
+  - "digital-CNM"
+workloads:
+  - "PrIM vector addition"
+  - "PrIM matrix-vector multiplication"
+  - "PrIM select"
+  - "PrIM histogram"
+  - "PrIM scan"
+  - "PrIM matrix-matrix multiplication"
+  - "PrIM reduction"
+  - "HBM-PIM GEMV"
+  - "HBM-PIM vector addition"
+  - "ReLU"
+  - "RNN-T"
+  - "AlexNet"
+  - "ResNet"
+  - "Wav2Vec-style speech model"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A3, A4, A6]
+axis_B: [B1, B3, B4, B5, B7]
+axis_C_first_class_objects:
+  - "hierarchical CNM mapping vector"
+  - "rank / DPU / tasklet hierarchy"
+  - "channel / bank / FPU hierarchy"
+  - "process"
+  - "compute-engine"
+  - "mem-engine"
+  - "exec-engine"
+  - "memory hierarchy"
+  - "DMA and bank access behavior"
+  - "instruction latency LUT entry"
+  - "partial-result dependency / accumulation placement"
+axis_D_rewrite_objects:
+  - "mapping"
+  - "iteration-space partition"
+  - "loop structure"
+  - "instruction stream"
+  - "hardware resource configuration"
+  - "runtime blocking state"
+artifact:
+  status: "public repository found but empty / partial; no runnable public CoMoNM artifact found"
+  url: "https://github.com/h4midf/CNM-Cost-model"
+  license: "unknown / not visible"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best understood as a CNM latency cost-model backend with explicit mapping and virtual-instruction interfaces."
+  - "Strongest reusable idea is the hierarchical mapping vector plus compute-engine/mem-engine separation."
+  - "CNM IR and llvcnm are described in the paper, but no runnable implementation was visible in the checked public artifact."
+  - "Digital CNM/PIM targets make ADC/DAC, analog sensing, and bit-slice reconstruction not applicable in the demonstrated scope."
+takeaways: []
+---
+
 # CoMoNM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -255,33 +335,7 @@ The reproducibility boundary is therefore the unavailable LUT/config/script laye
 **Integration effort estimate: High.**  
 Integration would be most direct through a reimplementation of the mapping vector, CNM IR, `llvcnm`, and execution-engine algorithm. The paper provides a clear conceptual backend contract, but the checked public artifact does not expose implementation files, configs, LUTs, or scripts. The most valuable reusable boundary appears to be the hierarchical mapping specification plus the compute/memory-engine cost-model split.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially its explicit mapping hierarchy, memory-request representation, partial-result dependency handling, and resource-level latency model. The closest approximation to trajectory semantics is the combination of CNM IR memory requests, `llvcnm` instruction order, and the mapping vector that determines where subspaces execute and where dependent partial results accumulate. ([arXiv](https://arxiv.org/pdf/2508.11451v1))
-
-**Does the paper name the path a value takes through CIM resources?**  
-Partially. It names memory levels and movement paths such as MRAM↔WRAM through DMA for UPMEM and register/bank paths for HBM-PIM. It also names compute and memory engines as resource nodes. The path is represented for latency/resource modeling rather than as a persistent value-identity object. ([arXiv](https://arxiv.org/pdf/2508.11451v1))
-
-**Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-For the demonstrated digital CNM/PIM targets, the relevant path is storage → memory movement → digital compute → storage/accumulation. The paper models reduction dependencies and partial-result accumulation across hierarchy levels, but trajectory identity across analog partial sums, sensing, ADC, or reconstruction is outside the demonstrated abstraction. ([arXiv](https://arxiv.org/pdf/2508.11451v1))
-
-**Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-Datatype and physical placement are partially represented. CNM IR has operand type, and HBM-PIM latency uses operand physical location. Bit significance, precision stage, and analog/digital domain transition are not part of the demonstrated representation. ([arXiv](https://arxiv.org/pdf/2508.11451v1))
-
-**Could the representation express trajectory rewrites?**
-
-| Trajectory rewrite | CoMoNM fit |
-|---|---|
-| Fusing reconstruction with downstream reduction | Would require an additional reconstruction/numeric-stage abstraction. |
-| Delaying or retiming ADC conversion | Not applicable to the demonstrated digital targets; would require domain-transition nodes. |
-| Carrying bit-sliced partial sums across operator boundaries | Would require bit-slice and value-identity metadata. |
-| Changing reduction tree structure | Partially aligned: dependency dimensions and accumulation placement are already modeled, but richer reduction-tree objects would improve expressiveness. |
-| Routing values through alternative peripheral paths | Well aligned for digital memory paths such as DMA/bank interfaces; analog peripheral routing would require more path-node types. |
-| Co-optimizing data movement and numeric reconstruction | Data movement is modeled; numeric reconstruction would require an added type/trajectory layer. |
-
-A trajectory-level extension would likely attach value identifiers, domain labels, precision-stage fields, accumulation/reconstruction state, and physical resource path annotations to CNM IR memory requests and `llvcnm` instructions. CoMoNM’s mapping vector could then become the placement component of a broader value-trajectory IR.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -292,7 +346,7 @@ A trajectory-level extension would likely attach value identifiers, domain label
 | **UPMEM simulator / uPIM** | Execution-time evaluation for UPMEM-like systems. | CoMoNM models DMA timing/resource contention explicitly enough to report better accuracy and far faster estimation in the paper’s experiments. ([arXiv](https://arxiv.org/pdf/2508.11451v1)) | Simulator baselines belong in the corpus as validation backends, not compiler IR stacks. |
 | **SADIMM** | Accurate CNM modeling for a specific workload class. | SADIMM is described by CoMoNM as domain-specific for sparse attention, whereas CoMoNM aims at a broader CNM cost-model interface. ([arXiv](https://arxiv.org/html/2508.11451v1)) | Distinguish domain-specific analytical models from reusable mapping/IR cost-model frameworks. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CoMoNM’s real contribution is a latency-estimation backend for CNM systems, centered on explicit application, target, and mapping inputs.
 - Its strongest reusable stack layer is the hierarchical mapping specification, which maps iteration-space dimensions to CNM hierarchy levels.
@@ -302,82 +356,3 @@ A trajectory-level extension would likely attach value identifiers, domain label
 - The hidden IR is the combined state of mapping vector, target config, latency LUTs, instruction stream, and process/blocking state.
 - Artifact status: a public `CNM-Cost-model` repository was found but is empty; no runnable public CoMoNM artifact was found in the checked sources.
 - For a value-trajectory IR project, CoMoNM contributes useful mapping and resource-path ingredients, but trajectory-level semantics would add value identity, precision stage, and domain-transition metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CoMoNM: A Cost Modeling Framework for Compute-Near-Memory Systems"
-year: 2025
-venue: "arXiv:2508.11451, cs.ET / cs.PL"
-authors_or_group: "Hamid Farzaneh, Asif Ali Khan, Jeronimo Castrillon; TU Dresden / ScaDS.AI"
-technology:
-  - UPMEM
-  - DRAM-CNM
-  - HBM-PIM
-  - digital-CIM
-  - digital-CNM
-workloads:
-  - PrIM vector addition
-  - PrIM matrix-vector multiplication
-  - PrIM select
-  - PrIM histogram
-  - PrIM scan
-  - PrIM matrix-matrix multiplication
-  - PrIM reduction
-  - HBM-PIM GEMV
-  - HBM-PIM vector addition
-  - ReLU
-  - RNN-T
-  - AlexNet
-  - ResNet
-  - Wav2Vec-style speech model
-axis_A:
-  primary: "A2 Simulator & cost model"
-  secondary:
-    - "A3 Mapping / scheduling / DSE framework"
-    - "A4 Explicit IR / dialect / ISA compiler stack"
-    - "A6 Programming / runtime / benchmark on real hardware"
-axis_B:
-  - "B1 Config-as-IR"
-  - "B3 Loop / tensor-schedule IR"
-  - "B4 Hardware-resource IR"
-  - "B5 Instruction / meta-op / ILA"
-  - "B7 Runtime-state abstraction"
-axis_C_first_class_objects:
-  - "hierarchical CNM mapping vector"
-  - "rank / DPU / tasklet hierarchy"
-  - "channel / bank / FPU hierarchy"
-  - "process"
-  - "compute-engine"
-  - "mem-engine"
-  - "exec-engine"
-  - "memory hierarchy"
-  - "DMA and bank access behavior"
-  - "instruction latency LUT entry"
-  - "partial-result dependency / accumulation placement"
-axis_D_rewrite_objects:
-  - "mapping"
-  - "iteration-space partition"
-  - "loop structure"
-  - "instruction stream"
-  - "hardware resource configuration"
-  - "runtime blocking state"
-artifact:
-  status: "public repository found but empty / partial; no runnable public CoMoNM artifact found"
-  url: "https://github.com/h4midf/CNM-Cost-model"
-  license: "unknown / not visible"
-  last_checked: "2026-05-15"
-integration_roles:
-  - "IR inspiration"
-  - "mapper_scheduler"
-  - "cost_model"
-  - "benchmark"
-  - "validation"
-reproducibility_level: "low"
-trajectory_IR_relevance: "medium"
-notes:
-  - "Best understood as a CNM latency cost-model backend with explicit mapping and virtual-instruction interfaces."
-  - "Strongest reusable idea is the hierarchical mapping vector plus compute-engine/mem-engine separation."
-  - "CNM IR and llvcnm are described in the paper, but no runnable implementation was visible in the checked public artifact."
-  - "Digital CNM/PIM targets make ADC/DAC, analog sensing, and bit-slice reconstruction not applicable in the demonstrated scope."
-```

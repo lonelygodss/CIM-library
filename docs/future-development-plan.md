@@ -4,7 +4,7 @@
 
 The repository currently contains 62 Markdown paper notes in `src/content/papers/`.
 
-- 17 files are already valid Astro content entries with YAML frontmatter:
+- 27 files are already valid Astro content entries with YAML frontmatter:
   - `accelcim.md`
   - `adap-cim.md`
   - `arctic.md`
@@ -21,12 +21,22 @@ The repository currently contains 62 Markdown paper notes in `src/content/papers
   - `cimloop.md`
   - `cinm.md`
   - `clear.md`
+  - `cmswitch.md`
+  - `comonm.md`
+  - `count2multiply.md`
+  - `dappa.md`
+  - `declarative-memory-services.md`
+  - `dypim.md`
+  - `efficient-in-memory-acceleration-of-sparse-block-diagonal-llms.md`
+  - `exploiting-the-memory-compute-coupling-feature-for-cim-accelerator-design-optimization.md`
+  - `geniex.md`
+  - `gibbon.md`
   - `turbo-charged-mapper.md`
-- 45 files are raw long-form corpus notes without YAML frontmatter.
+- 35 files are raw long-form corpus notes without YAML frontmatter.
 - The raw notes are valuable source material and should be preserved. Most follow the long corpus-note harness and include `## 12. Suggested metadata entry` with a fenced YAML block near the end.
 - `npm run validate` currently fails on the next raw note, because Astro content entries require frontmatter.
 
-The next development milestone is to convert the 45 remaining raw notes into schema-valid Astro paper entries without weakening the schema.
+The next development milestone is to convert the 35 remaining raw notes into schema-valid Astro paper entries without weakening the schema.
 
 ## Milestone 1 -- Normalize Raw Notes Into Content Entries
 

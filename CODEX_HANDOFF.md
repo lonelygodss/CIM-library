@@ -30,7 +30,7 @@ Current migration plan lives in `docs/future-development-plan.md`. A ready-to-us
 
 Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from the draft artifacts.
 
-As of the third migration batch, 17 notes are structured and 45 raw notes remain. The newly migrated files are `cima-com.md`, `cimloop.md`, `ciminus.md`, `cinm.md`, and `clear.md`. `npm run validate` is expected to fail until raw notes receive frontmatter; the current next raw blocker is `CMSwitch.md: missing YAML frontmatter block`. `npm run check` currently stops on another remaining raw note, `CoMoNM.md`, before a full Astro check can complete.
+As of the fourth migration batch, 27 notes are structured and 35 raw notes remain. The newly migrated files are `cmswitch.md`, `comonm.md`, `count2multiply.md`, `dappa.md`, `declarative-memory-services.md`, `dypim.md`, `efficient-in-memory-acceleration-of-sparse-block-diagonal-llms.md`, `exploiting-the-memory-compute-coupling-feature-for-cim-accelerator-design-optimization.md`, `geniex.md`, and `gibbon.md`. `npm run validate` is expected to fail until raw notes receive frontmatter; the current next raw blocker is `HARMONI.md: missing YAML frontmatter block`. `npm run check` currently stops on another remaining raw note, `Hermes.md`, before a full Astro check can complete.
 
 ## Frontmatter contract
 

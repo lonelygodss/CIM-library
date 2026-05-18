@@ -1,3 +1,75 @@
+---
+slug: cmswitch
+title: "CMSwitch: Be CIM or Be Memory: A Dual-mode-aware DNN Compiler for CIM Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "ASPLOS 2025, Proceedings of the 30th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2"
+authors_or_group: "Shixin Zhao, Yuming Li, Bing Li, Yintao He, Mengdi Wang, Yinhe Han, Ying Wang"
+summary: >-
+  CMSwitch is best classified as a **dual-mode-aware CIM mapping and scheduling compiler** whose central contribution is making the compute-vs-memory mode of each CIM array part of the compilation optimization space. The paper introduces DEHA, a hardware abstraction that records dual-mode array parameters and switch overheads; DACO, a two-stage optimization pass that segments the DNN graph with dynamic programming and solves per-segment compute/memory allocation with mixed-integer programming; and DMO, a small meta-operator extension that expresses array-mode switching through `CM.switch(TOM/TOC, arrayaddr)`. The demonstrated stack takes ONNX-format DNN inference workloads and user-defined CIM hardware parameters, targets a Dynaplasia-like dual-mode CIM accelerator, evaluates CNN and Transformer models with 8-bit weights/activations through simulator-backed experiments, and reports a 1.31× average speedup over CIM-MLC. For CIM compiler/IR research, its most useful abstraction is the array-level resource/mode allocation state rather than a full public compiler IR or reusable backend contract. ([arXiv](https://arxiv.org/pdf/2502.17006v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "digital-CIM"
+  - "eDRAM-CIM"
+  - "dual-mode-CIM"
+  - "Dynaplasia-like target"
+  - "PRIME-style ReRAM sensitivity"
+workloads:
+  - "MobileNet"
+  - "ResNet18"
+  - "VGG16"
+  - "BERT-large"
+  - "LLaMA2-7B"
+  - "OPT-6.7B"
+  - "OPT-13B"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5]
+axis_B: [B4, B2, B5, B1]
+axis_C_first_class_objects:
+  - "dual-mode CIM array"
+  - "array coordinate"
+  - "compute mode"
+  - "memory mode"
+  - "input-buffer role"
+  - "output-buffer role"
+  - "network segment"
+  - "mode-switch overhead"
+  - "compute/memory allocation"
+axis_D_rewrite_objects:
+  - "operator graph segmentation"
+  - "hardware mapping"
+  - "array binding"
+  - "memory layout/resource role"
+  - "mode selection"
+  - "segment schedule"
+  - "meta-operator stream"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend_metaop_interface"
+  - "benchmark_reference"
+reproducibility_level: low
+notes:
+  - "Best understood as a dual-mode CIM compiler/mapping framework rather than a full reusable public stack."
+  - "Strongest evidence is the DEHA/DACO/DMO paper formulation: array-mode hardware abstraction, DP segmentation, MIP allocation, and CM.switch meta-operator syntax."
+  - "No public CMSwitch code, simulator patch, benchmark harness, or generated meta-operator examples were found."
+  - "Value-trajectory relevance comes from resource residency and mode-transition modeling, not from explicit numeric trajectory or partial-sum representation."
+takeaways: []
+---
+
 # CMSwitch: Be CIM or Be Memory: A Dual-mode-aware DNN Compiler for CIM Accelerators — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -237,26 +309,7 @@ The main comparison baselines are PUMA, OCC, and CIM-MLC, with execution latency
 **Integration effort estimate: High.**  
 Integration would be most direct through reimplementing DACO from the paper’s equations and Algorithm 1, then writing an adapter that extracts ONNX operator metadata and emits a serialized segment/allocation plan. The most valuable reusable boundary appears to be the allocation formulation; backend integration would require reconstructing or replacing the modified simulator and defining a concrete DMO trace format. Artifact absence raises the effort from medium to high.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CMSwitch provides useful ingredients for a value-trajectory IR, especially its explicit modeling of **where an operator’s input/output data resides relative to switchable arrays** and its segment-transition cost model for store, mode switch, and reload. The closest approximation to trajectory semantics is the combination of `λ_mout`/`λ_min` buffer reuse across dependent operators and the inter-segment handling of valid on-chip data. ([arXiv](https://arxiv.org/pdf/2502.17006v1))
-
-The paper names the path a value takes at a coarse resource level: input buffer, compute array, output buffer, store/load at segment boundaries, and possible in-place reuse when data is processed without write-back. It does not preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage as separate typed stages. In the demonstrated abstraction, a value’s identity is mostly visible through graph dependency and buffer allocation rather than through a trajectory object.
-
-Bit significance, channel rate, precision stage, placement, and domain transition are partially represented: placement is explicit through `(x,y)` array coordinates; precision is an evaluation assumption of 8-bit weights/activations; bandwidth is represented through `D_cim`, `D_main`, internal bandwidth, and external bandwidth; mode/domain transition is represented through `CM.switch(TOM/TOC, arrayaddr)`. These are not unified into type-like value annotations. ([arXiv](https://arxiv.org/pdf/2502.17006v1))
-
-For trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** The current abstraction centers on operator-level compute/memory allocation. A trajectory-level extension would likely attach reconstruction-stage metadata to operator outputs and reduction consumers.
-- **Delaying or retiming ADC conversion:** The demonstrated target and abstraction do not expose ADC/conversion timing as a rewrite dimension. A trajectory IR would add explicit conversion nodes or type transitions.
-- **Carrying bit-sliced partial sums across operator boundaries:** CMSwitch carries coarse buffer residency, not partial-sum format or bit-sliced identity. This would require typed partial-sum values and preservation rules across segment boundaries.
-- **Changing reduction tree structure:** Current scheduling approximates segment latency as a pipelined max over operators. Reduction-tree rewrites would require lower-level accumulation/reduction path objects.
-- **Routing values through alternative peripheral paths:** The paper represents switch method and mode latency, but not multiple alternative peripheral paths. A trajectory extension would attach path choices to arrays or value edges.
-- **Co-optimizing data movement and numeric reconstruction:** CMSwitch co-optimizes data movement and compute/memory resource allocation; adding numeric reconstruction would require making reconstruction path, bit significance, and conversion precision first-class.
-
-The work’s demonstrated abstraction centers on **resource-mode trajectory**: which arrays act as compute or storage over time. A value-trajectory IR could build on this by attaching value identity, numeric domain, precision stage, and reconstruction/reduction metadata to each buffer and compute allocation.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -267,7 +320,7 @@ The work’s demonstrated abstraction centers on **resource-mode trajectory**: w
 | **C4CAM** | Compiler support for in-memory accelerator mapping | C4CAM targets CAM-based in-memory accelerators, while CMSwitch targets dual-mode CIM arrays and DNN segment allocation. ([ar5iv](https://ar5iv.org/html/2502.17006v1)) | Shows how first-class CIM objects differ: CAM lookup/match structures vs switchable compute/memory arrays. |
 | **TC-CIM / polyhedral CIM compilation** | Loop/tensor scheduling for CIM | Tensor/polyhedral approaches foreground loop nests and tensor schedules; CMSwitch foregrounds per-array mode/resource binding. ([ar5iv](https://ar5iv.org/html/2502.17006v1)) | Useful for Axis B: loop/tensor-schedule IR versus hardware-resource IR. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CMSwitch’s core contribution is making **array-level compute/memory mode selection** part of CIM compilation rather than treating CIM arrays as statically compute-mode resources.
 - The strongest reusable stack layer is the **DACO mapper/scheduler**: DP network segmentation plus MIP resource allocation over dual-mode CIM arrays.
@@ -277,70 +330,3 @@ The work’s demonstrated abstraction centers on **resource-mode trajectory**: w
 - Artifact status: no public artifact found. Paper-level equations, algorithms, figures, and tables are auditable, but public code, configs, simulator patches, and reproduction scripts were not located.
 - Integration would be most useful as **IR inspiration, mapper/scheduler logic, and cost-model structure**; direct reuse would require reimplementation.
 - For value-trajectory IR research, CMSwitch is relevant as a **resource-mode trajectory** model, but trajectory-level rewrites would add explicit value identity, numeric-domain, bit-slice, partial-sum, sensing, reconstruction, and reduction-path metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CMSwitch: Be CIM or Be Memory: A Dual-mode-aware DNN Compiler for CIM Accelerators"
-year: 2025
-venue: "ASPLOS 2025, Proceedings of the 30th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2"
-authors_or_group: "Shixin Zhao, Yuming Li, Bing Li, Yintao He, Mengdi Wang, Yinhe Han, Ying Wang"
-technology:
-  - digital-CIM
-  - eDRAM-CIM
-  - dual-mode-CIM
-  - Dynaplasia-like target
-  - PRIME-style ReRAM sensitivity
-workloads:
-  - MobileNet
-  - ResNet18
-  - VGG16
-  - BERT-large
-  - LLaMA2-7B
-  - OPT-6.7B
-  - OPT-13B
-axis_A:
-  primary: "A3 Mapping / scheduling / DSE framework"
-  secondary: "A5 Narrow end-to-end co-design"
-axis_B:
-  - "B4 Hardware-resource IR"
-  - "B2 Graph-as-IR"
-  - "B5 Instruction / meta-op / ILA"
-  - "B1 Config-as-IR (partial)"
-axis_C_first_class_objects:
-  - "dual-mode CIM array"
-  - "array coordinate"
-  - "compute mode"
-  - "memory mode"
-  - "input-buffer role"
-  - "output-buffer role"
-  - "network segment"
-  - "mode-switch overhead"
-  - "compute/memory allocation"
-axis_D_rewrite_objects:
-  - "operator graph segmentation"
-  - "hardware mapping"
-  - "array binding"
-  - "memory layout/resource role"
-  - "mode selection"
-  - "segment schedule"
-  - "meta-operator stream"
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend_metaop_interface
-  - benchmark_reference
-reproducibility_level: "low-to-medium"
-trajectory_IR_relevance: "medium"
-notes:
-  - "Best understood as a dual-mode CIM compiler/mapping framework rather than a full reusable public stack."
-  - "Strongest evidence is the DEHA/DACO/DMO paper formulation: array-mode hardware abstraction, DP segmentation, MIP allocation, and CM.switch meta-operator syntax."
-  - "No public CMSwitch code, simulator patch, benchmark harness, or generated meta-operator examples were found."
-  - "Value-trajectory relevance comes from resource residency and mode-transition modeling, not from explicit numeric trajectory or partial-sum representation."
-```

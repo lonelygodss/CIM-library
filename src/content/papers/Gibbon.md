@@ -1,3 +1,67 @@
+---
+slug: gibbon
+title: "Gibbon"
+subtitle: "Scoped CIM stack note"
+year: 2022
+venue: "DATE 2022; IEEE TCAD 2023"
+authors_or_group: "Yannan N. Wu, Peiyu Y. Chen, H. H. Li, Yiran Chen, Yingyan Lin, Yu Wang, Yuan Xie, Cheng Zhuo"
+summary: >-
+  Gibbon is best read as a memristor/RRAM PIM hardware-software co-exploration framework rather than as an explicit CIM compiler IR stack. Its contribution is a PIM-oriented neural-network/hardware search space, an entropy-and-intensity guided evolutionary search method called ESAPP, and an RNN-based surrogate predictor trained from MNSIM 2.0 simulator results. The demonstrated workload setting is static CNN inference on CIFAR-10 and CIFAR-100 over a MultiPrecision-style memristor PIM accelerator parameter space, including crossbar size, ADC/DAC resolution, memristor precision, and quantization choices. For CIM compiler/IR research, Gibbon is useful because it exposes which design-choice variables and metric-provenance fields become important when NN structure, precision, and PIM hardware are optimized together, even though its reusable boundary is more clearly a search candidate/configuration interface than a typed, serializable compiler IR. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/f8091be3-32b0-486b-a2a8-c738f07e0d0f.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "memristor-PIM"
+  - "analog-CIM"
+workloads:
+  - "CNN inference"
+  - "CIFAR-10"
+  - "CIFAR-100"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A5]
+axis_B: [B1, B2, B4, B6]
+axis_C_first_class_objects:
+  - "DNN_DAG_stage_block_topology"
+  - "operation_choice"
+  - "weight_activation_bitwidth"
+  - "crossbar_size"
+  - "ADC_resolution"
+  - "DAC_resolution"
+  - "memristor_precision"
+  - "hardware_metric_vector"
+  - "accuracy_metric"
+axis_D_rewrite_objects:
+  - "design_candidate"
+  - "graph_topology"
+  - "operation_choice"
+  - "numeric_precision"
+  - "hardware_configuration"
+  - "search_priority_state"
+artifact:
+  status: "partial public documentation found; no public Gibbon implementation/reproduction artifact found"
+  url: "https://sites.google.com/view/nas-nicsefc/home/application-on-efficiency/gibbon"
+  license: "Paper CC BY 4.0; aw_nas MIT; Gibbon-specific code license unknown; MNSIM license not found in checked repository listing"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: low
+notes:
+  - "Best treated as DSE/NAS co-exploration plus surrogate cost modeling, not as an explicit CIM IR/ISA compiler stack."
+  - "Most reusable abstraction is the candidate tuple connecting NN structure, quantization, and PIM hardware parameters."
+  - "Value-trajectory extensions would add explicit domain-transition, partial-sum, reconstruction, and source-to-backend provenance objects."
+takeaways: []
+---
+
 # Gibbon — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -215,24 +279,7 @@ The reported search result table compares Gibbon against NACIM, UAE, NAS4RRAM, a
 
 **Integration effort estimate:** **High for reproducing Gibbon end-to-end; Medium for reusing its ideas.** Integration would be most direct through a new adapter that encodes Gibbon-style candidate tuples and calls MNSIM as a cost backend. Full reproduction would require reconstructing or reimplementing ESAPP, the predictor training pipeline, search configs, and paper-specific benchmark workflow.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially its explicit treatment of hardware-sensitive design variables: crossbar size, ADC/DAC resolution, memristor precision, quantization bitwidth, and operator choices. The closest approximation to trajectory semantics is the path from candidate description to simulator-evaluated accuracy/area/latency/energy metrics.
-
-The paper names important stages in the analog PIM computation path, including DAC input conversion, crossbar MVM using Kirchhoff’s laws, and ADC output conversion. However, the demonstrated abstraction centers on candidate-level design ranking. It does not preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage as a first-class compiler object. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/f8091be3-32b0-486b-a2a8-c738f07e0d0f.pdf))
-
-Bit significance, channel rate, precision stage, placement, and domain transition are represented mostly as parameters or simulator assumptions. A trajectory-level extension would likely attach typed annotations to graph edges or tensor fragments, including bit-slice role, analog/digital domain, crossbar placement, ADC stage, accumulation path, reconstruction operation, and destination buffer.
-
-For the example trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** Not directly represented; would require reconstruction and reduction path nodes.
-- **Delaying or retiming ADC conversion:** ADC resolution is a parameter, but ADC placement/timing is not a rewriteable trajectory object.
-- **Carrying bit-sliced partial sums across operator boundaries:** Bitwidth and memristor precision are parameters; bit-sliced partial-sum identity would need an added value-flow abstraction.
-- **Changing reduction tree structure:** Reduction cost may be reflected through simulation, but the tree is not exposed as a schedule/IR object.
-- **Routing values through alternative peripheral paths:** Peripheral fields exist in MNSIM configuration; route alternatives are not surfaced as named paths in Gibbon.
-- **Co-optimizing data movement and numeric reconstruction:** Gibbon co-optimizes hardware/model parameters, but trajectory-level co-optimization would add explicit data-movement and reconstruction semantics.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -243,7 +290,7 @@ For the example trajectory rewrites:
 | MNSIM 2.0 | PIM simulator and cost/accuracy backend | Gibbon uses MNSIM as evaluation infrastructure; MNSIM itself is closer to A2 simulator/cost-model infrastructure than to NAS/DSE. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/f8091be3-32b0-486b-a2a8-c738f07e0d0f.pdf)) | In the corpus, Gibbon should point to MNSIM as its backend contract and provenance dependency. |
 | MultiPrecision | Memristor PIM accelerator template | Gibbon’s search space and experiments build around a MultiPrecision-style PIM setting. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/f8091be3-32b0-486b-a2a8-c738f07e0d0f.pdf)) | Useful for understanding which hardware hierarchy assumptions are inherited rather than introduced as a compiler abstraction. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - Gibbon’s main contribution is a simulator-backed hardware-software co-exploration loop for memristor/RRAM PIM accelerators.
 - Its strongest reusable stack layer is the DSE/cost-model boundary: candidate description → predictor/MNSIM metrics → search update.
@@ -253,64 +300,3 @@ For the example trajectory rewrites:
 - Artifact status is partial: public paper/project documentation and MNSIM/aw_nas dependencies are available, but no public Gibbon-specific implementation or reproduction package was found.
 - Integration is most practical by wrapping MNSIM as a backend cost plugin and reimplementing the Gibbon candidate schema plus ESAPP policy.
 - For value-trajectory IR research, Gibbon is a useful source of hardware-sensitive fields and metric-provenance lessons, while trajectory-level semantics would require explicit value-flow, conversion, accumulation, and reconstruction objects.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Gibbon"
-year: 2022_DATE_paper; 2023_TCAD_extended_version
-venue: "DATE 2022; IEEE TCAD 2023"
-authors_or_group: "Yannan N. Wu, Peiyu Y. Chen, H. H. Li, Yiran Chen, Yingyan Lin, Yu Wang, Yuan Xie, Cheng Zhuo"
-technology:
-  - RRAM-CIM
-  - memristor-PIM
-  - analog-CIM
-workloads:
-  - CNN inference
-  - CIFAR-10
-  - CIFAR-100
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A2_simulator_cost_model
-    - A5_narrow_end_to_end_co_design
-axis_B:
-  - B1_config_as_IR
-  - B2_graph_as_IR
-  - B4_hardware_resource_IR
-  - B6_accuracy_nonideality_modeling
-axis_C_first_class_objects:
-  - DNN_DAG_stage_block_topology
-  - operation_choice
-  - weight_activation_bitwidth
-  - crossbar_size
-  - ADC_resolution
-  - DAC_resolution
-  - memristor_precision
-  - hardware_metric_vector
-  - accuracy_metric
-axis_D_rewrite_objects:
-  - design_candidate
-  - graph_topology
-  - operation_choice
-  - numeric_precision
-  - hardware_configuration
-  - search_priority_state
-artifact:
-  status: "partial public documentation found; no public Gibbon implementation/reproduction artifact found"
-  url: "Official NAS at NICS-EFC Gibbon page; public MNSIM-2.0 repository; public aw_nas repository"
-  license: "Paper CC BY 4.0; aw_nas MIT; Gibbon-specific code license unknown; MNSIM license not found in checked repository listing"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: low_for_end_to_end_Gibbon; medium_for_MNSIM_backend_reuse
-trajectory_IR_relevance: medium
-notes:
-  - "Best treated as DSE/NAS co-exploration plus surrogate cost modeling, not as an explicit CIM IR/ISA compiler stack."
-  - "Most reusable abstraction is the candidate tuple connecting NN structure, quantization, and PIM hardware parameters."
-  - "Value-trajectory extensions would add explicit domain-transition, partial-sum, reconstruction, and source-to-backend provenance objects."
-```

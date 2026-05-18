@@ -9,7 +9,7 @@ This is a static Astro CIM compiler/IR paper library. Read AGENTS.md first, then
 
 Current state:
 - src/content/papers contains 62 Markdown notes.
-- 17 notes are structured Astro content entries:
+- 27 notes are structured Astro content entries:
   - accelcim.md
   - adap-cim.md
   - arctic.md
@@ -26,28 +26,38 @@ Current state:
   - ciminus.md
   - cinm.md
   - clear.md
+  - cmswitch.md
+  - comonm.md
+  - count2multiply.md
+  - dappa.md
+  - declarative-memory-services.md
+  - dypim.md
+  - efficient-in-memory-acceleration-of-sparse-block-diagonal-llms.md
+  - exploiting-the-memory-compute-coupling-feature-for-cim-accelerator-design-optimization.md
+  - geniex.md
+  - gibbon.md
   - turbo-charged-mapper.md
-- 45 notes remain raw long-form corpus notes. They generally include "## 12. Suggested metadata entry" with a fenced YAML block.
+- 35 notes remain raw long-form corpus notes. They generally include "## 12. Suggested metadata entry" with a fenced YAML block.
 - The active schema does not use coverage scores or trajectory-IR relevance metadata. Ignore obsolete generated fields such as coverage and trajectory_IR_relevance.
 - During migration, remove generated "## 9. Relation to a value-trajectory CIM IR project" sections and renumber comparison/final-takeaway sections.
-- The latest migrated batch was CIMA_COM.md, CIMLoop.md, CIMinus.md, CINM.md, and CLEAR.md, normalized on disk to lowercase kebab-case filenames.
-- npm run validate currently fails at CMSwitch.md because remaining raw notes lack YAML frontmatter. Do not weaken the schema to hide this.
-- npm run check currently fails at CoMoNM.md for the same remaining-raw-note reason. Astro's glob order can differ from the validator's sorted order. Do not run npm run build until check passes.
+- The latest migrated batch was CMSwitch.md, CoMoNM.md, Count2Multiply.md, DaPPA.md, Declarative Memory Services.md, DyPIM.md, Efficient In-Memory Acceleration of Sparse Block Diagonal LLMs.md, Exploiting the Memory-Compute-Coupling Feature for CIM Accelerator Design Optimization.md, GENIEx.md, and Gibbon.md, normalized on disk to lowercase kebab-case filenames.
+- npm run validate currently fails at HARMONI.md because remaining raw notes lack YAML frontmatter. Do not weaken the schema to hide this.
+- npm run check currently fails at Hermes.md for the same remaining-raw-note reason. Astro's glob order can differ from the validator's sorted order. Do not run npm run build until check passes.
 
 Task:
 Continue the migration by converting the next small batch of raw notes into valid Astro content entries.
 
 Recommended next batch:
-- CMSwitch.md
-- CoMoNM.md
-- Count2Multiply.md
-- DaPPA.md
-- Declarative Memory Services.md
-- DyPIM.md
-- Efficient In-Memory Acceleration of Sparse Block Diagonal LLMs.md
-- Exploiting the Memory-Compute-Coupling Feature for CIM Accelerator Design Optimization.md
-- GENIEx.md
-- Gibbon.md
+- HARMONI.md
+- HASTILY.md
+- Hermes.md
+- Hybrid PIM for attention-free LLM.md
+- LearnCNM2Predic.md
+- MIREDOW.md
+- NAX.md
+- NS-Cache.md
+- NeuroSIM.md
+- OpenACMv.md
 
 Requirements:
 1. Inventory raw vs structured files.

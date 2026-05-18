@@ -1,3 +1,80 @@
+---
+slug: dappa
+title: "DaPPA: A Data-Parallel Programming Framework for Processing-in-Memory Architectures"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "arXiv preprint; PACT 2023 ACM Student Research Competition presentation/poster context"
+authors_or_group: "Geraldo F. Oliveira, Alain Kohli, David Novo, Ataberk Olgun, A. Giray Yağlıkçı, Saugata Ghose, Juan Gómez-Luna, Onur Mutlu"
+summary: >-
+  DaPPA is a UPMEM-oriented programming and dynamic code-generation framework that raises the programmer-facing abstraction from explicit DPU memory movement and tasklet partitioning to C++ data-parallel patterns. Its main reusable contribution is the `Pipeline`/stage abstraction: users express map, reduce, filter, window, group, and composite pattern pipelines, while DaPPA generates UPMEM host/DPU code, arranges MRAM and WRAM data, handles 8-byte alignment, partitions work across DPUs and tasklets, and performs CPU-side leftover or post-processing when required. The paper demonstrates the approach on six PrIM workloads—VA, SEL, UNI, RED, GEMV, and HST-S—on a real UPMEM system with 2,560 DPUs, reporting 2.1× average end-to-end speedup over hand-tuned PrIM implementations and 94% lower effective UPMEM-related LOC. For CIM compiler/IR research, DaPPA is most relevant as a layer-specific frontend-to-backend stack where the first-class object is a data-parallel pipeline plus UPMEM memory-layout/runtime state, rather than an explicit portable IR, instruction dialect, analog-CIM value trajectory, or hardware-model schema. ([arXiv](https://arxiv.org/pdf/2310.10168))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "UPMEM"
+  - "digital-CIM"
+  - "processing-near-memory"
+workloads:
+  - "vector addition"
+  - "select"
+  - "unique"
+  - "reduction"
+  - "general matrix-vector multiplication"
+  - "image histogram small"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A3, A5]
+axis_B: [B2, B4, B7]
+axis_C_first_class_objects:
+  - "Pipeline"
+  - "stage"
+  - "data_parallel_pattern"
+  - "argument_role_and_type_size"
+  - "input_output_intermediate_vector"
+  - "scalar_reduction_output"
+  - "fetch_marker"
+  - "DPU"
+  - "tasklet"
+  - "MRAM_region"
+  - "WRAM_cache_block"
+  - "alignment_padding"
+  - "execution_round"
+  - "CPU_leftover_work"
+  - "host_filter_compaction"
+  - "host_reduce_combination"
+axis_D_rewrite_objects:
+  - "pattern_pipeline"
+  - "memory_layout"
+  - "DPU_tasklet_partition"
+  - "host_DPU_data_movement"
+  - "generated_UPMEM_code"
+  - "runtime_post_processing_state"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "Unknown / not found in the checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Strongest corpus value is as a UPMEM-specific pattern-to-codegen stack."
+  - "The effective IR is implicit in Pipeline state plus global stage/argument lists and MRAM/WRAM layout calculations."
+  - "Analog-CIM objects such as ADC/DAC, bit slicing, sensing precision, and reconstruction paths are not applicable."
+  - "Real-system evaluation is valuable, but public reproduction depends on unavailable DaPPA implementation artifacts."
+takeaways: []
+---
+
 # DaPPA — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -266,24 +343,7 @@ The demonstrated cost model is mostly **resource-legality and placement calculat
 **Integration effort estimate: High.**  
 Integration would be most direct through reimplementing the paper’s `Pipeline`/stage abstraction and MRAM/WRAM layout rules, because no public DaPPA artifact was found. The most valuable reusable boundary appears to be the implicit pipeline-to-template state: stage list, argument list, type-size metadata, memory offsets, and host post-processing plan. A small adapter would not be sufficient without reconstructing the UPMEM templates and runtime behavior.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-DaPPA provides useful ingredients for a value-trajectory IR, especially for **digital near-memory value movement**: it names when values enter DPU MRAM, move into WRAM blocks, become intermediate stage outputs, remain unfetched, return to the CPU, or become partial reductions requiring host combination. The closest approximation to trajectory semantics is the combination of stage arguments, intermediate MRAM allocation, WRAM block pointers, `fetch` markers, and CPU post-processing state. ([arXiv](https://arxiv.org/pdf/2310.10168))
-
-For analog-CIM trajectory questions, most objects are not applicable: DaPPA does not involve analog partial sums, ADC/DAC conversion, bit significance, sensing precision, or reconstruction trees. For UPMEM, it partially preserves value identity across stage outputs and host fetches, but not as a typed flow path. A trajectory-level extension would likely attach metadata to each `Pipeline` value: location domain `{host, MRAM, WRAM}`, locality `{DPU-local, tasklet-local, globally compacted, host-materialized}`, alignment status, element-count provenance, reduction state, and fetch/aggregation barrier.
-
-Against the proposed trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** not applicable for bit reconstruction; the analogous UPMEM rewrite would be fusing host reduction/compaction with downstream CPU or DPU stages.
-- **Delaying or retiming ADC conversion:** not applicable.
-- **Carrying bit-sliced partial sums across operator boundaries:** not applicable; carrying DPU-local partial reductions across boundaries would require explicit partial-value types.
-- **Changing reduction tree structure:** partially related; reductions are combined from DPU/tasklet partials on the CPU, but the tree structure is not exposed as a rewriteable object.
-- **Routing values through alternative peripheral paths:** partially related in digital form; DaPPA chooses CPU–DPU transfer and MRAM–WRAM movement strategies, but does not expose multiple peripheral path alternatives as first-class choices.
-- **Co-optimizing data movement and numeric reconstruction:** numeric reconstruction is outside scope; data movement and host post-processing are central and could inform the data-movement half of such an IR.
-
-The paper’s demonstrated abstraction centers on pattern pipelines and UPMEM memory/runtime placement; trajectory-level rewrites would add typed value-location and materialization states to the `Pipeline` values.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -294,7 +354,7 @@ The paper’s demonstrated abstraction centers on pattern pipelines and UPMEM me
 | **Infinity Stream** | Programmer-friendly in-/near-memory lowering. | Infinity Stream uses a two-phase JIT to lower a tDFG to in-memory commands and evaluates on a cycle-accurate simulator; DaPPA lowers C++ pattern pipelines to real UPMEM binaries and evaluates on hardware. ([Arizona State University](https://asu.elsevierpure.com/en/publications/infinity-stream-portable-and-programmer-friendly-in-near-memory-f/?utm_source=chatgpt.com)) | Distinguish stream/DFG portability from hardware-specific UPMEM codegen. |
 | **TransPimLib / PyGim** | UPMEM programmability support. | These are described by DaPPA as kernel/library support for narrower scopes such as transcendental functions or graph neural networks; DaPPA positions itself as a broader pattern framework. ([arXiv](https://arxiv.org/html/2310.10168v2)) | In corpus metadata, distinguish kernel libraries from compiler/runtime frameworks. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - DaPPA’s real contribution is a C++ data-parallel pattern frontend plus dynamic template-based code generator for UPMEM PIM systems.
 - The strongest reusable stack layer is the pattern-pipeline abstraction: `Pipeline`, stage, pattern kind, typed argument roles, fetch markers, and UPMEM-aware lowering state.
@@ -304,76 +364,3 @@ The paper’s demonstrated abstraction centers on pattern pipelines and UPMEM me
 - Artifact status: no public artifact found.
 - Integration is most plausible as IR inspiration or a reimplemented UPMEM mapper/backend; direct reuse is constrained by the absence of public DaPPA source and reproduction scripts.
 - For value-trajectory IR work, DaPPA is relevant as a digital data-movement trajectory case study, especially for MRAM/WRAM/host materialization and partial-result barriers, rather than analog-CIM value reconstruction.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "DaPPA: A Data-Parallel Programming Framework for Processing-in-Memory Architectures"
-year: 2023
-venue: "arXiv preprint; PACT 2023 ACM Student Research Competition presentation/poster context"
-authors_or_group: "Geraldo F. Oliveira, Alain Kohli, David Novo, Ataberk Olgun, A. Giray Yağlıkçı, Saugata Ghose, Juan Gómez-Luna, Onur Mutlu"
-technology:
-  - DRAM-PIM
-  - UPMEM
-  - digital-CIM
-  - processing-near-memory
-workloads:
-  - vector addition
-  - select
-  - unique
-  - reduction
-  - general matrix-vector multiplication
-  - image histogram small
-axis_A:
-  primary: A6_programming_runtime_benchmark_real_hardware
-  secondary:
-    - A3_mapping_scheduling_codegen
-    - A5_narrow_end_to_end_stack
-axis_B:
-  - B2_pipeline_dataflow_as_IR
-  - B4_hardware_resource_layout_state
-  - B7_runtime_state_abstraction
-axis_C_first_class_objects:
-  - Pipeline
-  - stage
-  - data_parallel_pattern
-  - argument_role_and_type_size
-  - input_output_intermediate_vector
-  - scalar_reduction_output
-  - fetch_marker
-  - DPU
-  - tasklet
-  - MRAM_region
-  - WRAM_cache_block
-  - alignment_padding
-  - execution_round
-  - CPU_leftover_work
-  - host_filter_compaction
-  - host_reduce_combination
-axis_D_rewrite_objects:
-  - pattern_pipeline
-  - memory_layout
-  - DPU_tasklet_partition
-  - host_DPU_data_movement
-  - generated_UPMEM_code
-  - runtime_post_processing_state
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "Unknown / not found in the checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR_inspiration
-  - mapper_scheduler
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest corpus value is as a UPMEM-specific pattern-to-codegen stack."
-  - "The effective IR is implicit in Pipeline state plus global stage/argument lists and MRAM/WRAM layout calculations."
-  - "Analog-CIM objects such as ADC/DAC, bit slicing, sensing precision, and reconstruction paths are not applicable."
-  - "Real-system evaluation is valuable, but public reproduction depends on unavailable DaPPA implementation artifacts."
-```

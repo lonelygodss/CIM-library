@@ -1,3 +1,70 @@
+---
+slug: declarative-memory-services
+title: "Declarative Memory Services"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "CIDR 2026"
+authors_or_group: "Jeronimo Castrillon, Jana Giceva, Yu Hua, Kimberly Keeton, Akhil Shekar, Kevin Skadron, Tianzheng Wang, Huanchen Zhang"
+summary: >-
+  **Declarative Memory Services** is a CIDR 2026 vision paper that argues future memory programming should expose desired memory properties rather than hand-coded device-specific mechanisms. Its main contribution is a layered abstraction: applications annotate logical memory regions and dataflow tasks with properties such as cacheability, coherence, latency, bandwidth, replication, compression, and offloadability; a calibration layer records device capabilities and APIs; and a memory-services runtime maps those declarations to heterogeneous devices including local DRAM, CXL memory, and PIM-style computational memory. The strongest demonstrated scope is conceptual and DBMS-oriented: disaggregated B+-trees, PIM filtering, and tiered-memory buffer caching motivate the abstraction. For a CIM compiler/IR corpus, the paper is most useful as a runtime/property-abstraction reference: it does not define a CIM operator IR, numeric trajectory IR, or instruction lowering path, but it clearly identifies the kinds of memory-service contracts a higher-level compiler might need to preserve when targeting PIM or heterogeneous memory backends. ([VLDB](https://www.vldb.org/cidrdb/papers/2026/p21-castrillon.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "CXL"
+  - "DRAM-PIM"
+  - "computational-memory"
+  - "heterogeneous-memory"
+  - "disaggregated-memory"
+  - "tiered-memory"
+  - "other"
+workloads:
+  - "disaggregated B+-tree indexing"
+  - "DBMS data analytics filtering"
+  - "tiered-memory buffer caching"
+tags: []
+baselines: []
+axis_A:
+  primary: A6
+  secondary: [A3]
+axis_B: [B1, B2, B4, B7]
+axis_C_first_class_objects:
+  - "logical memory regions"
+  - "dataflow tasks"
+  - "memory-property annotations"
+  - "device catalog entries"
+  - "memory service bindings"
+  - "PIM offload API capability"
+  - "runtime metadata / SLO state"
+axis_D_rewrite_objects:
+  - "runtime service binding"
+  - "data placement"
+  - "caching policy"
+  - "replication policy"
+  - "offload selection"
+  - "data movement / tiering / spilling"
+  - "compression or encoding selection"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "Paper: CC-BY 4.0; artifact: N/A"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best classified as a declarative memory-services vision paper rather than a CIM compiler or explicit IR stack."
+  - "Most useful corpus concept is the split between declarative annotations, calibration/device catalog, and runtime memory services."
+  - "PIM appears as a supported computational-memory device class through service-level offload APIs."
+  - "Value-trajectory IR support would require additional objects for value identity, numeric domain, bit-slice state, conversion points, and accumulation/reconstruction paths."
+takeaways: []
+---
+
 # Declarative Memory Services — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -248,24 +315,7 @@ The demonstrated scope is therefore memory-service orchestration for data system
 **Integration effort estimate: High.**  
 Integration would be most direct through a small adapter that turns compiler buffer/task metadata into DMS-like property annotations, plus a backend capability table. The absence of a public implementation means a future stack would need to supply the schema, runtime service implementation, cost model, and provenance/debug tooling. The most valuable reusable boundary appears to be the property-to-service contract, not executable code.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-DMS provides useful ingredients for a value-trajectory IR, especially the idea that a high-level program should preserve enough metadata for a runtime/backend to choose memory placement, offload, coherence handling, and data movement. The closest approximation to trajectory semantics is the dataflow model: it represents compute tasks and logical data transfers, marks pipeline-breaker state, and allows annotations for cacheability/offloadability and data layout. ([VLDB](https://www.vldb.org/cidrdb/papers/2026/p21-castrillon.pdf))
-
-It does **not** name the path a value takes through CIM resources at the level of analog partial sums, sensing, digital accumulation, reconstruction, reduction, or storage. Bit significance, channel rate, precision stage, placement, and domain transition are not represented as type-like information. Instead, the demonstrated abstraction centers on region/task properties and service/device binding.
-
-For trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** outside the demonstrated abstraction; would require numeric-stage and reconstruction-path objects.
-- **Delaying or retiming ADC conversion:** outside scope; would require domain-transition nodes and converter timing/cost metadata.
-- **Carrying bit-sliced partial sums across operator boundaries:** outside scope; would require bit-slice identity, partial-sum type, and accumulation-path representation.
-- **Changing reduction tree structure:** outside scope; DMS can discuss operator fusion and offload, but not reduction-tree topology.
-- **Routing values through alternative peripheral paths:** approximated only at service/API level, e.g. choosing PIM vs CXL-style access; circuit/peripheral paths are not represented.
-- **Co-optimizing data movement and numeric reconstruction:** DMS contributes the data-movement/service side; numeric reconstruction would require an added trajectory abstraction.
-
-A trajectory-level extension would likely attach **value identity, numeric domain, precision stage, bit-slice role, accumulation state, and conversion point** to DMS-style dataflow edges and logical regions. That extension could preserve DMS’s useful property vocabulary while making CIM-internal value movement explicit.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -276,7 +326,7 @@ A trajectory-level extension would likely attach **value identity, numeric domai
 | **Membrane** | DRAM-PIM database filtering and bank-level parallelism | Membrane is the concrete PIM filtering target; DMS abstracts when and how filtering should be offloaded using runtime services. ([VLDB](https://www.vldb.org/cidrdb/papers/2026/p21-castrillon.pdf)) | DMS is PIM-relevant through offload service selection, not through low-level PIM IR. |
 | **HyMem / Spitfire / vmcache** | Tiered-memory buffer management and DBMS hints | DMS extends the idea of DBMS intent/hints toward declarative properties for data caching, cooling, spilling, and compression. ([VLDB](https://www.vldb.org/cidrdb/papers/2026/p21-castrillon.pdf)) | Useful as a memory-system baseline for runtime state and page/region policy. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - **Real contribution:** a declarative memory-services vision that separates application property annotations, hardware calibration/device catalogs, and runtime memory services.
 - **Strongest reusable stack layer:** the property-to-service boundary: logical memory region / dataflow task → desired properties → memory service → device API.
@@ -286,65 +336,3 @@ A trajectory-level extension would likely attach **value identity, numeric domai
 - **CIM relevance:** PIM is included as a computational-memory backend via offload services and APIs; CIM-internal numeric objects such as bit slices, ADC/DAC stages, partial sums, and reconstruction paths are not represented.
 - **Artifact/reproducibility status:** Artifact status: no public artifact found. The official slide deck states the work is “yet to implement” and “pure vision.” ([Csyhua](https://csyhua.github.io/csyhua/Hua-CIDR26-slides.pdf))
 - **Integration role:** best used as IR inspiration for memory-service annotations and backend capability catalogs, with high integration effort for executable compiler/runtime use.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Declarative Memory Services"
-year: 2026
-venue: "CIDR 2026"
-authors_or_group: "Jeronimo Castrillon, Jana Giceva, Yu Hua, Kimberly Keeton, Akhil Shekar, Kevin Skadron, Tianzheng Wang, Huanchen Zhang"
-technology:
-  - CXL
-  - DRAM-PIM
-  - computational-memory
-  - heterogeneous-memory
-  - disaggregated-memory
-  - tiered-memory
-  - other
-workloads:
-  - disaggregated B+-tree indexing
-  - DBMS data analytics filtering
-  - tiered-memory buffer caching
-axis_A:
-  primary: "A6 programming/runtime abstraction, vision-layer"
-  secondary: "A3 mapping/scheduling/runtime service selection"
-axis_B:
-  - "B1 Config-as-IR"
-  - "B2 Graph-as-IR"
-  - "B4 Hardware-resource IR"
-  - "B7 Runtime-state abstraction"
-axis_C_first_class_objects:
-  - logical memory regions
-  - dataflow tasks
-  - memory-property annotations
-  - device catalog entries
-  - memory service bindings
-  - PIM offload API capability
-  - runtime metadata / SLO state
-axis_D_rewrite_objects:
-  - runtime service binding
-  - data placement
-  - caching policy
-  - replication policy
-  - offload selection
-  - data movement / tiering / spilling
-  - compression or encoding selection
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "Paper: CC-BY 4.0; artifact: N/A"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as a declarative memory-services vision paper rather than a CIM compiler or explicit IR stack."
-  - "Most useful corpus concept is the split between declarative annotations, calibration/device catalog, and runtime memory services."
-  - "PIM appears as a supported computational-memory device class through service-level offload APIs."
-  - "Value-trajectory IR support would require additional objects for value identity, numeric domain, bit-slice state, conversion points, and accumulation/reconstruction paths."
-```

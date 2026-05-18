@@ -1,3 +1,70 @@
+---
+slug: count2multiply
+title: "Count2Multiply: Reliable In-Memory High-Radix Counting"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "HPCA 2026"
+authors_or_group: "João Paulo C. de Lima, Benjamin Morris III, Asif Ali Khan, Jeronimo Castrillon, Alex K. Jones"
+summary: >-
+  **Count2Multiply** contributes a digital-CIM masked accumulation primitive for integer-binary and integer-integer matrix operations by storing one operand as bit-sliced mask rows, storing outputs as high-radix Johnson-counter rows, and converting the other operand into host-generated Ambit-style memory-command µPrograms. Its compiler/IR relevance is clearest at the boundary between numeric lowering and backend instruction generation: input values are converted into radix digits, zero digits are skipped, row addresses are populated into preconstructed command macros, and a host-side virtual counter manages delayed carry propagation. The demonstrated stack is an Ambit-style commodity-DRAM CIM design evaluated with a cycle-level NVMain/RTSim extension over GEMV/GEMM-like kernels from LLaMA/LLaMA-2, BERT/LLama-3 attention, DNA pre-alignment filtering, and quantized GNN workloads. The work is best read as a hardware-software co-design and instruction-stream lowering study for digital-CIM arithmetic, with reusable ideas for representing masks, counter state, µProgram templates, and ECC-aware recomputation paths in a future CIM IR. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "DRAM-PIM"
+  - "digital-CIM"
+  - "Ambit-style bulk-bitwise DRAM"
+workloads:
+  - "GEMV/GEMM shapes from LLaMA and LLaMA-2"
+  - "BERT and LLama-3 attention GEMV/GEMM"
+  - "DNA pre-alignment filtering"
+  - "GCN / GIN / GraphSAGE node classification"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3]
+axis_B: [B5, B4, B6, B7, B1]
+axis_C_first_class_objects:
+  - "high_radix_Johnson_counter"
+  - "mask_row_for_Z"
+  - "counter_row_for_Y"
+  - "digit_radix"
+  - "O_next_overflow_flag"
+  - "virtual_counter"
+  - "uProgram_macro"
+  - "AP_AAP_memory_command"
+  - "Ambit_B_C_D_row_group"
+  - "ECC_check_and_recompute_state"
+axis_D_rewrite_objects:
+  - "numeric_format"
+  - "instruction_stream"
+  - "memory_layout"
+  - "hardware_mapping"
+  - "runtime_state"
+  - "fault_protection_expansion"
+artifact:
+  status: "public repository found; partial / relevance unclear"
+  url: "https://github.com/SU-JonesLab/C2M"
+  license: "MIT license in repository; applicability to full Count2Multiply artifact unclear"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best classified as a hardware-software co-design for digital-CIM masked accumulation rather than a general compiler IR stack."
+  - "The reusable compiler boundary is the host-side lowering from radix digits and row addresses to AP/AAP µProgram command streams."
+  - "The paper provides strong paper-level evidence for mapping, command generation, fault protection, and cycle-level simulation; full artifact-level reproduction remains unclear."
+takeaways: []
+---
+
 # Count2Multiply — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -255,20 +322,7 @@ The paper’s strongest experimental evidence is for GEMV/GEMM-like tensor shape
 
 **Integration effort estimate: Medium to High.** Integration would be most direct through the µProgram boundary and the mapping tuple `(radix, mask rows, counter rows, row addresses, virtual counter state)`. Reuse would benefit from a small adapter that extracts Algorithm 2-style command generation into a backend-independent library. Effort rises because the published evidence describes the interface in paper form, while a confirmed complete NVMain/RTSim artifact and serialized command format were not found.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially for digital-CIM trajectories where values move through **host digitization → command stream → mask-conditioned row update → counter state → optional conversion or direct reuse**. The closest approximation to trajectory semantics is the combination of `Z` mask row placement, `Y` counter row identity, digit radix, `O_next`, and µProgram selection. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf))
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names the host-side conversion of `X`, the storage of `Z` as masks, the storage of `Y` as counters, and the AP/AAP command path through the memory controller. It does not package this as a first-class value trajectory. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf))  
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** For this digital DRAM-PIM setting, analog partial sums and ADC sensing are not applicable. Value identity is partially preserved through counter row addresses and digit positions, but not through a general cross-operator value-flow representation.  
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Bit significance and sign are visible in the bit-sliced `Z` rows; placement is visible through row addresses and Ambit groups; precision appears as radix, integer width, and accumulation capacity. These are represented as mechanism parameters rather than type-system objects. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf))  
-- **Could the representation express fusing reconstruction with downstream reduction?** The paper notes that Johnson-to-binary conversion can be skipped when followed by ReLU or LUT-style operators, which is a useful ingredient. A trajectory-level extension would attach encoding and consumer-operator compatibility metadata to counter values. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf))  
-- **Could it express delaying or retiming ADC conversion?** ADC retiming is not applicable to the demonstrated digital DRAM-CIM path.  
-- **Could it carry bit-sliced partial sums across operator boundaries?** It suggests this possibility for Johnson-encoded outputs reused by ReLU/LUT-based operations, but a full cross-operator bit-slice lifetime model would require an additional abstraction.  
-- **Could it change reduction tree structure or route through alternative peripheral paths?** The paper’s demonstrated abstraction centers on masked counter updates and carry scheduling; trajectory-level rewrites would add explicit path alternatives for row-buffer, DCC, ECC, copy, and counter-reuse choices.  
-- **Could it co-optimize data movement and numeric reconstruction?** Yes, as an extension. The row-reuse discussion for matrix rows of `Y` and the avoidance of copying many `Z` rows provide a concrete starting point for data-movement-aware trajectory metadata. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf))
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -279,7 +333,7 @@ The work provides useful ingredients for a value-trajectory IR, especially for d
 | **FCDRAM-style controller integration** | Controller-side orchestration of in-memory commands | The paper cites FPGA or specialized memory-controller execution as alternative hosts for µProgram orchestration. ([CFAED](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2602_Lima_HPCA.pdf)) | Highlights that the µProgram interface could be hosted by CPU, FPGA, or memory-controller logic. |
 | **CORUSCANT / RTM-adjacent earlier framing** | Digital bulk-bitwise CIM in non-DRAM memory | Earlier arXiv versions discuss broader technology compatibility, while the final HPCA PDF’s evidenced evaluation centers on commodity DRAM/Ambit-style operation. ([arXiv](https://arxiv.org/html/2409.10136v3)) | For corpus placement, use final-paper evidence: technology-portability claims should be separated from demonstrated backend scope. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - Count2Multiply’s evidenced contribution is a **digital-CIM masked accumulation primitive** based on high-radix Johnson counters, mask rows, host-generated µPrograms, and ECC-aware recomputation.
 - The strongest reusable stack layer is the **lowering boundary from input values and bit-sliced masks to AP/AAP command streams**.
@@ -289,68 +343,3 @@ The work provides useful ingredients for a value-trajectory IR, especially for d
 - Artifact status is **public repository found, but partial / relevance unclear**; no confirmed full Count2Multiply reproduction workflow or NVMain/RTSim artifact was found in the checked sources.
 - Integration would be most direct as a **backend plugin or mapper/scheduler component** for digital-CIM masked accumulation.
 - For a value-trajectory IR, Count2Multiply is most relevant as a model of **digital value trajectory through masks, counter digits, carry obligations, and protected command expansion**.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Count2Multiply: Reliable In-Memory High-Radix Counting"
-year: 2026
-venue: "HPCA 2026"
-authors_or_group: "João Paulo C. de Lima, Benjamin Morris III, Asif Ali Khan, Jeronimo Castrillon, Alex K. Jones"
-technology:
-  - DRAM-PIM
-  - digital-CIM
-  - Ambit-style bulk-bitwise DRAM
-workloads:
-  - GEMV/GEMM shapes from LLaMA and LLaMA-2
-  - BERT and LLama-3 attention GEMV/GEMM
-  - DNA pre-alignment filtering
-  - GCN / GIN / GraphSAGE node classification
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A2_simulator_cost_model
-    - A3_mapping_scheduling_DSE
-axis_B:
-  - B5_instruction_metaop_ILA
-  - B4_hardware_resource_IR
-  - B6_accuracy_nonideality_modeling
-  - B7_runtime_state_abstraction
-  - B1_config_as_IR_partial
-axis_C_first_class_objects:
-  - high_radix_Johnson_counter
-  - mask_row_for_Z
-  - counter_row_for_Y
-  - digit_radix
-  - O_next_overflow_flag
-  - virtual_counter
-  - uProgram_macro
-  - AP_AAP_memory_command
-  - Ambit_B_C_D_row_group
-  - ECC_check_and_recompute_state
-axis_D_rewrite_objects:
-  - numeric_format
-  - instruction_stream
-  - memory_layout
-  - hardware_mapping
-  - runtime_state
-  - fault_protection_expansion
-artifact:
-  status: "public repository found; partial / relevance unclear"
-  url: "SU-JonesLab/C2M GitHub repository"
-  license: "MIT license in repository; applicability to full Count2Multiply artifact unclear"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low_to_medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as a hardware-software co-design for digital-CIM masked accumulation rather than a general compiler IR stack."
-  - "The reusable compiler boundary is the host-side lowering from radix digits and row addresses to AP/AAP µProgram command streams."
-  - "The paper provides strong paper-level evidence for mapping, command generation, fault protection, and cycle-level simulation; full artifact-level reproduction remains unclear."
-```

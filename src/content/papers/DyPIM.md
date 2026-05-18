@@ -1,3 +1,69 @@
+---
+slug: dypim
+title: "DyPIM: Dynamic-Inference-Enabled Processing-In-Memory Accelerator"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "DATE 2024"
+authors_or_group: "Tongxin Xie, Tianchen Zhao, Zhenhua Zhu, Xuefei Ning, Bing Li, Guohao Dai, Huazhong Yang, Yu Wang"
+summary: >-
+  DyPIM is a DATE 2024 hardware–software co-design study for dynamic CNN inference on an RRAM-based PIM accelerator. Its main contribution is not a general-purpose CIM compiler, but a set of reusable dynamic-execution abstractions: Channel-Net separates channel-mask generation from intermediate feature readiness to recover inter-layer pipelining; channel grouping and dynamic operation-unit formation align pruning granularity with PIM crossbar execution granularity; and a throughput-oriented loss uses layer latency rather than total MAC reduction as the training proxy. The demonstrated setting is ResNet-20/32/56 on CIFAR-10 and CIFAR-100, evaluated with MNSIM 2.0 after adding dynamic control flows, using a 128×128 crossbar and 16×8 operation unit. For CIM compiler/IR research, the paper is most useful as a hidden-stack example in which the effective IR is distributed across runtime masks, dynamic tables, OU formation rules, latency targets, and simulator assumptions rather than exposed as a named, serializable compiler representation. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/c69aff31-5bbd-45dc-8e2c-40deb0c504d7.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "PIM"
+workloads:
+  - "ResNet-20 on CIFAR-10/CIFAR-100"
+  - "ResNet-32 on CIFAR-10/CIFAR-100"
+  - "ResNet-56 on CIFAR-10/CIFAR-100"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3]
+axis_B: [B7, B4, B2, B1]
+axis_C_first_class_objects:
+  - "spatial mask"
+  - "channel mask"
+  - "exit decision"
+  - "dynamic table"
+  - "image ID"
+  - "mask readiness"
+  - "sparsity granularity"
+  - "operation unit"
+  - "dynamic operation unit"
+  - "wordline activation order"
+  - "crossbar / PE / tile hierarchy"
+  - "bottleneck-layer latency"
+axis_D_rewrite_objects:
+  - "runtime state"
+  - "hardware mapping"
+  - "array / OU binding"
+  - "graph-level mask-generation placement"
+  - "training objective / latency target"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown / not found"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "backend wrapper, via related MNSIM 2.0 substrate"
+reproducibility_level: low
+notes:
+  - "Most reusable abstraction is mask-to-OU lowering for dynamic CIM execution."
+  - "Paper reports MNSIM 2.0 with added dynamic control flows, but the DyPIM-specific extension was not found publicly."
+  - "Useful hidden-stack case where runtime tables and simulator assumptions carry the effective IR semantics."
+takeaways: []
+---
+
 # DyPIM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -228,15 +294,7 @@ The PE diagram includes mask preprocessing, prefix sum, merge logic, wordline ve
 **Integration effort estimate: High.**  
 The most valuable reusable boundary appears to be the mask/OU abstraction rather than a runnable tool. Integration would require reconstructing Channel-Net training, dynamic mask traces, the MNSIM dynamic-control extension, and the DOU cost model. A small adapter could expose masks, channel groups, and OU formation as IR objects, but reproducing the reported figures would require additional implementation work and calibration.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-DyPIM provides useful ingredients for a value-trajectory IR, especially around runtime masks, mask readiness, zero insertion, line-buffered sliding windows, wordline-vector formation, DAC/crossbar/ADC path nodes, and adder-tree output. The closest approximation to trajectory semantics is Fig. 5’s flow from dynamic table and input masks through the intra-layer pipeline controller into PE-level DOU execution. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/c69aff31-5bbd-45dc-8e2c-40deb0c504d7.pdf))
-
-The paper names parts of the path a value takes through CIM resources, but the demonstrated abstraction centers on **which work is skipped** and **which wordlines are activated**, rather than preserving value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. Bit significance and channel rate are mostly inherited from the RRAM/PIM mapping background; placement appears through crossbar/OU mapping; domain transition appears as DAC/ADC path nodes. These are not represented as type-like fields that can be rewritten across operators. ([dai.sjtu.edu.cn](https://dai.sjtu.edu.cn/my_file/pdf/c69aff31-5bbd-45dc-8e2c-40deb0c504d7.pdf))
-
-A trajectory-level extension would likely attach the following to each masked tensor slice or OU-level value: source operator, image ID, spatial window, channel group, bit significance, analog/digital domain, crossbar location, active wordline set, ADC stage, accumulation stage, and reconstruction status. Such an extension could express rewrites that DyPIM’s current abstraction leaves to future work, including fusing reconstruction with downstream reduction, delaying or retiming ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction tree structure, routing values through alternative peripheral paths, and co-optimizing data movement with numeric reconstruction.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -247,7 +305,7 @@ A trajectory-level extension would likely attach the following to each masked te
 | **Gibbon** | NN/PIM architecture co-exploration. | Gibbon searches joint NN and PIM architecture spaces; DyPIM is a narrower dynamic-inference design with explicit runtime mask and OU-control semantics. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2022/html/0421.html?utm_source=chatgpt.com)) | Separates DSE/search-stack papers from hidden-stack co-design papers. |
 | **PRIME / configurable multi-precision RRAM CNN framework** | RRAM/PIM acceleration for neural-network inference. | PRIME and the configurable multi-precision work emphasize architecture and precision/configuration; DyPIM emphasizes dynamic runtime state and mask-aware execution. ([Computer Science](https://cseweb.ucsd.edu/~jzhao/files/PRIME_isca2016.pdf?utm_source=chatgpt.com)) | Useful contrast between precision/layout-centered CIM objects and runtime-mask-centered CIM objects. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - DyPIM is best classified as a **narrow hardware–software co-design demo** for dynamic CNN inference on an RRAM/PIM accelerator.
 - Its strongest reusable stack layer is the **runtime mask and operation-unit execution model**: mask readiness, dynamic table, SG/OU alignment, channel grouping, and DOU wordline packing.
@@ -257,66 +315,3 @@ A trajectory-level extension would likely attach the following to each masked te
 - Artifact status: no public artifact found. Upstream MNSIM 2.0 is public, but the DyPIM-specific dynamic-control extension was not found. ([NICS-EffAlg](https://nics-effalg.com/publications/))
 - Integration into a future compiler would be most useful as **IR inspiration, mapper/scheduler logic, and cost-model logic**, not as a drop-in frontend or backend.
 - For value-trajectory IR work, DyPIM is medium-relevance: it names dynamic flow-control objects clearly, while trajectory-level numeric/domain rewrites would require additional value identity and domain-transition metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "DyPIM: Dynamic-Inference-Enabled Processing-In-Memory Accelerator"
-year: 2024
-venue: "DATE 2024"
-authors_or_group: "Tongxin Xie, Tianchen Zhao, Zhenhua Zhu, Xuefei Ning, Bing Li, Guohao Dai, Huazhong Yang, Yu Wang"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-  - PIM
-workloads:
-  - ResNet-20 on CIFAR-10/CIFAR-100
-  - ResNet-32 on CIFAR-10/CIFAR-100
-  - ResNet-56 on CIFAR-10/CIFAR-100
-axis_A:
-  primary: A5 narrow end-to-end co-design
-  secondary:
-    - A2 simulator and cost model
-    - A3 mapping / scheduling framework
-axis_B:
-  - B7 runtime-state abstraction
-  - B4 hardware-resource IR
-  - B2 graph-as-IR
-  - B1 config-as-IR, partial
-axis_C_first_class_objects:
-  - spatial mask
-  - channel mask
-  - exit decision
-  - dynamic table
-  - image ID
-  - mask readiness
-  - sparsity granularity
-  - operation unit
-  - dynamic operation unit
-  - wordline activation order
-  - crossbar / PE / tile hierarchy
-  - bottleneck-layer latency
-axis_D_rewrite_objects:
-  - runtime state
-  - hardware mapping
-  - array / OU binding
-  - graph-level mask-generation placement
-  - training objective / latency target
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: "unknown / not found"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - backend wrapper, via related MNSIM 2.0 substrate
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Most reusable abstraction is mask-to-OU lowering for dynamic CIM execution."
-  - "Paper reports MNSIM 2.0 with added dynamic control flows, but the DyPIM-specific extension was not found publicly."
-  - "Useful hidden-stack case where runtime tables and simulator assumptions carry the effective IR semantics."
-```

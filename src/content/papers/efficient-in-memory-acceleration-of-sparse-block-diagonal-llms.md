@@ -1,3 +1,71 @@
+---
+slug: efficient-in-memory-acceleration-of-sparse-block-diagonal-llms
+title: "Efficient In-Memory Acceleration of Sparse Block Diagonal LLMs"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IEEE Cross-disciplinary Conference on Memory-Centric Computing (CCMCC), to appear / arXiv v1"
+authors_or_group: "João Paulo C. de Lima, Marc Dietrich, Jeronimo Castrillon, Asif Ali Khan"
+summary: >-
+  This paper is best read as a focused hardware-software co-design study for mapping Monarch-style block-diagonal transformer weights onto analog CIM crossbars. Its core contribution is not a general CIM compiler IR, but a set of mapping and scheduling rules that make block-diagonal structure usable on CIM arrays: a latency-oriented sparse mapping, a capacity-oriented dense packing, diagonal-index placement with rotation cancellation, permutation folding, and mapping-aware temporal row/column activation. The demonstrated workload is transformer inference over parameterized matmuls in BERT-large, BART-large, and GPT-2-Medium, evaluated through a simulator based on IBM’s PCM-oriented 3D AIMC modeling stack with ADC/DAC design-space variation. For CIM compiler/IR research, the paper is valuable because it exposes a compact “hidden IR” centered on packed array layout, diagonal offsets, ADC sharing, and schedule timestamps—objects that a future explicit IR could name, type, verify, serialize, and lower to a backend. ([arXiv](https://arxiv.org/pdf/2510.11192v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "analog-CIM"
+  - "PCM-CIM-simulation"
+  - "NVM-CIM"
+  - "SRAM-CIM-mentioned"
+  - "hybrid-simulator-stack"
+workloads:
+  - "BERT-large parameterized matmuls, context length 512"
+  - "BART-large parameterized matmuls, context length 1024"
+  - "GPT-2-Medium parameterized matmuls, context length 1024"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A5, A2]
+axis_B: [B4, B1, B3, B6]
+axis_C_first_class_objects:
+  - "Monarch_block_diagonal_factors_L_R"
+  - "fixed_permutation_P"
+  - "CIM_crossbar_array_m_by_m"
+  - "block_size_b"
+  - "block_to_array_binding"
+  - "diagonal_index"
+  - "rotation_shift_metadata"
+  - "row_column_activation_mask"
+  - "ADC_count"
+  - "ADC_precision"
+axis_D_rewrite_objects:
+  - "dense_parameterized_matmul_to_Monarch_matmul"
+  - "permutation_folding"
+  - "hardware_mapping"
+  - "array_binding"
+  - "packed_memory_layout"
+  - "temporal_schedule"
+  - "ADC_precision_cost_parameter"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: 
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend_adapter"
+  - "benchmark"
+reproducibility_level: low
+notes:
+  - "Strongest evidence is for layout-aware mapping and scheduling of stationary Monarch-sparse transformer weights."
+  - "Paper uses an existing open-source AIMC simulator and Accelergy ADC plugin, but no paper-specific implementation was found."
+  - "Value-trajectory relevance comes from rotation/shift semantics, ADC-sharing schedule, and partial-result combination."
+takeaways: []
+---
+
 # Efficient In-Memory Acceleration of Sparse Block Diagonal LLMs — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -249,17 +317,7 @@ The evaluated workloads are parameterized matmuls in BERT-large, BART-large, and
 **Integration effort estimate: High.**  
 Integration would be most direct through a small schema that extracts `source_op → Monarch factors → packed array layout → activation schedule → simulator config`. The mapping rules are concrete enough to reimplement, and the simulator dependency is public, but the absence of a paper-specific artifact means a future stack would need to reconstruct the D2S, placement, schedule emission, and plotting workflow.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially because it makes placement-induced value rotation visible. A value takes the high-level path: digital activation vector → DAC/input rows → analog crossbar MVM → bitline accumulation → ADC conversion → digital partial-result combination, with \(L\)-stage outputs routed or shifted into \(R\)-stage diagonals. The background names this analog/digital path, and the mapping section names the rotation/shift semantics introduced by dense packing. ([arXiv](https://arxiv.org/pdf/2510.11192v1))
-
-The paper’s demonstrated abstraction centers on matrix layout and schedule; preserving value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage would add a trajectory layer above the current mapping state. The closest approximation to trajectory semantics is the \(i_L/i_R\) rotation-cancellation rule and the scheduler’s row/column activation sequence, because both encode how a logical output element moves through a packed physical array. ([arXiv](https://arxiv.org/pdf/2510.11192v1))
-
-For type-like information, ADC precision and ADC sharing are represented as parameters, while bit significance, channel rate, analog/digital domain, partial-sum identity, and reconstruction stage are not exposed as typed value fields in the checked sources. A trajectory-level extension would likely attach fields such as `domain`, `precision_bits`, `bit_slice`, `analog_accumulation_id`, `adc_group`, `timestamp`, `partial_sum_id`, `reconstruction_mode`, and `destination_buffer` to mapped blocks and scheduled activations.
-
-Trajectory rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing through alternative peripheral paths would require an additional abstraction for value identity and conversion boundaries. This paper’s contribution is a strong local case study for why such an abstraction matters: layout rewrites change not only where a matrix lives, but also how values must be rotated, sensed, accumulated, and reconstructed.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -270,7 +328,7 @@ Trajectory rewrites such as fusing reconstruction with downstream reduction, del
 | **IBM 3D-CiM LLM simulator / 3D-SiM** | LLM inference simulation on analog AIMC accelerators | The IBM simulator provides the backend/cost substrate; this paper uses it to evaluate a new mapping/scheduling scheme for Monarch-sparse matmuls. ([arXiv](https://arxiv.org/pdf/2510.11192v1)) | Simulator interfaces often reveal the practical IR boundary for CIM stack papers. |
 | **Accelergy ADC plugin** | ADC area/energy design-space modeling | The plugin provides converter estimates; this paper uses converter variation to show when DenseMap versus SparseMap is favorable. ([arXiv](https://arxiv.org/pdf/2510.11192v1)) | Converter precision/count should be treated as compiler-visible scheduling and cost-model metadata. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - The paper’s real contribution is a mapping and scheduling method for Monarch-style block-diagonal transformer weights on analog CIM crossbars.
 - The strongest reusable stack layer is **mapping-aware scheduling**: packed crossbar layout, diagonal indices, rotation/shift handling, and timestamped row/column activation.
@@ -280,68 +338,3 @@ Trajectory rewrites such as fusing reconstruction with downstream reduction, del
 - Artifact status: no public artifact found. Related public dependencies include IBM’s MIT-licensed 3D-SiM simulator and the MIT-licensed Accelergy ADC plugin.
 - Integration into a future compiler stack would be most direct as a mapper/scheduler pass plus simulator adapter, rather than as a frontend or full IR.
 - For value-trajectory IR research, the paper is most relevant as a case study where layout changes induce value rotations, converter scheduling, partial-result combination, and backend-visible path constraints.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "Efficient In-Memory Acceleration of Sparse Block Diagonal LLMs"
-year: 2025
-venue: "IEEE Cross-disciplinary Conference on Memory-Centric Computing (CCMCC), to appear / arXiv v1"
-authors_or_group: "João Paulo C. de Lima, Marc Dietrich, Jeronimo Castrillon, Asif Ali Khan"
-technology:
-  - analog-CIM
-  - PCM-CIM-simulation
-  - NVM-CIM
-  - SRAM-CIM-mentioned
-  - hybrid-simulator-stack
-workloads:
-  - BERT-large parameterized matmuls, context length 512
-  - BART-large parameterized matmuls, context length 1024
-  - GPT-2-Medium parameterized matmuls, context length 1024
-axis_A:
-  primary: A3_mapping_scheduling_DSE
-  secondary:
-    - A5_narrow_end_to_end_co_design
-    - A2_simulator_cost_model_user
-axis_B:
-  - B4_hardware_resource_IR
-  - B1_config_as_IR
-  - B3_schedule_like_temporal_activation_state
-  - B6_precision_cost_parameter
-axis_C_first_class_objects:
-  - Monarch_block_diagonal_factors_L_R
-  - fixed_permutation_P
-  - CIM_crossbar_array_m_by_m
-  - block_size_b
-  - block_to_array_binding
-  - diagonal_index
-  - rotation_shift_metadata
-  - row_column_activation_mask
-  - ADC_count
-  - ADC_precision
-axis_D_rewrite_objects:
-  - dense_parameterized_matmul_to_Monarch_matmul
-  - permutation_folding
-  - hardware_mapping
-  - array_binding
-  - packed_memory_layout
-  - temporal_schedule
-  - ADC_precision_cost_parameter
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: null
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend_adapter
-  - benchmark
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest evidence is for layout-aware mapping and scheduling of stationary Monarch-sparse transformer weights."
-  - "Paper uses an existing open-source AIMC simulator and Accelergy ADC plugin, but no paper-specific implementation was found."
-  - "Value-trajectory relevance comes from rotation/shift semantics, ADC-sharing schedule, and partial-result combination."
-```
