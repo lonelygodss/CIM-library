@@ -47,42 +47,13 @@ interface Props {
 
 const { papers, taxonomy } = Astro.props;
 ---
-<section id="taxonomy" class="panel pad">
-  <div class="section-title">
-    <div>
-      <h2>Taxonomy axes</h2>
-      <div class="subtle">Technology such as SRAM, RRAM, DRAM-PIM, CAM, or UPMEM is metadata; the main view is organized by stack artifact and abstraction style.</div>
-    </div>
-  </div>
-  <h3>Axis A — stack role</h3>
-  <div class="grid-cards">
-    {Object.entries(taxonomy.families).map(([code, family]) => (
-      <div class="axis-card">
-        <code>{code}</code>
-        <h3>{family.name}</h3>
-        <p>{family.artifact}</p>
-      </div>
-    ))}
-  </div>
-  <div style="height:18px"></div>
-  <h3>Axis B — middle-layer style</h3>
-  <div class="grid-cards">
-    {Object.entries(taxonomy.middles).map(([code, middle]) => (
-      <div class="axis-card">
-        <code>{code}</code>
-        <h3>{middle.name}</h3>
-        <p>{middle.desc}</p>
-      </div>
-    ))}
-  </div>
-</section>
-
 <section id="atlas-section" class="panel pad">
   <div class="section-title">
     <div>
       <h2>Interactive paper atlas</h2>
-      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B.</div>
+      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B. Hover or focus for a quick read; select a node to inspect its metadata cloud.</div>
     </div>
+    <div class="atlas-count" id="filteredStats" aria-live="polite"></div>
   </div>
   <div class="controls" aria-label="Taxonomy filters">
     <input id="search" type="search" placeholder="Search paper, target, abstraction, object, evidence..." aria-label="Search papers" />
@@ -92,13 +63,47 @@ const { papers, taxonomy } = Astro.props;
   </div>
   <div class="viz-grid">
     <div class="panel viz-card atlas-box">
-      <svg id="atlas" viewBox="0 0 1120 620" role="img" aria-label="CIM taxonomy atlas"></svg>
+      <svg id="atlas" viewBox="0 0 1320 760" role="img" aria-label="CIM taxonomy atlas"></svg>
       <div class="legend" id="familyLegend"></div>
     </div>
     <aside class="panel viz-card selected-panel" aria-live="polite">
       <div id="workDetails" class="empty">Select a paper.</div>
       <div id="workMore"></div>
     </aside>
+  </div>
+  <div id="atlasTooltip" class="atlas-tooltip" role="status" aria-hidden="true"></div>
+</section>
+
+<section id="taxonomy" class="panel pad taxonomy-support">
+  <div class="section-title">
+    <div>
+      <h2>Taxonomy axes</h2>
+      <div class="subtle">Technology such as SRAM, RRAM, DRAM-PIM, CAM, or UPMEM is metadata; the atlas is organized by stack artifact and abstraction style.</div>
+    </div>
+  </div>
+  <div class="axis-explainer">
+    <div>
+      <h3>Axis A — stack role</h3>
+      <div class="axis-list">
+        {Object.entries(taxonomy.families).map(([code, family]) => (
+          <div class="axis-row">
+            <code>{code}</code>
+            <span><b>{family.name}</b>{family.artifact}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div>
+      <h3>Axis B — middle-layer style</h3>
+      <div class="axis-list">
+        {Object.entries(taxonomy.middles).map(([code, middle]) => (
+          <div class="axis-row">
+            <code>{code}</code>
+            <span><b>{middle.name}</b>{middle.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   </div>
 </section>
 
@@ -115,11 +120,22 @@ const { papers, taxonomy } = Astro.props;
   const svgNS = 'http://www.w3.org/2000/svg';
   let selectedSlug = papers[0]?.slug ?? null;
   let filtered = [...papers];
+  let activeTooltipPaper = null;
 
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
   const firstMiddle = (paper) => paper.axis_B?.[0] ?? 'B1';
   const roles = (paper) => [paper.axis_A.primary, ...(paper.axis_A.secondary ?? [])];
+  const metadataLine = (paper) => [paper.year, paper.venue].filter(Boolean).join(' · ');
+  const paperLabel = (paper) => paper.subtitle?.replace(/^Scoped CIM stack note( seed)?$/i, '')?.trim() || paper.title;
+  const shortTitle = (paper) => paper.title
+    .replace(/^([^:—-]{2,42})[:—-].*$/, '$1')
+    .replace(/\b(a|an|the|for|with|and|of|to|in)\b/gi, '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 3)
+    .join(' ') || paper.title.slice(0, 18);
+  const initials = (paper) => shortTitle(paper).split(/[\s/-]+/).filter(Boolean).slice(0, 3).map((x) => x[0]).join('').toUpperCase();
   const textBlob = (paper) => [
     paper.title,
     paper.subtitle,
@@ -138,11 +154,43 @@ const { papers, taxonomy } = Astro.props;
     if (text) el.textContent = text;
     return el;
   };
-  const hash = (str) => {
-    let h = 0;
-    for (let i = 0; i < str.length; i += 1) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
-    return Math.abs(h);
-  };
+  const category = (label, items, cls, limit = 8) => `
+    <section class="cloud-group">
+      <h4>${esc(label)}</h4>
+      <div class="cloud-nodes">
+        ${(items ?? []).filter(Boolean).slice(0, limit).map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')}
+        ${(items ?? []).filter(Boolean).length > limit ? `<span class="cloud-node more">+${(items ?? []).length - limit}</span>` : ''}
+      </div>
+    </section>
+  `;
+
+  function cellKey(paper) {
+    return `${paper.axis_A.primary}:${firstMiddle(paper)}`;
+  }
+
+  function groupedPositions(items) {
+    const groups = new Map();
+    items.forEach((paper) => {
+      const key = cellKey(paper);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(paper);
+    });
+    const positions = new Map();
+    groups.forEach((group) => {
+      const sorted = [...group].sort((a, b) => a.title.localeCompare(b.title));
+      const n = sorted.length;
+      sorted.forEach((paper, index) => {
+        const ring = Math.ceil(Math.sqrt(index + 1));
+        const angle = (index * 2.399963229728653) % (Math.PI * 2);
+        const scale = n > 10 ? 10 : 13;
+        positions.set(paper.slug, {
+          dx: Math.cos(angle) * ring * scale,
+          dy: Math.sin(angle) * ring * scale
+        });
+      });
+    });
+    return positions;
+  }
   function setupFilters() {
     const familyFilter = $('familyFilter');
     const middleFilter = $('middleFilter');
@@ -171,15 +219,15 @@ const { papers, taxonomy } = Astro.props;
   }
 
   function xForFamily(code) {
-    const left = 110;
-    const right = 1040;
+    const left = 160;
+    const right = 1230;
     const i = Math.max(0, familyCodes.indexOf(code));
     return left + (right - left) * (i / Math.max(1, familyCodes.length - 1));
   }
 
   function yForMiddle(code) {
-    const top = 74;
-    const bottom = 548;
+    const top = 100;
+    const bottom = 665;
     const i = Math.max(0, middleCodes.indexOf(code));
     return top + (bottom - top) * (i / Math.max(1, middleCodes.length - 1));
   }
@@ -187,39 +235,95 @@ const { papers, taxonomy } = Astro.props;
   function drawAtlas() {
     const svg = $('atlas');
     clear(svg);
-    svg.append(node('rect', { x: 0, y: 0, width: 1120, height: 620, rx: 18, fill: '#fbfcff' }));
+    svg.append(node('rect', { x: 0, y: 0, width: 1320, height: 760, rx: 16, fill: '#fbfcff' }));
     familyCodes.forEach((code) => {
       const x = xForFamily(code);
-      svg.append(node('line', { x1: x, y1: 54, x2: x, y2: 568, stroke: '#e3e8f2', 'stroke-width': 1 }));
-      svg.append(node('text', { x, y: 28, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: '#314158' }, code));
-      svg.append(node('text', { x, y: 45, 'text-anchor': 'middle', 'font-size': 11, fill: '#607086' }, families[code].short));
+      svg.append(node('line', { x1: x, y1: 70, x2: x, y2: 695, stroke: '#dce4ef', 'stroke-width': 1 }));
+      svg.append(node('text', { x, y: 32, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 900, fill: '#24364f' }, code));
+      svg.append(node('text', { x, y: 53, 'text-anchor': 'middle', 'font-size': 13, fill: '#607086' }, families[code].short));
     });
     middleCodes.forEach((code) => {
       const y = yForMiddle(code);
-      svg.append(node('line', { x1: 74, y1: y, x2: 1060, y2: y, stroke: '#e3e8f2', 'stroke-width': 1 }));
-      svg.append(node('text', { x: 22, y: y + 4, 'font-size': 12, 'font-weight': 800, fill: '#314158' }, code));
-      svg.append(node('text', { x: 52, y: y + 4, 'font-size': 11, fill: '#607086' }, middles[code].short));
+      svg.append(node('line', { x1: 104, y1: y, x2: 1268, y2: y, stroke: '#dce4ef', 'stroke-width': 1 }));
+      svg.append(node('text', { x: 26, y: y + 5, 'font-size': 15, 'font-weight': 900, fill: '#24364f' }, code));
+      svg.append(node('text', { x: 62, y: y + 5, 'font-size': 13, fill: '#607086' }, middles[code].short));
     });
     if (!filtered.length) {
-      svg.append(node('text', { x: 560, y: 310, 'text-anchor': 'middle', fill: '#607086', 'font-size': 15 }, 'No papers match the current filters.'));
+      svg.append(node('text', { x: 660, y: 380, 'text-anchor': 'middle', fill: '#607086', 'font-size': 17 }, 'No papers match the current filters.'));
       return;
     }
+    const offsets = groupedPositions(filtered);
     filtered.forEach((paper) => {
       const baseX = xForFamily(paper.axis_A.primary);
       const baseY = yForMiddle(firstMiddle(paper));
-      const h = hash(paper.slug);
-      const x = baseX + ((h % 29) - 14) * 1.2;
-      const y = baseY + (((h >> 4) % 29) - 14) * 1.2;
-      const r = paper.slug === selectedSlug ? 15 : 11;
+      const offset = offsets.get(paper.slug) ?? { dx: 0, dy: 0 };
+      const x = Math.max(126, Math.min(1276, baseX + offset.dx));
+      const y = Math.max(84, Math.min(702, baseY + offset.dy));
+      const r = paper.slug === selectedSlug ? 17 : 12;
       const color = families[paper.axis_A.primary]?.color ?? '#335cff';
-      const g = node('g', { tabindex: 0, role: 'button', 'aria-label': paper.title, style: 'cursor:pointer' });
+      const g = node('g', { tabindex: 0, role: 'button', 'aria-label': `Select ${paper.title}`, style: 'cursor:pointer' });
       g.append(node('circle', { cx: x, cy: y, r: r + 6, fill: color, opacity: paper.slug === selectedSlug ? 0.17 : 0.06 }));
       g.append(node('circle', { cx: x, cy: y, r, fill: color, opacity: paper.slug === selectedSlug ? 0.92 : 0.72, stroke: paper.slug === selectedSlug ? '#111a33' : '#ffffff', 'stroke-width': paper.slug === selectedSlug ? 3 : 1.5 }));
-      g.append(node('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 900, fill: '#fff' }, paper.title.slice(0, 3).toUpperCase()));
+      g.append(node('text', { x, y: y + 4, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 900, fill: '#fff', 'pointer-events': 'none' }, initials(paper)));
       g.addEventListener('click', () => selectPaper(paper.slug));
-      g.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') selectPaper(paper.slug); });
+      g.addEventListener('mousemove', (event) => showTooltip(event, paper));
+      g.addEventListener('mouseenter', (event) => showTooltip(event, paper));
+      g.addEventListener('mouseleave', hideTooltip);
+      g.addEventListener('focus', () => showTooltipForNode(g, paper));
+      g.addEventListener('blur', hideTooltip);
+      g.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          selectPaper(paper.slug);
+        }
+      });
       svg.append(g);
     });
+  }
+
+  function tooltipHtml(paper) {
+    return `
+      <b>${esc(paperLabel(paper))}</b>
+      ${metadataLine(paper) ? `<span>${esc(metadataLine(paper))}</span>` : ''}
+      <span>${esc(paper.axis_A.primary)} ${esc(families[paper.axis_A.primary]?.short ?? '')} · ${esc(firstMiddle(paper))} ${esc(middles[firstMiddle(paper)]?.short ?? '')}</span>
+      <p>${esc(paper.summary)}</p>
+    `;
+  }
+
+  function placeTooltip(x, y) {
+    const tip = $('atlasTooltip');
+    const pad = 18;
+    const box = tip.getBoundingClientRect();
+    const left = Math.min(window.innerWidth - box.width - pad, x + 18);
+    const top = Math.min(window.innerHeight - box.height - pad, y + 18);
+    tip.style.left = `${Math.max(pad, left)}px`;
+    tip.style.top = `${Math.max(pad, top)}px`;
+  }
+
+  function showTooltip(event, paper) {
+    activeTooltipPaper = paper;
+    const tip = $('atlasTooltip');
+    tip.innerHTML = tooltipHtml(paper);
+    tip.setAttribute('aria-hidden', 'false');
+    tip.classList.add('visible');
+    placeTooltip(event.clientX, event.clientY);
+  }
+
+  function showTooltipForNode(target, paper) {
+    activeTooltipPaper = paper;
+    const rect = target.getBoundingClientRect();
+    const tip = $('atlasTooltip');
+    tip.innerHTML = tooltipHtml(paper);
+    tip.setAttribute('aria-hidden', 'false');
+    tip.classList.add('visible');
+    placeTooltip(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
+
+  function hideTooltip() {
+    activeTooltipPaper = null;
+    const tip = $('atlasTooltip');
+    tip.classList.remove('visible');
+    tip.setAttribute('aria-hidden', 'true');
   }
 
   function renderLegend() {
@@ -240,6 +344,7 @@ const { papers, taxonomy } = Astro.props;
 
   function selectPaper(slug) {
     selectedSlug = slug;
+    hideTooltip();
     renderAll();
   }
 
@@ -255,11 +360,14 @@ const { papers, taxonomy } = Astro.props;
       return;
     }
     const color = families[paper.axis_A.primary]?.color ?? '#335cff';
+    const allRoles = roles(paper).map((code) => `${code} ${families[code]?.short ?? ''}`);
+    const styleLabels = (paper.axis_B ?? []).map((code) => `${code} ${middles[code]?.short ?? ''}`);
+    const contextTerms = [...(paper.technology ?? []), ...(paper.workloads ?? [])];
     $('workDetails').innerHTML = `
       <div class="work-title">
         <div>
           <h3>${esc(paper.title)}</h3>
-          <div class="subtle">${esc(paper.subtitle || [paper.year, paper.venue].filter(Boolean).join(' · '))}</div>
+          <div class="subtle">${esc(metadataLine(paper) || paper.subtitle || 'No venue/year in metadata')}</div>
         </div>
         <span class="badge" style="border-color:${color}; color:${color};">${esc(paper.axis_A.primary)}</span>
       </div>
@@ -270,10 +378,17 @@ const { papers, taxonomy } = Astro.props;
       <p style="margin:0"><a class="badge" href="/papers/${esc(paper.slug)}/">Open paper page</a></p>
     `;
     $('workMore').innerHTML = `
-      <div class="kvs">
-        <div class="kv"><b>Axis B styles</b><div class="chip-row">${(paper.axis_B ?? []).map((code) => `<span class="chip">${esc(code)} ${esc(middles[code]?.short ?? '')}</span>`).join('')}</div></div>
-        <div class="kv"><b>First-class objects</b><ul>${(paper.axis_C_first_class_objects ?? []).slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
-        <div class="kv"><b>Rewrite objects</b><ul>${(paper.axis_D_rewrite_objects ?? []).slice(0, 8).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="coverage-cloud" aria-label="Selected paper axis coverage cloud">
+        <div class="cloud-center">
+          <span>Selected paper</span>
+          <strong>${esc(shortTitle(paper))}</strong>
+        </div>
+        ${category('Axis A roles', allRoles, 'role', 5)}
+        ${category('Axis B styles', styleLabels, 'style', 7)}
+        ${category('Axis C first-class objects', paper.axis_C_first_class_objects ?? [], 'object', 6)}
+        ${category('Axis D rewrite objects', paper.axis_D_rewrite_objects ?? [], 'rewrite', 6)}
+        ${contextTerms.length ? category('Technology / workloads', contextTerms, 'context', 6) : ''}
+        <p class="cloud-note">Descriptive metadata cloud only; it is not a score or ranking.</p>
       </div>
     `;
   }
@@ -283,6 +398,7 @@ const { papers, taxonomy } = Astro.props;
     drawAtlas();
     renderStats();
     renderDetails();
+    if (activeTooltipPaper) hideTooltip();
   }
 
   setupFilters();
