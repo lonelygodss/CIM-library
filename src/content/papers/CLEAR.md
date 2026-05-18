@@ -1,3 +1,73 @@
+---
+slug: clear
+title: "CLEAR: a full-stack chip-in-loop emulator for analog RRAM based computing-in-memory system"
+subtitle: "Scoped CIM stack note"
+year: 2023
+venue: "Science China Information Sciences 66(12):229402"
+authors_or_group: "Ruihua Yu, Wenqiang Zhang, Bin Gao, Yiwen Geng, Peng Yao, Yuyi Liu, Qingtian Zhang, Jianshi Tang, Dong Wu, Hu He, Ning Deng, He Qian, Huaqiang Wu; Tsinghua University"
+summary: >-
+  CLEAR is a chip-in-loop stack for analog RRAM computing-in-memory that connects chip-aware DNN training, a compiler, an “emulation-oriented IR,” and a calibrated emulator capable of switching parts of execution between a real chip and an analog computing model. Its most distinctive compiler/IR contribution is the use of backend addresses as part of the model representation: a layer can be mapped to a concrete chip/tile/XB coordinate and weight rectangle, or marked virtual for simulator/off-hardware execution. The demonstrated compiler scope is DNN-centric: ONNX-style neural-network graphs are optimized through operator fusion/splitting and critical-path resource reallocation, then evaluated on VGG/ResNet-style inference workloads and prior RRAM chip settings. For CIM compiler/IR research, CLEAR is most useful as an example of a hardware-addressed graph IR coupled tightly to calibration and chip-in-loop backend selection. ([SciEngine](https://cdn.sciengine.com/doi/pdf/761A2F2A63E7408AB2AE3B565114BDCC))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "analog-CIM"
+workloads:
+  - "VGG11"
+  - "ResNet18"
+  - "ResNet34"
+  - "ResNet50"
+  - "CIFAR-10 ResNet34 inference"
+  - "MNIST two-layer FC / five-layer CNN calibration cases"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3, A4, A6]
+axis_B: [B2, B4, B6, B5]
+axis_C_first_class_objects:
+  - "chip/tile/XB address"
+  - "XB weight rectangle [Sx,Sy,Ex,Ey]"
+  - "real-chip address"
+  - "virtual backend address"
+  - "VMM"
+  - "Add"
+  - "Activation"
+  - "Pooling"
+  - "Flatten"
+  - "Dispatch"
+  - "Merge"
+  - "ADC/DAC/shift-add path in backend model"
+axis_D_rewrite_objects:
+  - "operator graph"
+  - "layer fusion/splitting"
+  - "Conv/MatMul-to-VMM decomposition"
+  - "hardware mapping"
+  - "array/XB resource allocation"
+  - "backend address binding"
+artifact:
+  status: "public supplementary artifact found; no public runnable code artifact found"
+  url: "https://static-content.springer.com/esm/art%3A10.1007%2Fs11432-022-3756-3/MediaObjects/11432_2022_3756_MOESM1_ESM.pdf"
+  license: "Unknown / not found in checked sources"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Most reusable abstraction is the backend address field connecting graph nodes to real or virtual CIM execution."
+  - "Compiler evidence centers on operator fusion/splitting and critical-path XB reallocation."
+  - "Analog model exposes a useful value-path skeleton but does not present it as a rewriteable trajectory IR."
+takeaways: []
+---
+
 # CLEAR — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -214,27 +284,7 @@ The experiments cover three cases: dataflow optimization, analog computing verif
 
 **Integration effort estimate: High.** Integration would be most direct through a small adapter that reconstructs the emulation-oriented IR table and address grammar, then maps ONNX nodes to VMM/Add/Activation/Pooling/Flatten/Dispatch/Merge. The main effort is that no public runnable compiler, simulator, calibration package, or IR serialization was found, so reuse would primarily be conceptual unless the authors’ implementation becomes available.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CLEAR provides useful ingredients for a value-trajectory IR, especially its explicit hardware address fields and its analog backend path through bit slicing, DAC, array computation, ADC, and shift-add. The closest approximation to trajectory semantics is Appendix C’s analog computing model, while the compiler-facing IR centers on layer/operator nodes and backend addresses. ([Springer](https://static-content.springer.com/esm/art%3A10.1007%2Fs11432-022-3756-3/MediaObjects/11432_2022_3756_MOESM1_ESM.pdf))
-
-- **Does the paper name the path a value takes through CIM resources?** Partly. The analog model names the path at the block level: bit-sliced input → DAC → array → ADC → shift-add. The graph IR names operations and hardware addresses rather than per-value trajectories.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** The demonstrated abstraction preserves operation placement and layer metadata. Value identity across partial sums and reconstruction is represented implicitly through VMM/Add/Merge and simulator assumptions.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Placement is represented directly through address. Precision is an attribute. Bit significance and domain transition appear in the backend model, not as type-like IR fields.
-- **Could it express trajectory rewrites?** CLEAR’s current representation is well suited to choosing physical/virtual execution and reallocating XBs. A trajectory-level extension would likely attach bit significance, domain stage, partial-sum scope, sensing precision, reconstruction status, and accumulation ownership to VMM/Add/Dispatch/Merge edges.
-
-For the specific rewrites:
-
-| Trajectory rewrite | CLEAR fit |
-|---|---|
-| Fusing reconstruction with downstream reduction | Would likely need explicit reconstruction/partial-sum objects beyond the current Add/Merge and shift-add model. |
-| Delaying or retiming ADC conversion | Would likely need ADC boundary as a rewriteable IR node rather than backend model detail. |
-| Carrying bit-sliced partial sums across operator boundaries | Would likely need bit-slice lifetime and partial-sum identity annotations. |
-| Changing reduction tree structure | Partly expressible through Add/Merge placement if extended with reduction-tree structure. |
-| Routing values through alternative peripheral paths | Would likely need peripheral path nodes and constraints in the address/resource IR. |
-| Co-optimizing data movement and numeric reconstruction | A natural extension: combine CLEAR’s address grammar with trajectory types for domain, precision, and reconstruction stage. |
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -244,7 +294,7 @@ For the specific rewrites:
 | Fully hardware-implemented memristor CNN | Real RRAM CIM neural-network execution | CLEAR uses such prior chip/system results as calibration/evaluation context rather than presenting a new standalone chip. | Useful validation source; classify by hardware demonstration vs compiler stack role. ([SciEngine](https://cdn.sciengine.com/doi/pdf/761A2F2A63E7408AB2AE3B565114BDCC)) |
 | Array-level boosting RRAM CIM work | RRAM array accuracy and spatial allocation | CLEAR’s compiler resource allocation echoes array/resource-aware deployment, but wraps it in a compiler/emulator stack. | Helps distinguish circuit/device compensation from compiler-visible resource rewriting. ([SciEngine](https://cdn.sciengine.com/doi/pdf/761A2F2A63E7408AB2AE3B565114BDCC)) |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CLEAR’s real compiler/IR contribution is an address-bearing emulation-oriented graph representation that can direct a DNN layer to real RRAM hardware or virtual analog simulation.
 - The strongest reusable stack layer is the backend contract: operation metadata plus chip/tile/XB/row-column address plus `virtual` fallback.
@@ -254,72 +304,3 @@ For the specific rewrites:
 - Artifact status is partial: a public supplementary PDF exists, but no public runnable compiler/simulator/code artifact was found in the checked sources.
 - Integration is most realistic as IR and mapper inspiration rather than direct software reuse.
 - For value-trajectory IR research, CLEAR is valuable because its analog model exposes the missing trajectory path: bit slicing, DAC, array, ADC, and shift-add reconstruction.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CLEAR: a full-stack chip-in-loop emulator for analog RRAM based computing-in-memory system"
-year: 2023
-venue: "Science China Information Sciences 66(12):229402"
-authors_or_group: "Ruihua Yu, Wenqiang Zhang, Bin Gao, Yiwen Geng, Peng Yao, Yuyi Liu, Qingtian Zhang, Jianshi Tang, Dong Wu, Hu He, Ning Deng, He Qian, Huaqiang Wu; Tsinghua University"
-technology:
-  - RRAM-CIM
-  - analog-CIM
-workloads:
-  - VGG11
-  - ResNet18
-  - ResNet34
-  - ResNet50
-  - CIFAR-10 ResNet34 inference
-  - MNIST two-layer FC / five-layer CNN calibration cases
-axis_A:
-  primary: A5
-  secondary:
-    - A2
-    - A3
-    - A4
-    - A6
-axis_B:
-  - B2 Graph-as-IR
-  - B4 Hardware-resource IR
-  - B6 Accuracy / nonideality modeling
-  - B5 Instruction / meta-op / ILA, partial
-axis_C_first_class_objects:
-  - chip/tile/XB address
-  - XB weight rectangle [Sx,Sy,Ex,Ey]
-  - real-chip address
-  - virtual backend address
-  - VMM
-  - Add
-  - Activation
-  - Pooling
-  - Flatten
-  - Dispatch
-  - Merge
-  - ADC/DAC/shift-add path in backend model
-axis_D_rewrite_objects:
-  - operator graph
-  - layer fusion/splitting
-  - Conv/MatMul-to-VMM decomposition
-  - hardware mapping
-  - array/XB resource allocation
-  - backend address binding
-artifact:
-  status: "public supplementary artifact found; no public runnable code artifact found"
-  url: "Springer supplementary PDF linked from article page"
-  license: "Unknown / not found in checked sources"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Most reusable abstraction is the backend address field connecting graph nodes to real or virtual CIM execution."
-  - "Compiler evidence centers on operator fusion/splitting and critical-path XB reallocation."
-  - "Analog model exposes a useful value-path skeleton but does not present it as a rewriteable trajectory IR."
-```

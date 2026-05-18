@@ -1,3 +1,76 @@
+---
+slug: cimloop
+title: "CiMLoop: A Flexible, Accurate, and Fast Compute-In-Memory Modeling Tool"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)"
+authors_or_group: "Tanner Andrulis, Joel S. Emer, Vivienne Sze"
+summary: >-
+  CiMLoop is best read as a **CIM-aware modeling, cost-estimation, and mapping-support framework** rather than as a general compiler IR stack. Its contribution is a set of CiM-specific extensions around Timeloop+Accelergy: hierarchical YAML descriptions for circuits and architecture, per-component/per-tensor reuse and coalescing directives, explicit encoding and bit-slicing support, plug-in component models, and a statistical data-value-dependent energy pipeline that amortizes expensive value modeling across many Timeloop mappings. The paper demonstrates the framework on DNN inference workloads and published CiM macros spanning SRAM and ReRAM styles, validating energy/area/throughput against published simulated or silicon-measured macro data and using Timeloop-style mapping search for design-space studies. For CIM compiler/IR research, CiMLoop is most valuable as an example of **config-as-IR plus hardware-resource IR**: it shows how a backend-facing representation can name memory cells, converters, bit slices, reuse semantics, operand distributions, and calibrated component costs, while leaving higher-level graph IR, ISA, runtime protocol, and chip-in-loop execution outside the demonstrated interface. ([People](https://people.csail.mit.edu/emer/media/papers/2024.05.ispass.cimloop.pdf))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "ReRAM-CIM"
+  - "analog-CIM"
+  - "digital-CIM"
+  - "hybrid"
+workloads:
+  - "DNN inference"
+  - "ResNet18 / ImageNet"
+  - "GPT-2-sized tensor workload study"
+  - "matrix-vector / convolutional layers"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A3]
+axis_B: [B1, B3, B4, B6]
+axis_C_first_class_objects:
+  - "container_hierarchy"
+  - "component"
+  - "tensor_specific_reuse"
+  - "coalescing_bypass"
+  - "memory_cell"
+  - "cim_unit"
+  - "ADC_DAC"
+  - "row_column_drivers"
+  - "bit_slicing"
+  - "encoding_function"
+  - "operand_value_distribution"
+  - "per_action_energy_model"
+  - "calibration_scale"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "tensor_schedule"
+  - "array_binding"
+  - "memory_layout"
+  - "numeric_format_parameters"
+  - "cost_model_state"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/mit-emze/cimloop"
+  license: "MIT"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: high
+notes:
+  - "Best classified as modeling/simulation plus mapping/DSE support."
+  - "Config files function as the clearest reusable IR boundary."
+  - "Statistical value-dependent energy model amortizes operand-distribution analysis across mapping search."
+  - "Dense regular loop mappings are the core demonstrated assumption; sparse/dynamic trajectory semantics would require extensions."
+takeaways: []
+---
+
 # CiMLoop — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -215,22 +288,7 @@ The main accuracy/speed evaluation uses ResNet18/ImageNet and compares against N
 
 **Integration effort estimate: Medium.** Integration would be most direct through a YAML-emitting adapter from a future IR into CiMLoop’s composed model format. A Timeloop/Accelergy-based stack would have lower effort, while an MLIR/TVM-style compiler would need an explicit lowering layer for tensor dimensions, bit slices, component hierarchy, mapping constraints, and value-distribution metadata. The most valuable reusable boundary appears to be the combination of serialized hardware/resource config plus plug-in cost-model API.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CiMLoop provides useful ingredients for a value-trajectory IR, especially **component path nodes, per-tensor reuse semantics, bit slicing, encoding functions, operand-value distributions, analog/digital converter components, and calibrated action energies**. The closest approximation to trajectory semantics is the data-value-dependent pipeline: for each tensor, CiMLoop records a value distribution, applies encoding/slicing, derives what values each component type propagates, and evaluates component energy from that distribution. ([People](https://people.csail.mit.edu/emer/media/papers/2024.05.ispass.cimloop.pdf))
-
-The work names parts of the path a value takes through CIM resources—DAC, row drivers, memory cell/CiM unit, ADC, adder, shift-add, buffer, and related containers—but the demonstrated abstraction tracks **distributions and action counts** more than individual value identity. Bit significance and precision are represented in a type-like way through variables and problem dimensions (`X`, `Y`, `Z`), and domain transitions are visible as components with costed actions. ([GitHub](https://raw.githubusercontent.com/mit-emze/cimloop/main/workspace/models/workloads/problem_base.yaml))
-
-Trajectory-level rewrites would add a richer abstraction on top of CiMLoop’s current mapping/config state:
-
-- **Fusing reconstruction with downstream reduction:** CiMLoop has shift-add and accumulation components, but fusion legality across later operators would need an inter-operator value-lifetime abstraction.  
-- **Delaying or retiming ADC conversion:** ADCs are path components and are costed; retiming conversion would require an IR rule that preserves analog value validity, precision, and component constraints across path alternatives.  
-- **Carrying bit-sliced partial sums across operator boundaries:** CiMLoop exposes bit slices to mapping, but cross-operator slice lifetime would need explicit value-identity and storage semantics.  
-- **Changing reduction tree structure:** Spatial reuse/reduction and adder components provide ingredients; arbitrary tree rewrites would benefit from a first-class reduction-path object.  
-- **Routing through alternative peripheral paths:** Component hierarchies can model alternatives; automated routing rewrites would require a path-selection abstraction rather than manual config swapping.  
-- **Co-optimizing data movement and numeric reconstruction:** CiMLoop already connects reuse, mapping, encoding, and cost; a trajectory IR could attach precision stage, bit significance, domain, and placement metadata to values so this optimization becomes a typed rewrite problem.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -241,7 +299,7 @@ Trajectory-level rewrites would add a richer abstraction on top of CiMLoop’s c
 | NVMExplorer | Cross-stack memory-cell/device exploration | CiMLoop connects NVMExplorer memory-cell models into macro/system-level modeling through plug-ins. ([People](https://people.csail.mit.edu/emer/media/papers/2024.05.ispass.cimloop.pdf)) | Useful for corpus entries where device libraries feed higher-level cost models. |
 | ISAAC / PUMA-style CiM accelerators | Concrete CiM architecture and system modeling | These are closer to fixed design points; CiMLoop is a reusable modeling framework for comparing and composing multiple macro/system choices. ([People](https://people.csail.mit.edu/emer/media/papers/2024.05.ispass.cimloop.pdf)) | Separate “architecture proposal” entries from “infrastructure/cost backend” entries even when both model CIM systems. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CiMLoop’s real contribution is a **CIM-aware modeling and cost-estimation framework** layered on Timeloop+Accelergy, with mapping-search support rather than a standalone compiler IR.  
 - Its strongest reusable stack layer is the **serialized hardware/resource specification plus data-value-dependent cost-model plug-in boundary**.  
@@ -251,72 +309,3 @@ Trajectory-level rewrites would add a richer abstraction on top of CiMLoop’s c
 - Artifact status is strong for public reuse: MIT-licensed GitHub repository, Docker/Jupyter workflow, tutorials, macro guides, tests, component files, workloads, and reproduction notebooks.  
 - Integration is most direct as a backend simulator/cost-model plugin or as IR inspiration for CIM resource/value modeling; a higher-level compiler would need an adapter to emit CiMLoop configs and recover mapping/cost provenance.  
 - For a value-trajectory IR, CiMLoop offers key ingredients but would need explicit value identity, cross-operator lifetime, domain-transition, and reduction-path abstractions to support trajectory-level rewrites.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CiMLoop: A Flexible, Accurate, and Fast Compute-In-Memory Modeling Tool"
-year: 2024
-venue: "IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)"
-authors_or_group: "Tanner Andrulis, Joel S. Emer, Vivienne Sze"
-technology:
-  - SRAM-CIM
-  - ReRAM-CIM
-  - analog-CIM
-  - digital-CIM
-  - hybrid
-workloads:
-  - DNN inference
-  - ResNet18 / ImageNet
-  - GPT-2-sized tensor workload study
-  - matrix-vector / convolutional layers
-axis_A:
-  primary: A2_simulator_cost_model
-  secondary:
-    - A3_mapping_scheduling_DSE_framework
-axis_B:
-  - B1_config_as_IR
-  - B3_loop_tensor_schedule_IR
-  - B4_hardware_resource_IR
-  - B6_accuracy_nonideality_modeling
-axis_C_first_class_objects:
-  - container_hierarchy
-  - component
-  - tensor_specific_reuse
-  - coalescing_bypass
-  - memory_cell
-  - cim_unit
-  - ADC_DAC
-  - row_column_drivers
-  - bit_slicing
-  - encoding_function
-  - operand_value_distribution
-  - per_action_energy_model
-  - calibration_scale
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - tensor_schedule
-  - array_binding
-  - memory_layout
-  - numeric_format_parameters
-  - cost_model_state
-artifact:
-  status: public_artifact_found
-  url: "mit-emze/cimloop GitHub repository"
-  license: MIT
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: high
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as modeling/simulation plus mapping/DSE support."
-  - "Config files function as the clearest reusable IR boundary."
-  - "Statistical value-dependent energy model amortizes operand-distribution analysis across mapping search."
-  - "Dense regular loop mappings are the core demonstrated assumption; sparse/dynamic trajectory semantics would require extensions."
-```

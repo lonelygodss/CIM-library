@@ -1,3 +1,73 @@
+---
+slug: cima-com
+title: "CIMA_COM / CIMA_COMP"
+subtitle: "Scoped CIM stack note"
+year:
+venue: "unknown for exact CIMA_COM; related paper: Nature Communications"
+authors_or_group: "Tsinghua-LEMON-Lab; related paper includes Ruihua Yu, Ze Wang, Qi Liu, Bin Gao, Huaqiang Wu, et al."
+summary: >-
+  CIMA_COM / CIMA_COMP is best read as a CIMA-specific compiler and backend artifact that makes a practical CIM deployment pipeline concrete: it imports an ONNX-style DNN workload, converts it into a YAML/JSON-serializable graph IR, maps the graph onto a fixed CIMA hardware topology, attaches CIMA mapping and calculation metadata, and emits SystemC/UVM/chip-side JSON, weight, and activation-LUT artifacts for a YOLOv5m-style demonstration. Its strongest contribution to CIM compiler/IR research is the exposed boundary between graph-level model representation, CIM placement/splitting state, and backend code-generation contracts. The demonstrated scope is architecture-specific and artifact-centered: reuse is clearest for researchers interested in how a CIMA mapper/backend serializes graph, placement, precision, memory, and chip-configuration state across a narrow end-to-end stack. ([GitHub](https://github.com/Tsinghua-LEMON-Lab/CIMA_COMP/blob/main/))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "RRAM-CIM"
+  - "memristor-CIM"
+  - "analog-CIM"
+  - "CIMA-specific"
+workloads:
+  - "YOLOv5m-style object-detection demo"
+  - "static CNN inference"
+  - "related paper: six neural-network models across image classification, text classification, segmentation, and object detection"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A3, A4]
+axis_B: [B1, B2, B4, B5, B6]
+axis_C_first_class_objects:
+  - "unified_graph_IR"
+  - "CIMA_mapping_info"
+  - "CIMA_calc_info"
+  - "CIMA_device_topology"
+  - "core_PE_XB_allocation"
+  - "DMEM_allocation"
+  - "ADC_quant_level_and_ADC_range"
+  - "scale_offset_shift_metadata"
+  - "PE_direction_and_buffer_index"
+  - "weight_JSON"
+  - "activation_LUT_JSON"
+axis_D_rewrite_objects:
+  - "operator_graph"
+  - "hardware_mapping"
+  - "adaptive_split_and_reconstruction_graph"
+  - "array_binding"
+  - "memory_layout"
+  - "numeric_scaling_metadata"
+  - "backend_task_config"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/Tsinghua-LEMON-Lab/CIMA_COMP"
+  license: "unknown / not found in checked repository listing"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "backend"
+  - "benchmark"
+  - "validation_partial"
+reproducibility_level: unknown
+notes:
+  - "Exact public paper record for CIMA_COM/CIMA_COMP was not found in checked sources."
+  - "The strongest evidence is the public CIMA_COMP compiler/backend artifact."
+  - "Required YOLOv5m demo inputs include external training-derived .pth files."
+  - "The reusable boundary is clearest at YAML mapped IR plus SystemC/UVM/chip/weight/LUT JSON outputs."
+takeaways: []
+---
+
 # CIMA_COM / CIMA_COMP — scoped CIM stack note
 
 **Scope note.** I found a public **CIMA_COMP** repository and a closely related full-stack memristor-CIM paper from the same Tsinghua-LEMON ecosystem. I did **not** find a public paper record titled exactly **CIMA_COM** or **CIMA_COMP** in the checked sources. The note below therefore treats the repository as the strongest paper-specific artifact evidence, and uses the related Nature Communications full-stack CIM paper only where its compiler/IR claims align with the artifact vocabulary.
@@ -240,15 +310,7 @@ The backend path has several named outputs. UVM/SystemC generation loads the fin
 
 **Integration effort estimate:** **Medium to High.** Integration would be most direct through the serialized YAML/JSON artifacts and the mapper/backend Python APIs. Effort rises when targeting non-CIMA architectures, because CIMA-specific topology names, constants, external training artifacts, and backend conventions are embedded across mapper, parameter extraction, and codegen scripts.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially its explicit handoff from graph IR to CIMA mapping metadata, calculation metadata, backend task/config JSON, weight layout, and activation LUTs. The closest approximation to trajectory semantics is the combination of graph edges, `CIMA_mapping_info`, `CIMA_calc_info`, SystemC/chip JSON routing fields, PE direction, buffer indices, ADC range, scale/offset/shift fields, and LUT outputs. ([GitHub](https://raw.githubusercontent.com/Tsinghua-LEMON-Lab/CIMA_COMP/main/test/Yolov5m/main_mapper.py))
-
-The demonstrated abstraction centers on static graph mapping and backend configuration. It names where operators and weights are placed and how backend numeric parameters are attached, but value identity is distributed across multiple artifacts rather than preserved as a single trajectory object through analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. Bit significance, channel rate, precision stage, placement, and domain transition are present as parameters or conventions, not as one type-like trajectory annotation.
-
-A trajectory-level extension would likely attach value-path records to IR edges and mapped fragments: source tensor slice, bit significance, CIM array/PE binding, analog accumulation scope, ADC stage, scale/shift/reconstruction stage, buffer location, routing destination, and downstream reduction use. That would make it easier to express rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction trees, routing through alternative peripheral paths, and co-optimizing data movement with numeric reconstruction.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -258,7 +320,7 @@ A trajectory-level extension would likely attach value-path records to IR edges 
 | **OpenCIMTC** | Full-stack memristor-CIM toolchain | OpenCIMTC is an adjacent public toolchain with compiler/optimizer/simulator/training modules; CIMA_COMP is a narrower CIMA compiler/backend repository. | Corpus should link related artifacts but keep their evidence boundaries separate. ([GitHub](https://github.com/Tsinghua-LEMON-Lab/OpenCIMTC?utm_source=chatgpt.com)) |
 | **AIHWKIT** | Analog hardware-aware modeling and training | AIHWKIT is closer to analog nonideality/training simulation; CIMA_COMP is closer to compiler mapping and backend codegen. | Good contrast between B6 accuracy-model stacks and B1/B2/B4/B5 compiler-backend stacks. ([Nature](https://www.nature.com/articles/s41467-025-57183-0)) |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CIMA_COM / CIMA_COMP is best classified as a **narrow end-to-end CIMA compiler/backend stack** with a strong mapper/codegen layer.
 - The strongest reusable stack slice is the path from **ONNX-derived graph IR → CIMA mapped YAML IR → SystemC/UVM/chip JSON → weight/LUT artifacts**.
@@ -268,71 +330,3 @@ A trajectory-level extension would likely attach value-path records to IR edges 
 - Artifact status is **public artifact found**, but license and complete paper-figure reproduction scripts were not found in the checked CIMA_COMP sources.
 - Integration is most promising as a **CIMA mapper/backend specimen**, less as a general multi-architecture compiler substrate without adapters.
 - For value-trajectory IR research, the artifact is useful because it exposes many trajectory ingredients, while a future extension would need to make value path, domain transition, and reconstruction state first-class.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CIMA_COM / CIMA_COMP"
-year: "unknown for exact CIMA_COM; related full-stack CIM paper found in 2025"
-venue: "unknown for exact CIMA_COM; related paper: Nature Communications"
-authors_or_group: "Tsinghua-LEMON-Lab; related paper includes Ruihua Yu, Ze Wang, Qi Liu, Bin Gao, Huaqiang Wu, et al."
-technology:
-  - RRAM-CIM
-  - memristor-CIM
-  - analog-CIM
-  - CIMA-specific
-workloads:
-  - YOLOv5m-style object-detection demo
-  - static CNN inference
-  - "related paper: six neural-network models across image classification, text classification, segmentation, and object detection"
-axis_A:
-  primary: A5 narrow_end_to_end_co_design
-  secondary:
-    - A3 mapping_scheduling_DSE
-    - A4 explicit_IR_backend_compiler_stack_partial
-axis_B:
-  - B1 config_as_IR
-  - B2 graph_as_IR
-  - B4 hardware_resource_IR
-  - B5 backend_meta_op_config
-  - B6 precision_calculation_modeling_partial
-axis_C_first_class_objects:
-  - unified_graph_IR
-  - CIMA_mapping_info
-  - CIMA_calc_info
-  - CIMA_device_topology
-  - core_PE_XB_allocation
-  - DMEM_allocation
-  - ADC_quant_level_and_ADC_range
-  - scale_offset_shift_metadata
-  - PE_direction_and_buffer_index
-  - weight_JSON
-  - activation_LUT_JSON
-axis_D_rewrite_objects:
-  - operator_graph
-  - hardware_mapping
-  - adaptive_split_and_reconstruction_graph
-  - array_binding
-  - memory_layout
-  - numeric_scaling_metadata
-  - backend_task_config
-artifact:
-  status: public_artifact_found
-  url: "https://github.com/Tsinghua-LEMON-Lab/CIMA_COMP"
-  license: "unknown / not found in checked repository listing"
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR_inspiration
-  - mapper_scheduler
-  - backend
-  - benchmark
-  - validation_partial
-reproducibility_level: medium_low
-trajectory_IR_relevance: medium
-notes:
-  - "Exact public paper record for CIMA_COM/CIMA_COMP was not found in checked sources."
-  - "The strongest evidence is the public CIMA_COMP compiler/backend artifact."
-  - "Required YOLOv5m demo inputs include external training-derived .pth files."
-  - "The reusable boundary is clearest at YAML mapped IR plus SystemC/UVM/chip/weight/LUT JSON outputs."
-```

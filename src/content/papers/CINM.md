@@ -1,3 +1,89 @@
+---
+slug: cinm
+title: "CINM (Cinnamon): A Compilation Infrastructure for Heterogeneous Compute In-Memory and Compute Near-Memory Paradigms"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "ASPLOS '25 / Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 4"
+authors_or_group: "Asif Ali Khan; Hamid Farzaneh; Karl F. A. Friebel; Clément Fournier; Lorenzo Chelini; Jeronimo Castrillon"
+summary: >-
+  CINM, or Cinnamon, contributes an MLIR-based abstraction and lowering stack for compute-in-memory and compute-near-memory systems. Its strongest contribution for a compiler/IR corpus is the explicit hierarchy of dialects: a high-level `cinm` dialect for device-agnostic CINM operations and target-selection hooks, mid-level `cnm` and `cim` dialects for common near-memory and in-memory resource/control patterns, and device dialects such as UPMEM and memristor for backend-specific lowering. The demonstrated scope is CPU+UPMEM on real UPMEM hardware and CPU+memristor-crossbar through an OCC/gem5-style simulation path, with workloads drawn from ML kernels, tensor contractions, MLPs, and selected PriM benchmarks. CINM is therefore best read as a reusable compiler/mapping framework and IR design point for heterogeneous CIM/CNM systems, rather than as a fully calibrated universal CIM runtime or value-trajectory IR. ([arXiv](https://arxiv.org/html/2301.07486v4))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "UPMEM"
+  - "digital-CNM"
+  - "memristor-crossbar"
+  - "PCM"
+  - "RRAM-CIM"
+  - "analog-CIM"
+  - "hybrid"
+workloads:
+  - "GEMM / MM"
+  - "2MM / 3MM"
+  - "convolution"
+  - "tensor contractions"
+  - "MLP"
+  - "PriM: vector addition"
+  - "PriM: matrix-vector multiplication"
+  - "PriM: histogram"
+  - "PriM: BFS"
+  - "PriM: select"
+  - "PriM: reduction"
+  - "PriM: time-series analysis"
+tags: []
+baselines: []
+axis_A:
+  primary: A4
+  secondary: [A3, A5, A6]
+axis_B: [B4, B3, B5, B1]
+axis_C_first_class_objects:
+  - "cinm_tensor_ops"
+  - "cnm_workgroup"
+  - "cnm_buffer"
+  - "affine_scatter_gather_map"
+  - "cim_device_id"
+  - "cim_crossbar_id"
+  - "cim_future_barrier"
+  - "memristor_tile_id"
+  - "memristor_write_to_crossbar"
+  - "UPMEM_rank_dpu_tasklet_hierarchy"
+  - "UPMEM_WRAM_MRAM_memory_objects"
+  - "partial_result_merge"
+axis_D_rewrite_objects:
+  - "operator_graph"
+  - "tensor_program"
+  - "loop_nest"
+  - "hardware_mapping"
+  - "buffer_layout"
+  - "array_crossbar_binding"
+  - "device_meta_op_stream"
+  - "partial_sum_accumulation"
+artifact:
+  status: "public_artifact_found"
+  url: "https://github.com/tud-ccc/Cinnamon"
+  license: "MIT per LICENSE file; README text mentions BSD 2-clause, verify before redistribution"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "frontend"
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model_plugin_host"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Best understood as an MLIR compiler/mapping stack for CIM/CNM, not a universal validated CIM infrastructure."
+  - "UPMEM path has the clearest public artifact and real-hardware evidence."
+  - "Memristor path is important for analog-CIM comparison, but artifact-level backend completeness is partial in checked sources."
+  - "Cost model support is primarily an interface/placeholder; automated target-selection policy remains future work."
+  - "Value-trajectory extensions would attach domain, precision, bit-slice, sensing, reconstruction, and accumulation metadata to MLIR values and device futures."
+takeaways: []
+---
+
 # CINM (Cinnamon) — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -240,17 +326,7 @@ The artifact appears to omit, or at least does not make immediately public in th
 
 **Integration effort estimate: Medium.** Integration would be most direct through MLIR: reuse the dialect definitions, conversion passes, and UPMEM-oriented recipes. Effort rises for full reproduction because LLVM/MLIR versioning, UPMEM SDK/hardware, torch-mlir, and simulator setup are nontrivial dependencies. The most valuable reusable boundary appears to be the textual MLIR dialect stack, not the full end-to-end experimental environment.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CINM provides useful ingredients for a value-trajectory IR, especially resource naming, device execution boundaries, futures/barriers, workgroup-local buffers, scatter/gather maps, tile IDs, and partial-result merge points. It does name parts of the path a value takes through compiler resources: a tensor becomes a `cinm` op result, may be scattered to CNM buffers or written/executed/read via CIM protocol ops, and eventually lowers to device calls or LLVM. ([GitHub](https://raw.githubusercontent.com/tud-ccc/Cinnamon/main/include/cinm-mlir/Dialect/Cinm/IR/CinmOps.td))
-
-The closest approximation to trajectory semantics is the combination of MLIR SSA values, `cim.future`/barrier, `cnm` buffers, scatter/gather maps, and `cinm.mergePartial`. This preserves enough identity for host/device data movement and partial-result accumulation, but the demonstrated abstraction centers on operation/resource lowering rather than a typed value path through analog partial sums, sensing, reconstruction, reduction, and storage. ([GitHub](https://raw.githubusercontent.com/tud-ccc/Cinnamon/main/include/cinm-mlir/Dialect/Cim/IR/CimOps.td))
-
-Bit significance, channel rate, precision stage, placement, and domain transition are partly present as assumptions or backend setup parameters. For example, the paper describes bit slicing across columns and shift-add weighting, and mentions setup parameters such as shared ADC count and write mode, but these are not exposed as type-like annotations on values in the checked artifact surface. ([arXiv](https://arxiv.org/html/2301.07486v4))
-
-For trajectory rewrites, CINM’s current abstractions are closest to supporting placement/routing and partial-result accumulation. Rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing through alternate peripheral paths would likely attach trajectory metadata to `cinm` tensor values, `cim.future` results, memristor tile operations, and `cnm` buffers. A trajectory-level extension would add explicit fields for domain, bit significance, sensing stage, reconstruction stage, accumulation path, and storage placement.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -261,7 +337,7 @@ For trajectory rewrites, CINM’s current abstractions are closest to supporting
 | CHOPPER / PRIMO | Low-level bit-serial or vector/SIMD-style offload | CHOPPER focuses on bit-serial SIMD DRAM processing; PRIMO substitutes vector patterns with device APIs. CINM instead introduces reusable mid-level dialects. ([arXiv](https://arxiv.org/html/2301.07486v4)) | These are closer to instruction/API substitution or bit-serial mapping; CINM is broader in IR layering. |
 | Infinity Stream | Hybrid in/near-memory execution from program dataflow | The paper calls Infinity Stream the closest in goal, but contrasts its LLVM-IR dataflow extraction with CINM’s multiple IR levels for domain/device optimizations. ([arXiv](https://arxiv.org/html/2301.07486v4)) | Useful contrast between late LLVM/dataflow extraction and earlier multi-level IR design. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CINM’s core contribution is a hierarchical MLIR abstraction stack for CIM/CNM compilation: `cinm`, `cim`, `cnm`, and device dialects.
 - The strongest reusable stack layer is the middle compiler IR: constrained CINM ops, CNM workgroups/buffers/scatter/gather, and CIM acquire/execute/read/write protocol.
@@ -271,87 +347,3 @@ For trajectory rewrites, CINM’s current abstractions are closest to supporting
 - Artifact status: public artifact found; it includes source, dialect definitions, testbench files, build recipes, and Figure 11/12 data, with full UPMEM/simulator reproduction dependent on external infrastructure.
 - CINM is best integrated as IR inspiration, UPMEM backend scaffolding, and a host for future cost models rather than as a complete calibrated mapping oracle.
 - For value-trajectory IR research, CINM provides resource and lowering ingredients, while trajectory-level rewrites would add explicit value-domain, bit-slice, sensing, reconstruction, and accumulation metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CINM (Cinnamon): A Compilation Infrastructure for Heterogeneous Compute In-Memory and Compute Near-Memory Paradigms"
-year: 2025
-venue: "ASPLOS '25 / Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 4"
-authors_or_group: "Asif Ali Khan; Hamid Farzaneh; Karl F. A. Friebel; Clément Fournier; Lorenzo Chelini; Jeronimo Castrillon"
-technology:
-  - UPMEM
-  - digital-CNM
-  - memristor-crossbar
-  - PCM
-  - RRAM-CIM
-  - analog-CIM
-  - hybrid
-workloads:
-  - GEMM / MM
-  - 2MM / 3MM
-  - convolution
-  - tensor contractions
-  - MLP
-  - PriM: vector addition
-  - PriM: matrix-vector multiplication
-  - PriM: histogram
-  - PriM: BFS
-  - PriM: select
-  - PriM: reduction
-  - PriM: time-series analysis
-axis_A:
-  primary: A4_explicit_IR_dialect_compiler_stack
-  secondary:
-    - A3_mapping_scheduling_DSE_framework
-    - A5_narrow_end_to_end_codesign
-    - A6_limited_real_hardware_runtime_evidence
-axis_B:
-  - B4_hardware_resource_IR
-  - B3_loop_tensor_schedule_IR
-  - B5_device_meta_op_IR
-  - B1_partial_config_as_IR
-axis_C_first_class_objects:
-  - cinm_tensor_ops
-  - cnm_workgroup
-  - cnm_buffer
-  - affine_scatter_gather_map
-  - cim_device_id
-  - cim_crossbar_id
-  - cim_future_barrier
-  - memristor_tile_id
-  - memristor_write_to_crossbar
-  - UPMEM_rank_dpu_tasklet_hierarchy
-  - UPMEM_WRAM_MRAM_memory_objects
-  - partial_result_merge
-axis_D_rewrite_objects:
-  - operator_graph
-  - tensor_program
-  - loop_nest
-  - hardware_mapping
-  - buffer_layout
-  - array_crossbar_binding
-  - device_meta_op_stream
-  - partial_sum_accumulation
-artifact:
-  status: public_artifact_found
-  url: "https://github.com/tud-ccc/Cinnamon"
-  license: "MIT per LICENSE file; README text mentions BSD 2-clause, verify before redistribution"
-  last_checked: "2026-05-15"
-integration_roles:
-  - frontend
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model_plugin_host
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Best understood as an MLIR compiler/mapping stack for CIM/CNM, not a universal validated CIM infrastructure."
-  - "UPMEM path has the clearest public artifact and real-hardware evidence."
-  - "Memristor path is important for analog-CIM comparison, but artifact-level backend completeness is partial in checked sources."
-  - "Cost model support is primarily an interface/placeholder; automated target-selection policy remains future work."
-  - "Value-trajectory extensions would attach domain, precision, bit-slice, sensing, reconstruction, and accumulation metadata to MLIR values and device futures."
-```

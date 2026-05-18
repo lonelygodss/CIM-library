@@ -1,3 +1,85 @@
+---
+slug: ciminus
+title: "CIMinus: Empowering Sparse DNN Workloads Modeling and Exploration on SRAM-Based CIM Architectures"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "IEEE Transactions on Computers"
+authors_or_group: "Yingjie Qi, Jianlei Yang, Rubing Yang, Cenlin Duan, Xiaolin He, Ziyan He, Weitao Pan, Weisheng Zhao"
+summary: >-
+  **CIMinus** contributes a sparse-DNN modeling and exploration framework for digital SRAM-based compute-in-memory systems. Its central stack contribution is **FlexBlock**, a compositional sparsity abstraction that represents structurally constrained sparse weight matrices using FullBlock and IntraBlock patterns, coupled with a declarative interface for workload DAGs, hardware units, and mapping templates. The demonstrated flow starts from ONNX or manually described DNN workloads, applies or describes FlexBlock-compatible pruning masks, maps compressed/rearranged weights onto parameterized CIM macros, and estimates latency and energy through system-level/cycle-level modeling. The work is most relevant to CIM compiler/IR research as a **configuration-and-mapping boundary**: it shows how sparsity masks, compressed matrix layout, loopnest mapping, index-memory overhead, and macro organization can be named explicitly enough for exploration, even though the paper’s reusable endpoint is a simulator/cost-model report rather than a compiler IR, ISA, or synthesis backend. ([arXiv](https://arxiv.org/pdf/2511.16368v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+workloads:
+  - "sparse DNN inference"
+  - "CNNs"
+  - "ResNet50"
+  - "ResNet18"
+  - "VGG16"
+  - "MobileNetV2"
+  - "CIFAR-100"
+  - "ImageNet"
+tags: []
+baselines: []
+axis_A:
+  primary: A2
+  secondary: [A3, A5]
+axis_B: [B1, B2, B3, B4, B7]
+axis_C_first_class_objects:
+  - "FlexBlock sparsity"
+  - "FullBlock sparsity"
+  - "IntraBlock sparsity"
+  - "sparse masks"
+  - "compressed/rearranged weight matrix"
+  - "CIM array"
+  - "sub-array"
+  - "macro organization"
+  - "pre-processing unit"
+  - "post-processing unit"
+  - "index unit"
+  - "index memory"
+  - "multiplexer-based routing"
+  - "accumulator"
+  - "shift-add unit"
+  - "global/local buffer"
+  - "input-sparsity profiling"
+axis_D_rewrite_objects:
+  - "sparsity mask"
+  - "weight layout"
+  - "compression orientation"
+  - "data rearrangement"
+  - "loopnest mapping"
+  - "spatial/temporal binding"
+  - "hardware mapping"
+  - "macro organization"
+  - "weight duplication"
+  - "cost-model access state"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Best classified as modeling/simulation framework plus sparse-CIM mapping abstraction."
+  - "FlexBlock is the clearest reusable object for future compiler IR design."
+  - "MappingTemplate acts as a de facto IR boundary across workload layout, compression, tiling, loop mapping, and hardware binding."
+  - "Validated against reported MARS and SDP results, with paper-reported 5.27% speedup/energy-saving error margin."
+  - "No public CIMinus artifact located; nearby public CIMFlow artifact should be treated as a separate stack unless authors later connect it to CIMinus."
+takeaways: []
+---
+
 # CIMinus — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -236,25 +318,7 @@ Important distinction: a **related** public CIMFlow repository from the same lab
 **Integration effort estimate: Medium–High.**  
 Integration would be most direct through **IR inspiration and cost-model reimplementation**, because the paper provides clear object boundaries and equations. Reuse would benefit from a small adapter that extracts FlexBlock metadata, compressed matrix layout, loopnest binding, and hardware-unit parameters from an upstream compiler IR. Effort rises because the simulator implementation, configs, and reproduction scripts were not found publicly, so backend behavior would need to be reconstructed from the paper.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CIMinus provides useful ingredients for a value-trajectory IR, especially its explicit treatment of CIM arrays, sub-arrays, preprocessors, index units, adders, shift-adders, accumulators, buffers, sparse masks, compressed weight matrices, and spatial/temporal loop mapping. The closest approximation to trajectory semantics is the combination of the workload DAG, mapping template, compressed/rearranged matrix layout, and cost model’s internal access/latency state. ([arXiv](https://arxiv.org/pdf/2511.16368v1))
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Partially. It names operation destinations, preprocessing, CIM arrays, accumulators, shift-adders, post-processing, buffers, index memories, and loop mappings, but the named object is a mapping/cost state rather than a value-identity trajectory.
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  The demonstrated abstraction centers on digital SRAM-CIM, so analog partial sums and sensing are background rather than modeled trajectory objects. Digital accumulation and shift-add resources are named as hardware units, but value identity across reconstruction, reduction, and downstream storage is not the paper’s first-class abstraction.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Precision and bit-serial execution are represented as assumptions/parameters; placement is represented through mapping and hardware organization; sparsity block type is closer to type-like metadata. Domain transition is not central for the digital CIM target.
-
-- **Could the representation express trajectory rewrites?**  
-  It can express layout/mapping changes such as compression orientation, slicing/padding rearrangement, spatial/temporal loop binding, macro organization, and weight duplication. Rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction-tree structure, or routing values through alternative peripheral paths would likely require an added trajectory abstraction that attaches value identity, numeric stage, bit significance, accumulation domain, storage location, and reconstruction obligation to DAG edges or loop-carried tensors.
-
-A trajectory-level extension would likely attach **value-stage metadata** to tensors or loopnest edges: `{domain: digital/analog, bit_slice, significance, producer_unit, accumulation_path, reconstruction_state, buffer_location, sparse_index_context}`. CIMinus’s FlexBlock and mapping template would then become layout and placement attributes inside a richer value-flow IR.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -266,7 +330,7 @@ A trajectory-level extension would likely attach **value-stage metadata** to ten
 | **CiMLoop** | Flexible hardware specification and fast energy modeling | CiMLoop is presented as efficient system-level modeling with flexible hardware specs and statistical energy modeling; CIMinus’s differentiator is FlexBlock plus sparse workload/mapping support. ([arXiv](https://arxiv.org/pdf/2511.16368v1)) | Pair CiMLoop with CIMinus when comparing cost-model frameworks, but tag CIMinus for sparse-CIM first-class objects. |
 | **CIMFlow** | Digital CIM compilation and simulation infrastructure | CIMFlow exposes an ISA, MLIR-based compiler, and SystemC simulator; CIMinus exposes sparse-DNN cost modeling and mapping abstractions without a found public compiler artifact. ([cimflow.org](https://www.cimflow.org/)) | CIMFlow belongs closer to explicit compiler/ISA stack; CIMinus belongs closer to sparse mapping/cost-model abstraction. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CIMinus’s main contribution is a **sparse-DNN cost-modeling and mapping-exploration framework** for digital SRAM-based CIM.
 - The strongest reusable abstraction is **FlexBlock**, which makes structured sparsity patterns first-class through FullBlock, IntraBlock, block sizes, sparsity ratios, pattern sets, and composition order.
@@ -276,83 +340,3 @@ A trajectory-level extension would likely attach **value-stage metadata** to ten
 - Evidence is strongest for sparse-DNN cost modeling, mapping exploration, pruning-mask generation, and validation against reported MARS and SDP results.
 - **Artifact status: no public artifact found.**
 - For a value-trajectory CIM IR, CIMinus offers useful layout/mapping/cost ingredients; trajectory-level rewrites would add explicit value identity, bit significance, numeric stage, accumulation path, reconstruction state, and storage/domain transition metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CIMinus: Empowering Sparse DNN Workloads Modeling and Exploration on SRAM-Based CIM Architectures"
-year: 2025 accepted / 2026 IEEE TC issue
-venue: "IEEE Transactions on Computers"
-authors_or_group: "Yingjie Qi, Jianlei Yang, Rubing Yang, Cenlin Duan, Xiaolin He, Ziyan He, Weitao Pan, Weisheng Zhao"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-workloads:
-  - sparse DNN inference
-  - CNNs
-  - ResNet50
-  - ResNet18
-  - VGG16
-  - MobileNetV2
-  - CIFAR-100
-  - ImageNet
-axis_A:
-  primary: A2
-  secondary:
-    - A3
-    - A5
-axis_B:
-  - B1 Config-as-IR
-  - B2 Graph-as-IR
-  - B3 Loop / tensor-schedule IR
-  - B4 Hardware-resource IR
-  - partial B7 Runtime-state abstraction
-axis_C_first_class_objects:
-  - FlexBlock sparsity
-  - FullBlock sparsity
-  - IntraBlock sparsity
-  - sparse masks
-  - compressed/rearranged weight matrix
-  - CIM array
-  - sub-array
-  - macro organization
-  - pre-processing unit
-  - post-processing unit
-  - index unit
-  - index memory
-  - multiplexer-based routing
-  - accumulator
-  - shift-add unit
-  - global/local buffer
-  - input-sparsity profiling
-axis_D_rewrite_objects:
-  - sparsity mask
-  - weight layout
-  - compression orientation
-  - data rearrangement
-  - loopnest mapping
-  - spatial/temporal binding
-  - hardware mapping
-  - macro organization
-  - weight duplication
-  - cost-model access state
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: unknown
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Best classified as modeling/simulation framework plus sparse-CIM mapping abstraction."
-  - "FlexBlock is the clearest reusable object for future compiler IR design."
-  - "MappingTemplate acts as a de facto IR boundary across workload layout, compression, tiling, loop mapping, and hardware binding."
-  - "Validated against reported MARS and SDP results, with paper-reported 5.27% speedup/energy-saving error margin."
-  - "No public CIMinus artifact located; nearby public CIMFlow artifact should be treated as a separate stack unless authors later connect it to CIMinus."
-```
