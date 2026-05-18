@@ -1,3 +1,62 @@
+---
+slug: cim-prune
+title: "CIM-Pruner: A Dual-Mode Compute-In-Memory Macro for Efficient VLMs with Intra-Chunk Token Pruning and Merging"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "ISCAS 2026"
+authors_or_group: "Zhuojun Han, Siqi He, Chixiao Chen, Haozhe Zhu"
+summary: >-
+  CIM-Pruner is publicly described as an ISCAS 2026 paper proposing a dual-mode Compute-in-Memory macro for efficient Vision-Language Models through in-memory token pruning and token merging. Its strongest public evidence places the contribution at the CIM macro and narrow hardware-software co-design layer: it targets the token-reduction behavior of VLM inference and appears to make intra-chunk pruning/merging a hardware-visible operation. For CIM compiler/IR research, the main value is not an exposed frontend, IR, mapper, ISA, or reusable backend interface, but the set of dynamic objects it motivates: token masks, merge groups, chunk boundaries, macro mode switches, and token lineage. Those objects are important because a future VLM-oriented CIM backend would need to name, preserve, verify, and lower them across the boundary between token-level algorithms and CIM macro execution. ([Haozhe's Blog](https://zhutmost.com/publication))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "CIM macro"
+  - "memory technology unknown/not found"
+  - "VLM-oriented CIM"
+workloads:
+  - "Vision-Language Models"
+  - "dynamic token pruning"
+  - "token merging"
+  - "intra-chunk token reduction"
+tags: []
+baselines: []
+axis_A:
+  primary: A1
+  secondary: [A5]
+axis_B: [B4, B7]
+axis_C_first_class_objects:
+  - "dual-mode CIM macro"
+  - "macro mode switch"
+  - "token keep/drop mask"
+  - "merge group"
+  - "chunk boundary"
+  - "token lineage"
+axis_D_rewrite_objects:
+  - "runtime state"
+  - "token set"
+  - "mode selection"
+  - "token lineage"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: low
+notes:
+  - "Full paper text not found in checked public sources."
+  - "Author news confirms a CIM macro supporting in-memory token merging and pruning for Vision-Language Models."
+  - "Detailed circuit parameters, algorithms, benchmarks, equations, and reproduction workflow are unknown from public evidence."
+takeaways: []
+---
+
 # CIM-Pruner — scoped CIM stack note
 
 **Source status note.** I found public author-page evidence for the paper, but I did **not** find a public paper PDF, official code repository, documentation, simulator, benchmark package, or artifact. The author publication page lists CIM-Pruner as an accepted ISCAS 2026 paper by Zhuojun Han, Siqi He, Chixiao Chen, and Haozhe Zhu, and the author news page says it demonstrates a CIM macro supporting in-memory token merging and pruning for Vision-Language Models. ([Haozhe's Blog](https://zhutmost.com/publication))  
@@ -258,25 +317,7 @@ No official simulator, RTL, netlist, scripts, trace format, model patch, benchma
 
 **Integration effort estimate: High.** Integration would be most direct through a small adapter that models token masks, merge groups, chunk boundaries, and macro modes. However, practical reuse depends on access to the full paper or artifact because the public evidence does not expose the macro interface, circuit parameters, cost model, or reproduction workflow.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CIM-Pruner provides useful ingredients for a value-trajectory IR, especially at the level of **token identity transformation**. The closest approximation to trajectory semantics is the movement from input tokens, through pruning or merging inside a chunk, to a reduced output token set.
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Public evidence names the CIM macro and token-reduction operation, but the checked sources do not expose the detailed path through arrays, sensing, accumulation, reconstruction, or storage.
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  Token merging implies a need to preserve identity or lineage from input tokens to output tokens. Public evidence does not show whether identity is preserved across circuit-level stages.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Unknown / not found in the checked sources.
-
-- **Could the representation express trajectory rewrites such as fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing reduction tree structure, routing values through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction?**  
-  The demonstrated public abstraction centers on token pruning/merging and macro mode. Trajectory-level rewrites would likely add a value-path type that attaches `{token_id, chunk_id, lineage, macro_mode, precision, domain, location, accumulation_stage}` to each intermediate value.
-
-A trajectory-level extension would likely attach token-lineage metadata to the macro’s physical path metadata. That would let a compiler reason about both semantic reduction and CIM resource traversal in one representation.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -287,7 +328,7 @@ A trajectory-level extension would likely attach token-lineage metadata to the m
 | **ARCTIC** | CIM macro generation and hardware-resource parameterization. | ARCTIC is a DCIM compiler that takes user-provided parameters and constraints and generates DCIM structures, macro layouts, and BIST circuits, with explicit precision and macro-template generation. ([DATE Conference](https://past.date-conference.com/proceedings-archive/2024/DATA/399_pdf_upload.pdf)) | ARCTIC is a stronger A1/A4 generator-stack comparison: it shows what a reusable macro compiler boundary looks like when parameters, templates, and generated artifacts are exposed. |
 | **CIMFlow** | Explicit CIM compiler/simulator stack. | CIMFlow documents an ONNX-to-MLIR-to-ISA flow and a SystemC simulator that executes ISA instruction streams and reports cycle/energy metrics. ([CIMFlow](https://www.cimflow.org/docs/Compiler)) | CIMFlow is the contrast case for explicit IR/ISA stacks; CIM-Pruner is better classified as a macro/co-design contribution unless a compiler interface becomes public. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CIM-Pruner is publicly evidenced as an ISCAS 2026 dual-mode CIM macro for VLM token pruning and token merging.
 - The strongest reusable stack layer is the **hardware macro / narrow hardware-software co-design** layer.
@@ -297,55 +338,3 @@ A trajectory-level extension would likely attach token-lineage metadata to the m
 - **Artifact status: no public artifact found.**
 - Integration into a future CIM compiler would be most useful as IR inspiration and backend-contract design rather than as a drop-in compiler component.
 - For a value-trajectory IR, CIM-Pruner is a medium-relevance case: it highlights semantic value lineage through token merging, while detailed physical value paths remain unknown from public evidence.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CIM-Pruner: A Dual-Mode Compute-In-Memory Macro for Efficient VLMs with Intra-Chunk Token Pruning and Merging"
-year: 2026
-venue: "ISCAS 2026"
-authors_or_group: "Zhuojun Han, Siqi He, Chixiao Chen, Haozhe Zhu"
-technology:
-  - CIM macro
-  - memory technology unknown/not found
-  - VLM-oriented CIM
-workloads:
-  - Vision-Language Models
-  - dynamic token pruning
-  - token merging
-  - intra-chunk token reduction
-axis_A:
-  primary: "A1 Macro / circuit generator or macro design"
-  secondary: "A5 Narrow end-to-end co-design"
-axis_B:
-  - "B4 Hardware-resource IR (implicit)"
-  - "B7 Runtime-state abstraction (implicit)"
-axis_C_first_class_objects:
-  - dual-mode CIM macro
-  - macro mode switch
-  - token keep/drop mask
-  - merge group
-  - chunk boundary
-  - token lineage
-axis_D_rewrite_objects:
-  - runtime state
-  - token set
-  - mode selection
-  - token lineage
-artifact:
-  status: "no public artifact found"
-  url: null
-  license: unknown
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: low
-trajectory_IR_relevance: medium
-notes:
-  - "Full paper text not found in checked public sources."
-  - "Author news confirms a CIM macro supporting in-memory token merging and pruning for Vision-Language Models."
-  - "Detailed circuit parameters, algorithms, benchmarks, equations, and reproduction workflow are unknown from public evidence."
-```

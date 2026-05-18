@@ -1,3 +1,70 @@
+---
+slug: c4cam
+title: "C4CAM"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "ASPLOS 2024"
+authors_or_group: "Hamid Reza Farzaneh, Mohammad Hossein Shahrokh Abadi, Minxuan Zhou, Wanqian Zhao, Aviral Shrivastava, Jeronimo Castrillon"
+summary: >-
+  C4CAM is a 2024 ASPLOS paper that proposes an MLIR-based compiler and mapping flow for content-addressable-memory accelerators, focused on similarity and search-style workloads rather than general tensor-program compilation. Its main technical contribution is a layered lowering path from TorchScript/Torch MLIR into a generic `cim` abstraction and then into a CAM-specific `cam` abstraction that names CAM hierarchy, allocation, search mode, similarity metric, and partial-result handling. The demonstrated workloads are KNN, hyperdimensional-computing similarity, and DNA read mapping, evaluated through a CAMASim/Eva-CAM-style simulator setup with FeFET TCAM/MCAM assumptions rather than through a public end-to-end compiler artifact. The work is most useful to CIM compiler/IR research as an example of making CAM search and hierarchy mapping explicit in IR, with the clearest reusable boundary around pattern lowering, CAM resource binding, and simulator-facing cost-model integration. ([Cfaed](https://cfaed.tu-dresden.de/publications?pubId=3738))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "other: FeFET-CAM"
+  - "TCAM"
+  - "MCAM"
+  - "associative-CIM"
+  - "hybrid"
+workloads:
+  - "KNN similarity search"
+  - "hyperdimensional-computing similarity"
+  - "DNA read mapping"
+tags: []
+baselines: []
+axis_A:
+  primary: A4
+  secondary: [A3, A5, A2]
+axis_B: [B2, B4, B3, B1, B6]
+axis_C_first_class_objects:
+  - "CAM device type"
+  - "CAM search type"
+  - "similarity metric"
+  - "bank / mat / array / subarray hierarchy"
+  - "CAM allocation handles"
+  - "write / search / read operations"
+  - "partial-result merge policy"
+  - "architecture specification"
+axis_D_rewrite_objects:
+  - "operator graph"
+  - "similarity pattern"
+  - "partitioning state"
+  - "hardware mapping"
+  - "array binding"
+  - "loop schedule"
+  - "resource activation mode"
+  - "backend API sequence"
+artifact:
+  status: "partial: related public CAMASim simulator found; C4CAM compiler artifact status: no public artifact found"
+  url: "https://github.com/camasim-project/CAMASim"
+  license: "MIT for CAMASim"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: unknown
+notes:
+  - "Most reusable compiler idea is the separation between cim.similarity and cam hierarchy/resource operations."
+  - "Artifact-level reuse is clearest through CAMASim rather than through a public C4CAM compiler implementation."
+  - "Precision, sensing, and merge costs are important but largely represented through simulator/configuration assumptions rather than type-like IR."
+takeaways: []
+---
+
 # C4CAM — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -274,42 +341,7 @@ Precision is evaluated experimentally rather than represented as a rich type sys
 
 **Integration effort estimate: Medium–High.** Integration would be most direct through CAMASim, because that public boundary exposes simulator calls and configuration structure. Reusing C4CAM as a compiler stack would require rebuilding the MLIR dialects, pattern rewrites, mapping passes, and paper-specific workload lowering from the descriptions. The most valuable reusable boundary appears to be the semantic split between `cim.similarity` and `cam` hierarchy mapping.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-C4CAM provides useful ingredients for a value-trajectory IR, especially its explicit write/search/read resource operations, CAM hierarchy handles, and partial-result merge discussion. The closest approximation to trajectory semantics is the path from `cam.write_value` into subarray search, result readout, and horizontal/vertical merge. This gives a coarse path through CAM resources, but it does not fully preserve value identity across sensing, analog/digital transition, digital accumulation, reconstruction, reduction, and storage as first-class IR state. ([Cfaed](https://cfaed.tu-dresden.de/files/Images/people/chair-cc/publications/2405_Farzaneh_ASPLOS.pdf))
-
-For the specific trajectory-IR questions:
-
-- **Does the paper name the path a value takes through CIM resources?**  
-  Partially. It names write, search, read, hierarchy allocation, and merge operations. It does not describe a general value-flow graph through every peripheral and numeric-domain stage.
-
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?**  
-  It preserves query/reference/result structure at the CAM operation level and discusses partial-result accumulation. Detailed value identity across sensing and peripheral stages is mostly represented through simulator behavior and cost configuration.
-
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?**  
-  Placement is represented through `cam` resource allocation. Precision and sensing are parameters in experiments and simulator setup. Bit significance, channel rate, and domain transition are not presented as type-like compiler attributes.
-
-- **Could it express fusing reconstruction with downstream reduction?**  
-  The current abstraction is closer to CAM search plus merge. A trajectory-level extension would likely attach reconstruction and reduction-stage attributes to result buffers and merge operations.
-
-- **Could it express delaying or retiming ADC conversion?**  
-  The demonstrated abstraction centers on CAM search operations and simulator-level sensing assumptions. Retiming conversion would require first-class domain-transition nodes or attributes.
-
-- **Could it carry bit-sliced partial sums across operator boundaries?**  
-  The paper’s demonstrated workloads use CAM match/search semantics rather than cross-operator bit-sliced arithmetic. This would likely require additional value-stage and bit-slice provenance metadata.
-
-- **Could it change reduction tree structure?**  
-  Partially. The paper discusses partial-result accumulation and hardware-vs-CPU merge choices. A trajectory IR could make the merge tree itself explicit and rewriteable.
-
-- **Could it route values through alternative peripheral paths?**  
-  The simulator/cost configuration can represent alternative peripheral costs, but compiler-level peripheral-path routing would require additional IR objects.
-
-- **Could it co-optimize data movement and numeric reconstruction?**  
-  C4CAM already co-optimizes CAM mapping and resource activation for latency, power, and density. Numeric reconstruction/data-movement co-optimization would require a richer abstraction for value stage, domain, and reconstruction location.
-
-A trajectory-level extension would likely attach attributes such as `{resource, domain, precision, encoding, sensing_stage, merge_stage, result_provenance}` to `cam.write`, `cam.search`, `cam.read`, result buffers, and merge operations. C4CAM is therefore a useful CAM-hierarchy and search-operation starting point, but a value-trajectory IR would add a more explicit account of numeric stage and value identity.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -320,7 +352,7 @@ A trajectory-level extension would likely attach attributes such as `{resource, 
 | Manual HDC CAM designs such as BioHD/SearchD | CAM acceleration of hyperdimensional similarity | Manual designs provide hand-tuned application baselines; C4CAM automates a compiler path for related HDC kernels. | Use these as evidence baselines, not as IR-stack equivalents. |
 | Manual DNA CAM mapping / FVSA-style read mapping | CAM acceleration of approximate sequence matching | Manual DNA accelerators hardwire lookup/voting structure; C4CAM expresses parts of this through CAM search and merge abstractions. | Good comparison for whether voting/merge state is first-class or embedded in application logic. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - C4CAM’s core contribution is an MLIR-based lowering path for CAM-oriented similarity/search kernels, centered on `cim.similarity` and a CAM-specific `cam` abstraction.
 - The strongest reusable stack layer is the middle/backend boundary: similarity primitive → CAM hierarchy allocation → write/search/read → simulator-facing execution.
@@ -330,69 +362,3 @@ A trajectory-level extension would likely attach attributes such as `{resource, 
 - C4CAM compiler artifact status: no public artifact found. A related public CAMASim simulator artifact is available under MIT license.
 - Integration is most direct through CAMASim or by reimplementing the `cim`/`cam` abstractions in an MLIR-based compiler.
 - For a value-trajectory IR, C4CAM is most relevant as a resource-path and search-operation model; trajectory-level work would add first-class value identity, domain transition, precision stage, and merge/reconstruction metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "C4CAM"
-year: 2024
-venue: "ASPLOS 2024"
-authors_or_group: "Hamid Reza Farzaneh, Mohammad Hossein Shahrokh Abadi, Minxuan Zhou, Wanqian Zhao, Aviral Shrivastava, Jeronimo Castrillon"
-technology:
-  - other: FeFET-CAM
-  - TCAM
-  - MCAM
-  - associative-CIM
-  - hybrid
-workloads:
-  - KNN similarity search
-  - hyperdimensional-computing similarity
-  - DNA read mapping
-axis_A:
-  primary: A4 explicit IR / dialect / compiler stack
-  secondary:
-    - A3 mapping / scheduling / DSE framework
-    - A5 narrow end-to-end co-design
-    - A2 simulator-backed cost model
-axis_B:
-  - B2 graph-as-IR
-  - B4 hardware-resource IR
-  - B3 loop / tensor-schedule IR
-  - B1 config-as-IR
-  - B6 accuracy / nonideality modeling
-axis_C_first_class_objects:
-  - CAM device type
-  - CAM search type
-  - similarity metric
-  - bank / mat / array / subarray hierarchy
-  - CAM allocation handles
-  - write / search / read operations
-  - partial-result merge policy
-  - architecture specification
-axis_D_rewrite_objects:
-  - operator graph
-  - similarity pattern
-  - partitioning state
-  - hardware mapping
-  - array binding
-  - loop schedule
-  - resource activation mode
-  - backend API sequence
-artifact:
-  status: "partial: related public CAMASim simulator found; C4CAM compiler artifact status: no public artifact found"
-  url: "GitHub: camasim-project/CAMASim"
-  license: "MIT for CAMASim"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: medium-low
-trajectory_IR_relevance: medium
-notes:
-  - "Most reusable compiler idea is the separation between cim.similarity and cam hierarchy/resource operations."
-  - "Artifact-level reuse is clearest through CAMASim rather than through a public C4CAM compiler implementation."
-  - "Precision, sensing, and merge costs are important but largely represented through simulator/configuration assumptions rather than type-like IR."
-```

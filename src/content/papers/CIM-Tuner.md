@@ -1,3 +1,74 @@
+---
+slug: cim-tuner
+title: "CIM-Tuner: Balancing the Compute and Storage Capacity of SRAM-CIM Accelerator via Hardware-mapping Co-exploration"
+subtitle: "Scoped CIM stack note"
+year: 2026
+venue: "DATE 2026 / arXiv:2601.18070"
+authors_or_group: "Jinwu Chen, Yuhui Shi, He Wang, Zhe Jiang, Jun Yang, Xin Si, Zhenhua Zhu"
+summary: >-
+  **CIM-Tuner** is a hardware-mapping co-exploration stack for SRAM compute-in-memory accelerators. Its main contribution is not a general-purpose compiler IR, but a reusable modeling and mapping abstraction: SRAM-CIM macros are represented as matrix-projection units with parameters such as accumulation length, parallel channels, storage-compute ratio, input-compute bandwidth, and weight-update bandwidth; accelerators are represented as a three-stage template with Input SRAM, CIM macro array, Output SRAM, and external bandwidth; and each operator is assigned a two-level mapping strategy combining spatial scheduling, temporal update priority, and macro-level tiling. The demonstrated workloads are DNN inference operators, especially CNN and Transformer-derived matrix multiplications encoded as CSV operator shapes, evaluated through a C CIMMA compiler, instruction-flow/count simulation, Python power/area/latency models, and simulated annealing over hardware sizing. For CIM compiler/IR research, the paper is most useful as evidence that a compact CIM-resource template plus mapping-state search can serve as an effective middle layer for hardware/software co-design, while the reusable IR boundary is clearest in the configuration schema, mapping labels, instruction types, and simulator metrics rather than in a separately documented compiler IR. ([arXiv](https://arxiv.org/html/2601.18070v1))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+  - "analog-CIM"
+  - "hybrid"
+workloads:
+  - "ResNet-18"
+  - "BERT Base, sequence length 64 and 512"
+  - "BERT Large, sequence length 64 and 512"
+  - "ViT Large, sequence length 197"
+  - "GPT-2 Large, sequence length 8"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A2, A5]
+axis_B: [B1, B4, B5, B3]
+axis_C_first_class_objects:
+  - "CIM_macro_matrix_abstraction"
+  - "AL_accumulation_length"
+  - "PC_parallel_channel"
+  - "SCR_storage_compute_ratio"
+  - "ICW_input_compute_bandwidth"
+  - "WUW_weight_update_bandwidth"
+  - "MR_MC_macro_grid"
+  - "Input_SRAM_size"
+  - "Output_SRAM_size"
+  - "external_bus_bandwidth"
+  - "mapping_labels_NR_R_IP_WP_AF_PF"
+  - "partial_sum_accumulator_and_output_SRAM_flags"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "array_binding"
+  - "buffer_schedule"
+  - "macro_tiling"
+  - "instruction_stream"
+  - "hardware_sizing"
+artifact:
+  status: "public artifact found"
+  url: "https://github.com/champloo2878/CIM-Tuner"
+  license: "Unknown / not found in checked repository pages"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+  - "validation"
+reproducibility_level: medium
+notes:
+  - "Paper-level IR claim is best interpreted as operator-shape extraction plus mapping/compiler state, not as a standalone auditable IR."
+  - "The CIMMA ISA and ATOS flags expose partial-sum trajectory semantics more concretely than the high-level framework diagram."
+  - "The artifact is most reusable through config files, mapping labels, instruction counts, and simulator metrics."
+takeaways: []
+---
+
 # CIM-Tuner — scoped CIM stack note
 
 > Official paper title: **“CIM-Tuner: Balancing the Compute and Storage Capacity of SRAM-CIM Accelerator via Hardware-mapping Co-exploration.”** The paper was submitted to arXiv in January 2026 and appears in DATE 2026 proceedings. ([arXiv](https://arxiv.org/abs/2601.18070))
@@ -264,20 +335,7 @@ The artifact’s workload set includes ResNet-18, BERT Base/Large at selected se
 
 **Integration effort estimate:** **Medium.** Integration would be most direct through the existing config files, CSV workload format, and simulator CLI. Reuse in a larger compiler stack would benefit from a small adapter that extracts operator shapes, emits CIM-Tuner mapping labels, and imports PPA results. Turning it into a first-class IR backend would require more work because the semantics are distributed across CSV parsing, config files, C compiler code, Python search, and simulator assumptions.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CIM-Tuner provides useful ingredients for a value-trajectory IR, especially its explicit partial-sum placement choices and CIMMA accumulator/output-SRAM flags. The closest approximation to trajectory semantics is the combination of the three-stage accelerator template, AF/PF tiling, and `ATOS` instruction flags, which together indicate whether partial sums stay in an accumulator, go to Output SRAM, combine with stored partial sums, or leave through the external bus. ([arXiv](https://arxiv.org/html/2601.18070v1))
-
-Against a future IR that makes value flow first-class:
-
-- **Does the paper name the path a value takes through CIM resources?** Partially. It names Input SRAM → CIM macro → accumulator/Output SRAM → bus/DRAM as architectural resources and instruction effects, but primarily for cost and mapping.
-- **Does it preserve value identity across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage?** The demonstrated abstraction centers on operator-level partial-sum movement and buffer residency. A value identity that survives analog/digital stages, reconstruction, and cross-operator storage is not a separate typed object in the checked sources.
-- **Are bit significance, channel rate, precision stage, placement, and domain transition represented as type-like information?** Precision and bandwidth are parameters; placement is encoded by mapping labels and instruction operands; domain transition is summarized through macro bandwidth/latency formulas. Type-like propagation is not explicit.
-- **Could it express trajectory rewrites?** It can approximate rewrites that change partial-sum buffering and data reuse, such as AF vs PF and IP vs WP. Expressing fusing reconstruction with downstream reduction, delaying ADC conversion, carrying bit-sliced partial sums across operator boundaries, changing arbitrary reduction-tree structure, routing through alternative peripheral paths, or co-optimizing data movement with numeric reconstruction would likely require adding typed trajectory metadata to values and instructions.
-
-A trajectory-level extension would likely attach **domain**, **precision stage**, **bit significance**, **accumulation depth**, **resident resource**, and **reconstruction status** to the GEMM-tile or partial-sum object, then lower those attributes into CIM-Tuner-style mapping labels and CIMMA instruction flags.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -288,7 +346,7 @@ A trajectory-level extension would likely attach **domain**, **precision stage**
 | **SCALE-Sim** | Accelerator simulation and buffer/array trade-off motivation | CIM-Tuner uses SCALE-Sim to motivate compute/storage balance in conventional systolic accelerators; CIM-Tuner then specializes the problem to SRAM-CIM macros and partial-sum mapping. ([date26.date-conference.com](https://date26.date-conference.com/proceedings-archive/2026/DATA/1441.pdf)) | Good corpus contrast between digital accelerator scheduling models and CIM-specific storage/compute coupling. |
 | **Morphable CIM** | CIM architecture/mapping flexibility and operation intensity | Morphable CIM is cited as a CIM architecture approach; CIM-Tuner is a tooling framework that can compare templates through matrix abstraction and mapping search. ([arXiv](https://arxiv.org/html/2601.18070v1)) | Keep architecture innovation distinct from reusable compiler/mapping infrastructure. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - **Real contribution:** CIM-Tuner contributes a practical SRAM-CIM hardware-mapping co-exploration framework built around a matrix macro abstraction, generalized accelerator template, two-level mapping space, instruction-flow simulation, and simulated annealing.
 - **Strongest reusable layer:** The most reusable layer is the **mapping + cost-model boundary**: operator GEMM tuples, macro/accelerator config, mapping labels, instruction counts, and PPA metrics.
@@ -298,71 +356,3 @@ A trajectory-level extension would likely attach **domain**, **precision stage**
 - **Artifact status:** Public artifact found at `champloo2878/CIM-Tuner`; software license not found in checked repository pages; README provides setup and example commands.
 - **Integration role:** Best reused as a mapper/scheduler, cost-model plugin, benchmark seed, or backend simulator wrapper; less direct as a general frontend or standalone IR.
 - **Value-trajectory relevance:** Medium. It provides useful partial-sum and resource-path ingredients, but a trajectory IR would add explicit value identity, domain, precision stage, bit significance, and reconstruction metadata.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CIM-Tuner: Balancing the Compute and Storage Capacity of SRAM-CIM Accelerator via Hardware-mapping Co-exploration"
-year: 2026
-venue: "DATE 2026 / arXiv:2601.18070"
-authors_or_group: "Jinwu Chen, Yuhui Shi, He Wang, Zhe Jiang, Jun Yang, Xin Si, Zhenhua Zhu"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-  - analog-CIM
-  - hybrid
-workloads:
-  - ResNet-18
-  - BERT Base, sequence length 64 and 512
-  - BERT Large, sequence length 64 and 512
-  - ViT Large, sequence length 197
-  - GPT-2 Large, sequence length 8
-axis_A:
-  primary: A3_mapping_scheduling_DSE_framework
-  secondary:
-    - A2_simulator_cost_model
-    - A5_narrow_end_to_end_co_design
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B5_instruction_meta_op_ILA
-  - B3_partial_tensor_schedule_mapping
-axis_C_first_class_objects:
-  - CIM_macro_matrix_abstraction
-  - AL_accumulation_length
-  - PC_parallel_channel
-  - SCR_storage_compute_ratio
-  - ICW_input_compute_bandwidth
-  - WUW_weight_update_bandwidth
-  - MR_MC_macro_grid
-  - Input_SRAM_size
-  - Output_SRAM_size
-  - external_bus_bandwidth
-  - mapping_labels_NR_R_IP_WP_AF_PF
-  - partial_sum_accumulator_and_output_SRAM_flags
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - array_binding
-  - buffer_schedule
-  - macro_tiling
-  - instruction_stream
-  - hardware_sizing
-artifact:
-  status: public_artifact_found
-  url: "champloo2878/CIM-Tuner"
-  license: "Unknown / not found in checked repository pages"
-  last_checked: "2026-05-15"
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-  - validation
-reproducibility_level: medium
-trajectory_IR_relevance: medium
-notes:
-  - "Paper-level IR claim is best interpreted as operator-shape extraction plus mapping/compiler state, not as a standalone auditable IR."
-  - "The CIMMA ISA and ATOS flags expose partial-sum trajectory semantics more concretely than the high-level framework diagram."
-  - "The artifact is most reusable through config files, mapping labels, instruction counts, and simulator metrics."
-```

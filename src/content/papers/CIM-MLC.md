@@ -1,3 +1,74 @@
+---
+slug: cim-mlc
+title: "CIM-MLC: A Multi-level Compilation Stack for Computing-In-Memory Accelerators"
+subtitle: "Scoped CIM stack note"
+year: 2024
+venue: "ASPLOS 2024, Volume 2"
+authors_or_group: "Songyun Qu, Shixin Zhao, Bing Li, Yintao He, Xuyi Cai, Lei Zhang, Ying Wang"
+summary: >-
+  CIM-MLC is a CIM compiler/mapping framework that contributes a three-tier hardware abstraction and a matching three-level scheduling pipeline for static DNN inference. Its main abstraction separates **architecture parameters**—chip, core, crossbar, buffer, NoC, ALU, cell precision, ADC/DAC precision—from **computing modes**—Core Mode, Crossbar Mode, and Wordline Mode—so that a compiler can select scheduling strategies at DNN-operator, MVM, or row-activation granularity. The demonstrated stack ingests ONNX graphs, records mapping decisions as graph attributes, performs graph segmentation, duplication, MVM-level pipelining, and WLM data remapping, then emits meta-operator flows for simulator-backed evaluation. For CIM compiler/IR research, CIM-MLC is valuable because it makes hardware-resource granularity explicit and provides a concrete meta-op backend boundary, while also illustrating a common “hidden IR” pattern: much of the reusable semantics sits in ONNX annotations, Python configs, optimization pass order, and codegen templates rather than in a single independently verifiable IR object. ([ar5iv](https://ar5iv.org/html/2401.12428v2))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "analog-CIM"
+  - "SRAM-CIM"
+  - "RRAM-CIM"
+  - "hybrid"
+workloads:
+  - "static DNN inference"
+  - "CNN"
+  - "VGG"
+  - "ResNet"
+  - "ViT"
+tags: []
+baselines: []
+axis_A:
+  primary: A3
+  secondary: [A4, A5]
+axis_B: [B2, B4, B5, B1]
+axis_C_first_class_objects:
+  - "chip/core/crossbar hierarchy"
+  - "Core Mode / Crossbar Mode / Wordline Mode"
+  - "VXB / virtual crossbar"
+  - "crossbar size"
+  - "maximum parallel rows"
+  - "memory-cell type and precision"
+  - "ADC/DAC precision"
+  - "NoC and buffer parameters"
+  - "ALU support and speed"
+  - "meta-operator set"
+axis_D_rewrite_objects:
+  - "ONNX graph annotations"
+  - "graph segmentation"
+  - "operator duplication"
+  - "MVM lowering and scheduling"
+  - "VXB/crossbar binding"
+  - "row/wordline remapping"
+  - "meta-operator flow"
+artifact:
+  status: "public artifact found; partial/beta"
+  url: "https://github.com/Zhaoshixin-sky/CIM-MLC"
+  license: "unknown/not found for main compiler repo; separate project-page repo is BSD-2-Clause"
+  last_checked: "2026-05-14"
+integration_roles:
+  - "frontend"
+  - "IR inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "backend"
+  - "benchmark"
+reproducibility_level: unknown
+notes:
+  - "Best used as a resource-granularity and meta-op compiler baseline."
+  - "The reusable abstraction is clearest at Abs-arch/Abs-com and VXB."
+  - "The effective IR is distributed across ONNX attributes, Python configs, pass state, and codegen output."
+  - "Trajectory-level CIM IR would add typed value identity across bit slicing, conversion, accumulation, reconstruction, and storage."
+takeaways: []
+---
+
 # CIM-MLC — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -253,26 +324,7 @@ The reported network benchmarks include VGG, ResNet, and ViT-style models; weigh
 
 **Integration effort estimate: Medium–High.** Integration would be most direct through the architecture config and generated meta-op output. Reuse would benefit from a small adapter that extracts ONNX node annotations, pass results, and meta-op traces into a stable serialized mapping format. The effort rises because the artifact is beta, has no packaged release, and appears to encode several assumptions in Python modules and pass order rather than in a documented IR schema. ([GitHub](https://github.com/Zhaoshixin-sky/CIM-MLC))
 
-## 9. Relation to a value-trajectory CIM IR project
-
-CIM-MLC provides useful ingredients for a value-trajectory IR, especially VXB dimension binding, tiered hardware-resource objects, ADC/DAC precision parameters, row-activation limits, and meta-operator traces. The closest approximation to trajectory semantics is the combination of VXB binding plus WLM remapping plus generated meta-operator flow: these describe where work runs and when hardware is activated. ([ar5iv](https://ar5iv.org/html/2401.12428v2))
-
-The paper’s demonstrated abstraction centers on **resource scheduling**, not value identity. It names the path through resources in a coarse operational sense—core, crossbar, row, meta-operator—but it does not preserve a value’s identity as a typed object across analog partial sums, sensing, digital accumulation, reconstruction, reduction, and storage. This distinction aligns with the taxonomy’s finding that CIM-MLC’s meta-operator flow is close “in name,” but is a textual codegen output rather than an upstream value-flow IR. (CIM taxonomy.md)
-
-Bit significance and precision are partly represented: matrix bit-width can be bound to crossbar columns or crossbars, and device/ADC/DAC precision are parameters. A trajectory-level extension would likely attach type-like metadata to each value or partial value: bit significance, cell precision, ADC/DAC stage, channel rate, domain, placement, accumulation group, reconstruction obligation, and consumer readiness. ([ar5iv](https://ar5iv.org/html/2401.12428v2))
-
-For trajectory rewrites:
-
-- **Fusing reconstruction with downstream reduction:** CIM-MLC’s current meta-op flow could be a backend target, but a higher-level reconstruction object would be needed before meta-op lowering.  
-- **Delaying or retiming ADC conversion:** ADC precision is parameterized, but conversion timing is not exposed as a movable semantic boundary.  
-- **Carrying bit-sliced partial sums across operator boundaries:** VXB binding exposes bit placement, but carrying partial sums across operators would require typed partial-sum values.  
-- **Changing reduction tree structure:** WLM row remapping suggests placement/timing flexibility, but reduction trees are not represented as first-class rewrite objects.  
-- **Routing values through alternative peripheral paths:** Peripheral circuits are named in the hardware abstraction; path routing would require explicit peripheral nodes and value-route types.  
-- **Co-optimizing data movement and numeric reconstruction:** CIM-MLC has data movement and scheduling costs, but reconstruction-aware data movement would need value-trajectory metadata.
-
-The representation is therefore medium-relevance to a value-trajectory IR: strong as a resource and scheduling substrate, partial as a value-flow substrate, and useful as a comparison point for showing why meta-op flows alone are downstream of the most interesting trajectory rewrites. The taxonomy states the broader gap directly: no surveyed work makes the path a value takes through the fabric a named, typed, rewritable IR object. (CIM taxonomy.md)
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -283,7 +335,7 @@ The representation is therefore medium-relevance to a value-trajectory IR: stron
 | **CINM / Cinnamon** | Explicit compiler infrastructure for CIM/CNM systems | CINM is MLIR-based with explicit dialects and lowering; CIM-MLC is Python/ONNX/config/meta-op based and more focused on CIM hardware granularity. (CIM stack library compact.md) | Use CINM as the explicit-IR baseline; use CIM-MLC to identify hardware-resource objects that MLIR-style dialects should expose. |
 | **Polyhedral-based CIM compiler** | DNN operator detection and mapping onto CIM accelerators | It is the paper’s direct comparison baseline, but the paper frames it as narrower in device/interface support and optimization granularity. ([ar5iv](https://ar5iv.org/html/2401.12428v2)) | Use it as a baseline for loop/tensor schedule approaches; CIM-MLC highlights why CIM-specific resource hierarchy matters beyond generic loop rewriting. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CIM-MLC’s real contribution is a **multi-level CIM compiler/mapping abstraction**: chip/core/crossbar resources paired with CM/XBM/WLM computing modes.  
 - Its strongest reusable stack layer is the **middle layer**: resource-aware graph, MVM, and row-level scheduling over a configurable CIM hardware abstraction.  
@@ -293,71 +345,3 @@ The representation is therefore medium-relevance to a value-trajectory IR: stron
 - Artifact status is **public but partial/beta**: useful folders, example outputs, and a minimal command exist, but no packaged release or full paper-figure reproduction workflow was found.  
 - Integration is most promising through **architecture configs, scheduling-pass extraction, and meta-op backend wrapping**.  
 - For value-trajectory IR research, CIM-MLC is an important comparison point: it names resources and emits flows, but trajectory-level rewrites would add typed value identity across bit slicing, sensing, accumulation, reconstruction, and storage.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CIM-MLC: A Multi-level Compilation Stack for Computing-In-Memory Accelerators"
-year: 2024
-venue: "ASPLOS 2024, Volume 2"
-authors_or_group: "Songyun Qu, Shixin Zhao, Bing Li, Yintao He, Xuyi Cai, Lei Zhang, Ying Wang"
-technology:
-  - analog-CIM
-  - SRAM-CIM
-  - RRAM-CIM
-  - hybrid
-workloads:
-  - static DNN inference
-  - CNN
-  - VGG
-  - ResNet
-  - ViT
-axis_A:
-  primary: "A3 mapping / scheduling / DSE framework"
-  secondary:
-    - "A4 explicit IR / meta-op / hardware-resource compiler-stack traits"
-    - "A5 narrow end-to-end co-design flow"
-axis_B:
-  - "B2 Graph-as-IR"
-  - "B4 Hardware-resource IR"
-  - "B5 Instruction / meta-op / ILA"
-  - "B1 Config-as-IR traits"
-axis_C_first_class_objects:
-  - chip/core/crossbar hierarchy
-  - Core Mode / Crossbar Mode / Wordline Mode
-  - VXB / virtual crossbar
-  - crossbar size
-  - maximum parallel rows
-  - memory-cell type and precision
-  - ADC/DAC precision
-  - NoC and buffer parameters
-  - ALU support and speed
-  - meta-operator set
-axis_D_rewrite_objects:
-  - ONNX graph annotations
-  - graph segmentation
-  - operator duplication
-  - MVM lowering and scheduling
-  - VXB/crossbar binding
-  - row/wordline remapping
-  - meta-operator flow
-artifact:
-  status: "public artifact found; partial/beta"
-  url: "https://github.com/Zhaoshixin-sky/CIM-MLC"
-  license: "unknown/not found for main compiler repo; separate project-page repo is BSD-2-Clause"
-  last_checked: "2026-05-14"
-integration_roles:
-  - frontend
-  - IR inspiration
-  - mapper_scheduler
-  - cost_model
-  - backend
-  - benchmark
-reproducibility_level: medium-low
-trajectory_IR_relevance: medium
-notes:
-  - "Best used as a resource-granularity and meta-op compiler baseline."
-  - "The reusable abstraction is clearest at Abs-arch/Abs-com and VXB."
-  - "The effective IR is distributed across ONNX attributes, Python configs, pass state, and codegen output."
-  - "Trajectory-level CIM IR would add typed value identity across bit slicing, conversion, accumulation, reconstruction, and storage."
-```

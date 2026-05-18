@@ -1,3 +1,77 @@
+---
+slug: cim-mxu
+title: "CIM-MXU / Leveraging Compute-in-Memory for Efficient Generative Model Inference in TPUs"
+subtitle: "Scoped CIM stack note"
+year: 2025
+venue: "DATE 2025 (accepted; arXiv:2503.00461)"
+authors_or_group: "Zhantong Zhu, Hongou Li, Wenjie Ren, Meng Wu, Le Ye, Ru Huang, Tianyu Jia"
+summary: >-
+  **CIM-MXU** studies how a digital SRAM compute-in-memory matrix unit could replace the conventional systolic MXU inside a TPUv4i-like inference accelerator. Its main contribution is a hardware/software co-design and modeling study: a CIM-MXU microarchitecture built from a systolic grid of CIM cores, a TPU-level architecture model with VMEM/CMEM/HBM-style hierarchy, a mapping engine for Transformer-layer operators, and architecture exploration over CIM-MXU array size and count. The demonstrated workloads are representative generative-model inference kernels, especially GPT-3-30B Transformer-layer evaluation and DiT-XL/2 block evaluation, with INT8 experiments and BF16 support described at the microarchitecture level. For CIM compiler/IR research, the paper is most useful as a hardware-resource and cost-model case study: it shows what a backend would need to know about CIM-core grids, weight-update paths, tiling, memory hierarchy, and precision modes, while the reusable compiler boundary is clearest at the mapping/configuration state rather than at an explicit IR or instruction stream. ([arXiv](https://arxiv.org/pdf/2503.00461))
+links:
+  paper:
+  artifact:
+  docs:
+  code:
+technology:
+  - "SRAM-CIM"
+  - "digital-CIM"
+  - "TPU-style accelerator"
+workloads:
+  - "GPT-3-30B Transformer layer"
+  - "LLM prefilling"
+  - "LLM decoding"
+  - "DiT-XL/2 block"
+  - "GEMM"
+  - "GEMV"
+  - "Softmax"
+  - "LayerNorm"
+  - "GeLU"
+tags: []
+baselines: []
+axis_A:
+  primary: A5
+  secondary: [A2, A3]
+axis_B: [B1, B4, B3, B2]
+axis_C_first_class_objects:
+  - "CIM-MXU"
+  - "CIM-core-grid"
+  - "SRAM-CIM-core"
+  - "bank_subarray_hierarchy"
+  - "weight_IO"
+  - "bit_serial_input_broadcast"
+  - "output_stationary_dataflow"
+  - "PSUM_buffer"
+  - "shift_accumulator"
+  - "BF16_prepost_processing"
+  - "VMEM_CMEM_HBM_hierarchy"
+axis_D_rewrite_objects:
+  - "hardware_mapping"
+  - "tensor_tiling"
+  - "schedule_options"
+  - "architecture_configuration"
+  - "array_binding"
+  - "memory_layout_or_residency"
+  - "numeric_mode"
+artifact:
+  status: "no public artifact found"
+  url: 
+  license: "unknown"
+  last_checked: "2026-05-15"
+integration_roles:
+  - "IR_inspiration"
+  - "mapper_scheduler"
+  - "cost_model"
+  - "benchmark"
+  - "validation_partial"
+reproducibility_level: unknown
+notes:
+  - "Strongest evidence is at CIM-MXU microarchitecture/modeling and TPU-level DSE."
+  - "No explicit compiler IR, dialect, ISA, or instruction stream is exposed."
+  - "The effective hidden IR is model shape plus tiling/scheduling state plus hardware configuration."
+  - "Digital SRAM-CIM makes ADC/DAC trajectory objects not applicable, but BF16/INT8 pre/post-processing is relevant to numeric-stage typing."
+takeaways: []
+---
+
 # CIM-MXU — scoped CIM stack note
 
 ## 1. Corpus classification snapshot
@@ -205,15 +279,7 @@ The architecture exploration varies CIM-MXU array dimension among 8×8, 16×8, a
 
 **Integration effort estimate:** **Medium to High.** Integration would be most direct through a small adapter that extracts model shapes, tile sizes, hardware parameters, and precision mode into a backend configuration. Because no public artifact was found, reproducing the mapping engine and simulator would require reimplementation from the paper’s descriptions and figures.
 
-## 9. Relation to a value-trajectory CIM IR project
-
-The work provides useful ingredients for a value-trajectory IR, especially its explicit naming of CIM-core grids, input vector propagation, weight I/O, PSUM buffer, shift-accumulator, BF16 pre/post-processing, and VMEM/CMEM/HBM movement. The closest approximation to trajectory semantics is the described dataflow: input activations broadcast bit-serially, weights propagate through CIM cores via interleaved SRAM read/write, partial sums accumulate in an output-stationary systolic structure, and BF16 values pass through pre/post-processing around INT MAC computation. ([arXiv](https://arxiv.org/pdf/2503.00461))
-
-The paper names the path a value takes through CIM resources at the hardware-description level, but value identity is not preserved as a first-class compiler object across partial sums, reconstruction, reduction, and storage. Bit significance and precision stage appear as hardware behavior rather than type-like metadata. For digital SRAM-CIM, ADC retiming is not applicable; an analogous trajectory-level extension would focus on retiming or fusing pre-processing, shift-accumulation, rounding, partial-sum buffering, and downstream reductions.
-
-A trajectory-level extension would likely attach fields such as `domain`, `precision_stage`, `bit_role`, `tile_residency`, `accumulation_stage`, `core_coordinate`, `buffer_location`, and `postprocess_required` to mapped tensor fragments. That extension would make it possible to express rewrites such as fusing reconstruction with downstream reduction, carrying partial sums across operator boundaries, changing reduction-tree structure, routing values through alternative peripheral paths, or co-optimizing data movement and numeric reconstruction.
-
-## 10. Comparison to nearby works
+## 9. Comparison to nearby works
 
 | Nearby work | Shared concern | Key distinction | Lesson for corpus |
 |---|---|---|---|
@@ -224,7 +290,7 @@ A trajectory-level extension would likely attach fields such as `domain`, `preci
 | **Gemmini** | Generator for digital systolic accelerators | Used to generate the 128×128 digital MXU baseline for physical implementation; CIM-MXU is not presented as a public generator. ([arXiv](https://arxiv.org/pdf/2503.00461)) | Separates generator-backed baseline from paper-specific CIM design. |
 | **CimLoop / MNSIM 2.0** | CIM modeling and simulation | CIM-MXU targets CIM as a TPU MXU replacement for high-performance generative inference; related simulators focus more broadly on CIM modeling, DNN mapping, cross-stack exploration, or accuracy modeling. ([arXiv](https://arxiv.org/pdf/2503.00461)) | Useful nearby A2 comparison; CIM-MXU’s distinguishing object is the TPU-level CIM-MXU resource. |
 
-## 11. Corpus-ready final takeaway
+## 10. Corpus-ready final takeaway
 
 - CIM-MXU is best classified as a **narrow end-to-end hardware/software co-design study** with strong **architecture modeling, cost modeling, mapping, and DSE** content.
 - The strongest reusable stack layer is the **CIM-MXU + TPU-level hardware abstraction**: CIM-core grid, systolic dataflow, VMEM/CMEM/HBM hierarchy, and CIM/VPU operator split.
@@ -234,74 +300,3 @@ A trajectory-level extension would likely attach fields such as `domain`, `preci
 - Artifact status: **no public artifact found**; reproducibility is paper-level unless simulator, RTL/layout, or scripts become available.
 - Integration would be most useful as **IR inspiration, mapper/scheduler guidance, backend cost-model calibration, and benchmark definition**, rather than as a drop-in compiler component.
 - For value-trajectory IR research, the paper provides concrete backend path vocabulary but would need added type-like metadata for value identity, bit role, accumulation stage, and reconstruction stage.
-
-## 12. Suggested metadata entry
-
-```yaml
-paper: "CIM-MXU / Leveraging Compute-in-Memory for Efficient Generative Model Inference in TPUs"
-year: 2025
-venue: "DATE 2025 (accepted; arXiv:2503.00461)"
-authors_or_group: "Zhantong Zhu, Hongou Li, Wenjie Ren, Meng Wu, Le Ye, Ru Huang, Tianyu Jia"
-technology:
-  - SRAM-CIM
-  - digital-CIM
-  - TPU-style accelerator
-workloads:
-  - GPT-3-30B Transformer layer
-  - LLM prefilling
-  - LLM decoding
-  - DiT-XL/2 block
-  - GEMM
-  - GEMV
-  - Softmax
-  - LayerNorm
-  - GeLU
-axis_A:
-  primary: A5_narrow_end_to_end_codesign
-  secondary:
-    - A2_simulator_cost_model
-    - A3_mapping_scheduling_DSE
-axis_B:
-  - B1_config_as_IR
-  - B4_hardware_resource_IR
-  - B3_loop_tensor_schedule_IR
-  - B2_graph_as_IR_limited
-axis_C_first_class_objects:
-  - CIM-MXU
-  - CIM-core-grid
-  - SRAM-CIM-core
-  - bank_subarray_hierarchy
-  - weight_IO
-  - bit_serial_input_broadcast
-  - output_stationary_dataflow
-  - PSUM_buffer
-  - shift_accumulator
-  - BF16_prepost_processing
-  - VMEM_CMEM_HBM_hierarchy
-axis_D_rewrite_objects:
-  - hardware_mapping
-  - tensor_tiling
-  - schedule_options
-  - architecture_configuration
-  - array_binding
-  - memory_layout_or_residency
-  - numeric_mode
-artifact:
-  status: no_public_artifact_found
-  url: null
-  license: unknown
-  last_checked: 2026-05-15
-integration_roles:
-  - IR_inspiration
-  - mapper_scheduler
-  - cost_model
-  - benchmark
-  - validation_partial
-reproducibility_level: low_to_medium
-trajectory_IR_relevance: medium
-notes:
-  - "Strongest evidence is at CIM-MXU microarchitecture/modeling and TPU-level DSE."
-  - "No explicit compiler IR, dialect, ISA, or instruction stream is exposed."
-  - "The effective hidden IR is model shape plus tiling/scheduling state plus hardware configuration."
-  - "Digital SRAM-CIM makes ADC/DAC trajectory objects not applicable, but BF16/INT8 pre/post-processing is relevant to numeric-stage typing."
-```

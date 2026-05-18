@@ -30,7 +30,7 @@ Current migration plan lives in `docs/future-development-plan.md`. A ready-to-us
 
 Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from the draft artifacts.
 
-As of the first migration batch, 7 notes are structured and 55 raw notes remain. `npm run validate` is expected to fail until raw notes receive frontmatter. The current next raw blocker is `C4CAM.md: missing YAML frontmatter block`.
+As of the second migration batch, 12 notes are structured and 50 raw notes remain. The newly migrated files are `c4cam.md`, `cim-mlc.md`, `cim-mxu.md`, `cim-prune.md`, and `cim-tuner.md`. `npm run validate` is expected to fail until raw notes receive frontmatter; the current next raw blocker is `CIMA_COM.md: missing YAML frontmatter block`. `npm run check` currently stops on another remaining raw note, `CIMLoop.md`, before a full Astro check can complete.
 
 ## Frontmatter contract
 
