@@ -55,6 +55,18 @@ function printList(title, values, formatter = (value) => value) {
   for (const value of values) console.log(`  - ${formatter(value)}`);
 }
 
+function hasPublicArtifact(status) {
+  return !hasNoPublicArtifact(status) && /public[_ -]artifact[_ -]found|public artifact found/i.test(status);
+}
+
+function hasNoPublicArtifact(status) {
+  return /no[_ -]public[_ -]artifact[_ -]found|no public artifact found|no official public artifact found/i.test(status);
+}
+
+function hasMixedArtifactStatus(status) {
+  return /partial|related public/i.test(status);
+}
+
 if (!fs.existsSync(papersDir)) {
   console.error(`ERROR: missing papers directory: ${papersDir}`);
   process.exit(1);
@@ -70,6 +82,7 @@ const slugFileMismatches = [];
 const generatedMarkerHits = [];
 const valueTrajectoryMentions = [];
 const typoWatchHits = [];
+const artifactStatusUrlMismatches = [];
 const nullYears = [];
 const blankArtifactUrls = [];
 const unknownRepro = [];
@@ -102,6 +115,7 @@ for (const file of files) {
   const slug = scalar(frontmatter, 'slug');
   const title = scalar(frontmatter, 'title');
   const year = scalar(frontmatter, 'year');
+  const artifactStatus = nestedScalar(frontmatter, 'artifact', 'status');
   const artifactUrl = nestedScalar(frontmatter, 'artifact', 'url');
   const reproducibility = scalar(frontmatter, 'reproducibility_level');
   const expectedFile = `${slug}.md`;
@@ -114,11 +128,18 @@ for (const file of files) {
   if (slug && file !== expectedFile) slugFileMismatches.push(`${file} declares slug ${slug}`);
   if (!year) nullYears.push(`${file}: ${title}`);
   if (!artifactUrl) blankArtifactUrls.push(`${file}: ${title}`);
+  if (hasPublicArtifact(artifactStatus) && !artifactUrl) {
+    artifactStatusUrlMismatches.push(`${file}: artifact status says public artifact found but url is blank`);
+  }
+  if (hasNoPublicArtifact(artifactStatus) && artifactUrl && !hasMixedArtifactStatus(artifactStatus)) {
+    artifactStatusUrlMismatches.push(`${file}: artifact status says no public artifact found but url is ${artifactUrl}`);
+  }
   if (reproducibility === 'unknown') unknownRepro.push(`${file}: ${title}`);
 
   const searchSurface = `${file}\n${slug}\n${title}\n${markdown}`;
   for (const pattern of typoWatch) {
-    if (pattern.test(searchSurface)) typoWatchHits.push(`${file}: ${pattern}`);
+    const match = searchSurface.match(pattern);
+    if (match) typoWatchHits.push(`${file}: matched "${match[0]}"`);
   }
 
   for (const marker of markers) {
@@ -149,6 +170,7 @@ printList('Near-duplicate normalized titles', nearDuplicateTitles, ([title, valu
 printList('Typo-watch hits', typoWatchHits);
 printList('Null or blank years', nullYears);
 printList('Blank artifact URLs', blankArtifactUrls);
+printList('Artifact status/url mismatches', artifactStatusUrlMismatches);
 printList('Unknown reproducibility levels', unknownRepro);
 printList('Generated-marker hits', generatedMarkerHits);
 printList('Value-trajectory mentions (informational)', valueTrajectoryMentions);
