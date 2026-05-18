@@ -76,6 +76,8 @@ Requirements:
 
 Prefer scripts/promote-raw-note.mjs for this mechanical migration after inspecting representative raw notes. Use apply_patch for manual fixes. If the helper warnings are predictable, a 10-file batch is reasonable; otherwise split the batch at 5 files.
 
+If you think it's stable enough, try to migrate all remaining notes in the next session.
+
 Report:
 - which files were migrated;
 - any metadata fields filled conservatively;
