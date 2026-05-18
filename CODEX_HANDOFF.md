@@ -60,3 +60,13 @@ Use the note's section 12 metadata block when present. If absent, extract from:
 - section 10 final takeaway -> `takeaways`.
 
 Do not try to parse the entire prose automatically before the schema is stable. Prefer a small manual adapter plus validation.
+
+Refined batch workflow from the latest migration:
+
+1. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` first and inspect planned lowercase filenames.
+2. Run the helper for the batch, then inspect warnings. The helper now blanks nonnumeric years, blanks non-HTTP(S) artifact URLs, and converts unsupported reproducibility labels to `unknown`; manually restore a schema-valid value only when the note already contains checked evidence.
+3. Check the migrated files for frontmatter, absence of section 12, and absence of the generated value-trajectory section before running global validation.
+4. If `npm run validate` stops at the next raw note, treat that as expected. Run `npm run check` only in that state or after full validation passes; Astro may stop on a different raw note because its glob order differs from the validator's sorted order.
+5. Do not run `npm run build` until `npm run check` passes.
+
+On the current macOS-style case-insensitive filesystem, Git may show case-only filename normalizations as modifications under the original tracked names until staging. The on-disk filenames are authoritative during migration.

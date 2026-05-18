@@ -42,6 +42,27 @@ function schemaMiddle(value) {
   return match ? `B${match[1]}` : null;
 }
 
+function schemaYear(value) {
+  if (value === null || value === undefined || value === '') return '';
+  if (Number.isInteger(value)) return value;
+  const match = String(value).trim().match(/^(\d{4})(?:\b|$)/);
+  return match ? Number(match[1]) : '';
+}
+
+function schemaUrl(value) {
+  if (value === null || value === undefined || value === '') return '';
+  try {
+    const url = new URL(String(value).trim());
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
+function warn(file, message) {
+  console.error(`warning: ${file}: ${message}`);
+}
+
 function parseScalar(raw) {
   const value = String(raw || '').trim();
   if (value === 'null' || value === '~') return null;
@@ -135,7 +156,7 @@ function yamlList(values, indent = '') {
   return `\n${items.map((value) => `${indent}- ${quote(value)}`).join('\n')}`;
 }
 
-function buildFrontmatter(slug, metadata, summary) {
+function buildFrontmatter(slug, metadata, summary, file) {
   const title = metadata.paper || metadata.title;
   if (!title) throw new Error(`${slug}: missing paper/title field`);
 
@@ -153,15 +174,28 @@ function buildFrontmatter(slug, metadata, summary) {
   if (!axisB.length) throw new Error(`${slug}: missing schema-compatible axis_B`);
 
   const artifact = metadata.artifact || {};
+  const year = schemaYear(metadata.year);
+  if (metadata.year && year === '') {
+    warn(file, `non-numeric year "${metadata.year}" converted to blank/null`);
+  }
+
+  const artifactUrl = schemaUrl(artifact.url);
+  if (artifact.url && artifactUrl === '') {
+    warn(file, `non-URL artifact.url "${artifact.url}" converted to blank/null`);
+  }
+
   const reproducibility = ['high', 'medium', 'low', 'unknown'].includes(metadata.reproducibility_level)
     ? metadata.reproducibility_level
     : 'unknown';
+  if (metadata.reproducibility_level && reproducibility === 'unknown' && metadata.reproducibility_level !== 'unknown') {
+    warn(file, `unsupported reproducibility_level "${metadata.reproducibility_level}" converted to "unknown"`);
+  }
 
   return `---\n` +
     `slug: ${slug}\n` +
     `title: ${quote(title)}\n` +
     `subtitle: "Scoped CIM stack note"\n` +
-    `year: ${metadata.year ?? ''}\n` +
+    `year: ${year}\n` +
     `venue: ${quote(metadata.venue)}\n` +
     `authors_or_group: ${quote(metadata.authors_or_group)}\n` +
     `summary: ${blockScalar(summary)}\n` +
@@ -182,7 +216,7 @@ function buildFrontmatter(slug, metadata, summary) {
     `axis_D_rewrite_objects:${yamlList(metadata.axis_D_rewrite_objects, '  ')}\n` +
     `artifact:\n` +
     `  status: ${quote(artifact.status || 'unknown')}\n` +
-    `  url: ${quote(artifact.url)}\n` +
+    `  url: ${quote(artifactUrl)}\n` +
     `  license: ${quote(artifact.license)}\n` +
     `  last_checked: ${quote(artifact.last_checked)}\n` +
     `integration_roles:${yamlList(metadata.integration_roles, '  ')}\n` +
@@ -204,9 +238,9 @@ for (const input of inputs) {
 
   const { body, yaml } = extractSuggested(markdown, input);
   const metadata = parseSuggestedYaml(yaml);
-  const slug = normalizeSlug(path.basename(source, '.md'));
+  const slug = normalizeSlug(metadata.slug || path.basename(source, '.md'));
   const summary = extractSummary(body, input);
-  const frontmatter = buildFrontmatter(slug, metadata, summary);
+  const frontmatter = buildFrontmatter(slug, metadata, summary, input);
   const target = path.join(papersDir, `${slug}.md`);
   const output = `${frontmatter}\n\n${body}\n`;
   const sameCaseInsensitiveFile = target !== source && sameExistingFile(source, target);

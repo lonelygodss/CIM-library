@@ -51,17 +51,20 @@ Recommended next batch:
 
 Requirements:
 1. Inventory raw vs structured files.
-2. For each selected note, promote the YAML under "## 12. Suggested metadata entry" to frontmatter.
-3. Normalize the filename to the schema-valid lowercase kebab-case slug.
-4. Remove the rendered section 12 from the public body after promoting it.
-5. Remove obsolete generated value-trajectory IR project sections and renumber the remaining comparison/final-takeaway sections.
-6. Preserve the remaining public corpus-note body unless malformed.
-7. Fill missing schema fields conservatively and explicitly; do not invent research facts.
-8. Run npm run validate after the batch.
-9. If validation fails due to migrated batch files, fix the batch before continuing. If it fails on the next raw note, report that as the expected remaining migration blocker.
-10. Run npm run check only if validation reaches the same expected next-raw-note blocker or fully passes. Run npm run build only if check passes.
+2. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` and inspect planned lowercase filenames.
+3. For each selected note, promote the YAML under "## 12. Suggested metadata entry" to frontmatter, preferably using `scripts/promote-raw-note.mjs`.
+4. Inspect helper warnings. The helper blanks nonnumeric years, blanks non-HTTP(S) artifact URLs, and maps unsupported reproducibility labels to `unknown`; restore a schema-valid value only when checked evidence is already present in the note.
+5. Normalize the filename to the schema-valid lowercase kebab-case slug. On case-insensitive filesystems, Git may report case-only renames as modifications until staging; trust the on-disk filename.
+6. Remove the rendered section 12 from the public body after promoting it.
+7. Remove obsolete generated value-trajectory IR project sections and renumber the remaining comparison/final-takeaway sections.
+8. Preserve the remaining public corpus-note body unless malformed.
+9. Fill missing schema fields conservatively and explicitly; do not invent research facts.
+10. Run a targeted batch metadata check if global validation is expected to stop on the next raw note.
+11. Run npm run validate after the batch.
+12. If validation fails due to migrated batch files, fix the batch before continuing. If it fails on the next raw note, report that as the expected remaining migration blocker.
+13. Run npm run check only if validation reaches the expected next-raw-note blocker or fully passes. Astro's glob order can differ from the validator's sorted order, so the check blocker may be a different remaining raw note. Run npm run build only if check passes.
 
-Prefer scripts/promote-raw-note.mjs for this mechanical migration after inspecting representative raw notes. Use apply_patch for manual fixes.
+Prefer scripts/promote-raw-note.mjs for this mechanical migration after inspecting representative raw notes. Use apply_patch for manual fixes. If the helper warnings are predictable, a 10-file batch is reasonable; otherwise split the batch at 5 files.
 
 Report:
 - which files were migrated;

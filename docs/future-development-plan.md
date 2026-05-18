@@ -36,17 +36,65 @@ Recommended workflow:
 
 1. Inventory files into `structured` vs `raw`.
 2. For each raw file, locate `## 12. Suggested metadata entry`.
-3. Promote that fenced YAML block to frontmatter.
-4. Normalize the filename to the `slug` value.
-5. Remove the rendered `## 12. Suggested metadata entry` section from the public body after promoting it.
-6. Remove obsolete generated `## 9. Relation to a value-trajectory CIM IR project` sections, then renumber comparison/final-takeaway sections.
-7. Preserve the remaining public note body unless a section is malformed.
-8. Fill missing schema fields conservatively with `unknown`, `[]`, or `null`.
-9. Run `npm run validate`.
-10. Run `npm run check`.
-11. Run `npm run build`.
+3. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` and inspect the planned filenames before writing.
+4. Promote that fenced YAML block to frontmatter with `scripts/promote-raw-note.mjs`.
+5. Normalize the filename to the schema-valid lowercase kebab-case slug.
+6. Inspect helper warnings. The helper conservatively blanks nonnumeric years, blanks non-URL artifact fields, and maps unsupported reproducibility labels to `unknown`; replace those only when the note already contains a checked, schema-valid fact.
+7. On case-insensitive filesystems, Git may show case-only renames as modifications under the old tracked names until staging. Trust the on-disk filenames, then use Git's rename-aware staging later.
+8. Remove the rendered `## 12. Suggested metadata entry` section from the public body after promoting it.
+9. Remove obsolete generated `## 9. Relation to a value-trajectory CIM IR project` sections, then renumber comparison/final-takeaway sections.
+10. Preserve the remaining public note body unless a section is malformed.
+11. Fill missing schema fields conservatively with `unknown`, `[]`, or `null`.
+12. Run a targeted batch metadata check if global validation is still expected to stop on the next raw note.
+13. Run `npm run validate`.
+14. Run `npm run check` only if validation reaches the expected next raw-note blocker or fully passes. Astro's content glob order can surface a different remaining raw note than the sorted validator.
+15. Run `npm run build` only when `npm run check` passes.
 
-Do this in small batches. A good first batch is 5-10 files, then validate before continuing.
+Do this in small batches. A good batch size is 5 files while the helper is still being refined, or 8-10 files after dry-run and warning patterns are predictable.
+
+Batch-local verification snippet:
+
+```bash
+node - <migrated-files...> <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const taxonomy = JSON.parse(fs.readFileSync('src/data/taxonomy.json', 'utf8'));
+const familyCodes = new Set(Object.keys(taxonomy.families));
+const middleCodes = new Set(Object.keys(taxonomy.middles));
+const files = process.argv.slice(2);
+function frontmatter(markdown, file) {
+  const match = markdown.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) throw new Error(`${file}: missing YAML frontmatter block`);
+  return match[1];
+}
+function getScalar(fm, key) {
+  const match = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+  return match ? match[1].trim().replace(/^['"]|['"]$/g, '') : '';
+}
+function getBlock(fm, key) {
+  const match = fm.match(new RegExp(`^${key}:\\n([\\s\\S]*?)(?=^[A-Za-z0-9_]+:|\\Z)`, 'm'));
+  return match ? match[1] : '';
+}
+function getInlineList(fm, key) {
+  const match = fm.match(new RegExp(`^${key}:\\s*\\[(.*?)\\]`, 'm'));
+  return match ? match[1].split(',').map((x) => x.trim()).filter(Boolean) : [];
+}
+for (const file of files) {
+  const fm = frontmatter(fs.readFileSync(path.join('src/content/papers', file), 'utf8'), file);
+  for (const key of ['slug', 'title', 'summary', 'axis_A', 'axis_B']) {
+    if (!new RegExp(`^${key}:`, 'm').test(fm)) throw new Error(`${file}: missing required key ${key}`);
+  }
+  const slug = getScalar(fm, 'slug');
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error(`${file}: invalid slug ${slug}`);
+  const primary = getBlock(fm, 'axis_A').match(/^\\s+primary:\\s*(A\\d)/m)?.[1];
+  if (!familyCodes.has(primary)) throw new Error(`${file}: invalid axis_A.primary`);
+  for (const code of getInlineList(fm, 'axis_B')) {
+    if (!middleCodes.has(code)) throw new Error(`${file}: invalid axis_B ${code}`);
+  }
+  console.log(`${file}: ok`);
+}
+NODE
+```
 
 ## Milestone 2 -- Harden Migration Tooling
 
@@ -65,6 +113,8 @@ Responsibilities:
 - strip obsolete value-trajectory IR project sections and ignore `trajectory_IR_relevance`;
 - write to `src/content/papers/<slug>.md`;
 - refuse to overwrite unrelated files;
+- conservatively coerce schema-sensitive fields: `year` must be blank or an integer, `artifact.url` must be blank or an HTTP(S) URL, and `reproducibility_level` must be one of `high`, `medium`, `low`, or `unknown`;
+- print warnings for any conservative coercion so the batch owner can decide whether checked evidence supports a manual replacement;
 - optionally delete or archive the old raw filename after a successful rename.
 
 Keep this script conservative. It should fail loudly when metadata is ambiguous instead of inventing values.
