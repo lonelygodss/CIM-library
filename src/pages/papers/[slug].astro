@@ -1,0 +1,53 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PaperCard from '../../components/PaperCard.astro';
+import taxonomy from '../../data/taxonomy.json';
+
+export async function getStaticPaths() {
+  const papers = await getCollection('papers');
+  return papers.map((paper) => ({
+    params: { slug: paper.data.slug },
+    props: { paper }
+  }));
+}
+
+const { paper } = Astro.props;
+const { Content } = await render(paper);
+const data = paper.data;
+---
+<BaseLayout title={`${data.title} — Paper Library`} description={data.summary}>
+  <header class="hero wrap">
+    <div class="hero-card">
+      <div class="eyebrow"><span class="dot"></span> Corpus note</div>
+      <h1>{data.title}</h1>
+      <p>{data.summary}</p>
+    </div>
+  </header>
+  <main class="wrap paper-layout">
+    <article class="prose">
+      <Content />
+    </article>
+    <aside class="sidebar">
+      <PaperCard paper={data} taxonomy={taxonomy} />
+      <div class="panel pad">
+        <h3>Metadata</h3>
+        <div class="badges">
+          <span class="badge">Axis A: {data.axis_A.primary}</span>
+          {data.axis_B.map((code) => <span class="badge">Axis B: {code}</span>)}
+          {data.year && <span class="badge">{data.year}</span>}
+        </div>
+      </div>
+      <div class="panel pad">
+        <h3>Links</h3>
+        <div class="chip-row">
+          {data.links?.paper && <a class="chip" href={data.links.paper}>Paper</a>}
+          {data.links?.artifact && <a class="chip" href={data.links.artifact}>Artifact</a>}
+          {data.links?.docs && <a class="chip" href={data.links.docs}>Docs</a>}
+          {data.links?.code && <a class="chip" href={data.links.code}>Code</a>}
+          <a class="chip" href="/library/">Back to atlas</a>
+        </div>
+      </div>
+    </aside>
+  </main>
+</BaseLayout>

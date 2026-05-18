@@ -1,0 +1,21 @@
+{
+  "name": "paper-library",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "npm run validate && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "validate": "node scripts/validate-library.mjs",
+    "new:paper": "node scripts/scaffold-paper.mjs"
+  },
+  "dependencies": {
+    "astro": "latest"
+  },
+  "devDependencies": {
+    "@astrojs/check": "latest",
+    "typescript": "latest"
+  }
+}

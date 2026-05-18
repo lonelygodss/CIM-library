@@ -1,0 +1,20 @@
+---
+import '../styles/global.css';
+
+const {
+  title = 'CIM Compiler/IR Paper Library',
+  description = 'A small public corpus for taxonomy-centered CIM compiler/IR papers.'
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

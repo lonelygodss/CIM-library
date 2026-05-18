@@ -1,0 +1,21 @@
+---
+const { paper, taxonomy } = Astro.props;
+const family = taxonomy.families[paper.axis_A.primary];
+const middle = paper.axis_B.map((code) => taxonomy.middles[code]?.short ?? code).join(', ');
+const href = `/papers/${paper.slug}/`;
+---
+<article class="paper-card">
+  <div class="work-title">
+    <div>
+      <h3><a href={href}>{paper.title}</a></h3>
+      {paper.subtitle && <div class="subtle">{paper.subtitle}</div>}
+    </div>
+    <span class="badge" style={`border-color:${family?.color ?? '#dfe4ee'};`}>{paper.axis_A.primary}</span>
+  </div>
+  <p>{paper.summary}</p>
+  <div class="badges" style="margin-top:10px">
+    <span class="badge">{family?.short ?? paper.axis_A.primary}</span>
+    <span class="badge">{middle}</span>
+    {paper.year && <span class="badge">{paper.year}</span>}
+  </div>
+</article>

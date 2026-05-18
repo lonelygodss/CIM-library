@@ -1,0 +1,187 @@
+{
+  "schema_version": "0.1",
+  "families": {
+    "A1": {
+      "name": "Macro / circuit generators",
+      "short": "Macro generators",
+      "artifact": "Macro templates, cell choices, precision datapaths",
+      "color": "#845ec2"
+    },
+    "A2": {
+      "name": "Simulators & cost models",
+      "short": "Simulators",
+      "artifact": "Component hierarchy, energy/latency LUTs, nonideality tables",
+      "color": "#0081cf"
+    },
+    "A3": {
+      "name": "Mapping / scheduling / DSE",
+      "short": "Mapping + DSE",
+      "artifact": "Tensor tiles, loop nests, array bindings, replication choices",
+      "color": "#00a676"
+    },
+    "A4": {
+      "name": "Explicit IR / dialect / ISA stacks",
+      "short": "IR + ISA stacks",
+      "artifact": "Graph IRs, MLIR dialects, hardware-resource IRs, meta-ops, ISA streams",
+      "color": "#ff7b00"
+    },
+    "A5": {
+      "name": "Narrow end-to-end co-design",
+      "short": "End-to-end co-design",
+      "artifact": "One architecture by one workload family",
+      "color": "#d1495b"
+    },
+    "A6": {
+      "name": "Programming / runtime / benchmark",
+      "short": "Runtime + benchmark",
+      "artifact": "Runtime APIs, DPU partitioning, host-device movement, benchmark harnesses",
+      "color": "#2f4858"
+    }
+  },
+  "middles": {
+    "B1": {
+      "name": "Config-as-IR / search state",
+      "short": "Config/search",
+      "desc": "Workload, hardware, device, search, and PPA descriptions act as the operative middle layer."
+    },
+    "B2": {
+      "name": "Graph-as-IR",
+      "short": "Graph",
+      "desc": "The middle layer is an operator DAG or model graph annotated, partitioned, fused, duplicated, or scheduled."
+    },
+    "B3": {
+      "name": "Loop / tensor schedule",
+      "short": "Loop/tensor",
+      "desc": "Affine, tensor-expression, einsum, linalg, LoopTree, or polyhedral schedule abstractions drive placement and timing."
+    },
+    "B4": {
+      "name": "Hardware-resource IR",
+      "short": "Resource",
+      "desc": "The stack explicitly names CIM resources such as chips, cores, arrays, crossbars, wordlines, ADCs, buffers, or NoC links."
+    },
+    "B5": {
+      "name": "Instruction / meta-op / ILA",
+      "short": "Instruction",
+      "desc": "A backend boundary is expressed as pseudo-instructions, meta-operators, microprograms, command traces, or virtual assembly."
+    },
+    "B6": {
+      "name": "Accuracy / nonideality model",
+      "short": "Accuracy",
+      "desc": "Analog error, quantization, variation, faults, drift, IR drop, or learned nonideality models are central."
+    },
+    "B7": {
+      "name": "Runtime-state abstraction",
+      "short": "Runtime",
+      "desc": "The central abstraction is request state, KV cache, dynamic masks, batching, placement, or host-device execution state."
+    }
+  },
+  "coverage_dimensions": [
+    {
+      "key": "frontend",
+      "label": "Frontend",
+      "short": "Front",
+      "desc": "Imports or captures application/model programs, such as ONNX, TorchScript, C/C++, Verilog, kernels, or task graphs."
+    },
+    {
+      "key": "graph",
+      "label": "Graph IR",
+      "short": "Graph",
+      "desc": "Represents neural-network or task graphs as an explicit transform target."
+    },
+    {
+      "key": "loop",
+      "label": "Loop / tensor schedule",
+      "short": "Loop",
+      "desc": "Uses loop, tensor, affine, polyhedral, or dataflow schedules as explicit optimization objects."
+    },
+    {
+      "key": "resource",
+      "label": "CIM resource model",
+      "short": "Resource",
+      "desc": "Models CIM hardware hierarchy and resources: macro, array, crossbar, bank, core, PE, NoC, buffer, or peripheral."
+    },
+    {
+      "key": "mapping",
+      "label": "Mapping / DSE",
+      "short": "Map",
+      "desc": "Optimizes placement, tiling, replication, partitioning, routing, or hardware design choices."
+    },
+    {
+      "key": "isa",
+      "label": "ISA / meta-op",
+      "short": "ISA",
+      "desc": "Defines instructions, pseudo-instructions, meta-ops, command traces, or microprograms."
+    },
+    {
+      "key": "sim",
+      "label": "Simulator / cost",
+      "short": "Sim",
+      "desc": "Provides latency, energy, area, utilization, accuracy, or cycle/performance modeling."
+    },
+    {
+      "key": "accuracy",
+      "label": "Accuracy / nonideality",
+      "short": "Acc",
+      "desc": "Tracks quantization, analog nonidealities, faults, approximate arithmetic, or chip-calibrated errors."
+    },
+    {
+      "key": "runtime",
+      "label": "Runtime / state",
+      "short": "Run",
+      "desc": "Manages dynamic placement, batching, KV state, host-device transfer, DPU/tasklet state, or execution control."
+    },
+    {
+      "key": "macro",
+      "label": "Macro / circuit generation",
+      "short": "Macro",
+      "desc": "Generates or optimizes RTL, layouts, macros, circuit templates, cells, or physical-design artifacts."
+    },
+    {
+      "key": "real",
+      "label": "Real hardware / chip loop",
+      "short": "Chip",
+      "desc": "Uses measured silicon, real UPMEM-class systems, chip-in-loop emulation, or silicon-calibrated validation."
+    },
+    {
+      "key": "artifact",
+      "label": "Artifact / benchmark",
+      "short": "Art",
+      "desc": "Provides a reusable artifact, benchmark suite, public tool, or reproducible workflow evidence."
+    }
+  ],
+  "levels": {
+    "0": "not central / not reported",
+    "1": "supporting or mentioned",
+    "2": "explicit component",
+    "3": "primary evidenced strength"
+  },
+  "rewrite_types": {
+    "hardware-template": "hardware template / macro choice",
+    "graph": "operator graph transformation",
+    "loop": "loop or tensor-schedule transformation",
+    "mapping": "mapping, placement, tiling, or allocation",
+    "mode": "mode selection across compute, memory, or device classes",
+    "instruction": "instruction, microprogram, or trace generation",
+    "numeric": "numeric format, precision, quantization, or approximation",
+    "runtime": "runtime scheduling, placement, batching, or data movement",
+    "accuracy": "fault, variation, calibration, or accuracy handling",
+    "benchmark": "benchmark, API, or workload-porting pattern"
+  },
+  "objects_vocab": [
+    "macro template",
+    "hardware hierarchy",
+    "crossbar / array",
+    "operator graph",
+    "loop / tensor schedule",
+    "instruction stream",
+    "numeric format",
+    "ADC / DAC / peripherals",
+    "nonideality / faults",
+    "runtime state",
+    "sparsity / masks",
+    "benchmark API",
+    "chip / emulator address",
+    "memory service properties",
+    "space-time value trajectory"
+  ]
+}
