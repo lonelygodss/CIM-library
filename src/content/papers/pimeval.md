@@ -1,5 +1,5 @@
 ---
-slug: pimeva
+slug: pimeval
 title: "PIMeval / PIMbench: Architectural Modeling and Benchmarking for Digital DRAM PIM"
 subtitle: "Scoped CIM stack note"
 year: 2024

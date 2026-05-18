@@ -340,4 +340,4 @@ The CPU/GPU comparison uses two full UPMEM systems, an Intel Xeon CPU, and an NV
 - The hidden IR lives in code and configuration: C host code, DPU kernels, Makefile macros, command-line parameters, and benchmark-specific mapping conventions.
 - Artifact status: public artifact found, MIT-licensed, with runnable code and scripts; a declarative compiler IR, pass pipeline, and paper-figure workflow were not found in the checked sources.
 - Integration is most direct as a benchmark and calibration source for future CIM/PIM compiler stacks.
-- For a value-trajectory IR project, PrIM is valuable for digital placement/transfer trajectories, while analog trajectory objects such as ADC/DAC, bit-sliced partial sums, and reconstruction paths are not applicable to this target.
+- For value-trajectory IR work, PrIM is valuable for digital placement/transfer trajectories, while analog trajectory objects such as ADC/DAC, bit-sliced partial sums, and reconstruction paths are not applicable to this target.

@@ -1,5 +1,5 @@
 ---
-slug: openacmv
+slug: openacmv2
 title: "OpenACMv2: An Accuracy-Constrained Co-Optimization Framework for Approximate DCiM"
 subtitle: "Scoped CIM stack note"
 year: 2026

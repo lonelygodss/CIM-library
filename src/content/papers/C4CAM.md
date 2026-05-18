@@ -57,7 +57,7 @@ integration_roles:
   - "cost_model"
   - "backend"
   - "benchmark"
-reproducibility_level: unknown
+reproducibility_level: low
 notes:
   - "Most reusable compiler idea is the separation between cim.similarity and cam hierarchy/resource operations."
   - "Artifact-level reuse is clearest through CAMASim rather than through a public C4CAM compiler implementation."

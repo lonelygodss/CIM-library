@@ -1,5 +1,5 @@
 ---
-slug: polyhedral-based-compilation-framework-for-in-memoryneural-network-accelerators
+slug: polyhedral-based-compilation-framework-for-in-memory-neural-network-accelerators
 title: "Polyhedral-Based Compilation Framework for In-Memory Neural Network Accelerators"
 subtitle: "Scoped CIM stack note"
 year: 2021
@@ -319,4 +319,4 @@ The demonstrated compiler frontend is C with SCoP regions; the example benchmark
 - Crossbar, DAC/ADC, bit slicing, and shift-add reconstruction are important architectural assumptions, but they remain mostly behind the API boundary.
 - The public artifact is available under MIT and supports building/running PolyXB tests, while full paper-figure reproduction scripts were not found in the checked repository.
 - Integration is most direct as a **frontend/matcher or source-to-source backend wrapper** for static affine NN inference kernels.
-- For a value-trajectory IR project, PolyXB is a useful stage/operator-recovery precedent; trajectory-level rewrites would add explicit value path, domain, precision, and reconstruction metadata.
+- For value-trajectory IR work, PolyXB is a useful stage/operator-recovery precedent; trajectory-level rewrites would add explicit value path, domain, precision, and reconstruction metadata.

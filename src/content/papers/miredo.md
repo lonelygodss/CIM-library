@@ -1,5 +1,5 @@
 ---
-slug: miredow
+slug: miredo
 title: "MIREDO: MIP-Driven Resource-Efficient Dataflow Optimization for Computing-in-Memory Accelerator"
 subtitle: "Scoped CIM stack note"
 year: 2026

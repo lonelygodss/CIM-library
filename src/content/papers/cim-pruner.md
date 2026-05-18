@@ -1,5 +1,5 @@
 ---
-slug: cim-prune
+slug: cim-pruner
 title: "CIM-Pruner: A Dual-Mode Compute-In-Memory Macro for Efficient VLMs with Intra-Chunk Token Pruning and Merging"
 subtitle: "Scoped CIM stack note"
 year: 2026

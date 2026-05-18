@@ -1,5 +1,5 @@
 ---
-slug: learncnm2predic
+slug: learncnm2predict
 title: "LearnCNM2Predict: Transfer Learning-based Performance Model for CNM Systems"
 subtitle: "Scoped CIM stack note"
 year: 2025

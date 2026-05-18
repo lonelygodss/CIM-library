@@ -355,4 +355,4 @@ Integration would be most direct through a reimplementation of the mapping vecto
 - The evidenced scope covers UPMEM hardware and Samsung HBM-PIM simulation with PrIM and ML workloads; host off-chip communication is outside the experiment scope.
 - The hidden IR is the combined state of mapping vector, target config, latency LUTs, instruction stream, and process/blocking state.
 - Artifact status: a public `CNM-Cost-model` repository was found but is empty; no runnable public CoMoNM artifact was found in the checked sources.
-- For a value-trajectory IR project, CoMoNM contributes useful mapping and resource-path ingredients, but trajectory-level semantics would add value identity, precision stage, and domain-transition metadata.
+- For value-trajectory IR work, CoMoNM contributes useful mapping and resource-path ingredients, but trajectory-level semantics would add value identity, precision stage, and domain-transition metadata.

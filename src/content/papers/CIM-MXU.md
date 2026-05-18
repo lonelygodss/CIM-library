@@ -63,7 +63,7 @@ integration_roles:
   - "cost_model"
   - "benchmark"
   - "validation_partial"
-reproducibility_level: unknown
+reproducibility_level: low
 notes:
   - "Strongest evidence is at CIM-MXU microarchitecture/modeling and TPU-level DSE."
   - "No explicit compiler IR, dialect, ISA, or instruction stream is exposed."

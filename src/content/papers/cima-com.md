@@ -59,7 +59,7 @@ integration_roles:
   - "backend"
   - "benchmark"
   - "validation_partial"
-reproducibility_level: unknown
+reproducibility_level: low
 notes:
   - "Exact public paper record for CIMA_COM/CIMA_COMP was not found in checked sources."
   - "The strongest evidence is the public CIMA_COMP compiler/backend artifact."

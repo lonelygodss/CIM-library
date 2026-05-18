@@ -338,4 +338,4 @@ Integration as an accuracy backend is relatively direct because the artifact alr
 
 - Integration is most direct as a **backend simulator plugin** or **accuracy-cost model** for a future CIM compiler stack.
 
-- For a value-trajectory IR project, GENIEx is useful because it shows how bit significance, analog domain transition, ADC precision, and reconstruction affect functional accuracy, while trajectory-level rewrites would require additional first-class metadata for value identity and path state.
+- For value-trajectory IR work, GENIEx is useful because it shows how bit significance, analog domain transition, ADC precision, and reconstruction affect functional accuracy, while trajectory-level rewrites would require additional first-class metadata for value identity and path state.

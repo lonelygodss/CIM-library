@@ -60,7 +60,7 @@ integration_roles:
   - "cost_model"
   - "backend"
   - "benchmark"
-reproducibility_level: unknown
+reproducibility_level: medium
 notes:
   - "Best used as a resource-granularity and meta-op compiler baseline."
   - "The reusable abstraction is clearest at Abs-arch/Abs-com and VXB."
