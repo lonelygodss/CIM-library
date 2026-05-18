@@ -13,7 +13,7 @@ The raw-note migration milestone is complete:
 
 The migration helper `scripts/promote-raw-note.mjs` remains useful for any future imported notes. It promotes the fenced YAML block under `## 12. Suggested metadata entry`, strips obsolete generated migration-only sections, normalizes filenames to slugs, and conservatively coerces schema-sensitive fields.
 
-Current product priority: make `/library/` a strong taxonomy atlas before refining individual paper detail pages. The legacy standalone HTML in `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` is the main UI benchmark for this phase. The present Astro atlas has valid data plumbing, but its sizing, layout density, and interactive browsing utility are weaker than the draft and should be improved first.
+Current product priority: make `/library/` a strong taxonomy atlas before refining individual paper detail pages. The legacy standalone HTML in `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` is the reference for core graph interaction: hover summary, click selection, and selected-paper right-panel visualization. The taxonomy explanation should be clear and easy to read, not copied as a fancy visual narrative from the draft.
 
 ## Milestone 1 -- Content QA
 
@@ -34,30 +34,41 @@ Keep QA changes small and evidence-based. Do not invent missing publication fact
 
 ## Milestone 2 -- Atlas Visualization First
 
-Goal: make `/library/` the primary public experience: a useful, readable, visually strong taxonomy atlas that helps a visitor understand the CIM compiler/IR landscape before opening single-paper pages.
+Goal: make `/library/` the primary public experience: a useful, readable, visually strong taxonomy graph that helps a visitor inspect Axis A x Axis B placement before opening single-paper pages.
 
-Use `docs/atlas-visualization-harness.md` for implementation and review. Use the legacy HTML as the reference for interaction density and explanatory structure, not as a source of obsolete metadata fields.
+Use the legacy HTML as the reference for graph interaction behavior, not as a source of obsolete metadata fields or broad UI scope.
 
 Priority fixes:
 
-1. Restore a strong overview flow before the paper dots: core finding, corpus counts, Axis A/B explanation, and the "hidden IR" / value-trajectory gap framing from the legacy draft.
-2. Add a role × middle-style matrix or equivalent overview that shows counts across Axis A and Axis B, with clickable cells that filter or focus the atlas.
-3. Improve atlas sizing and layout so the visualization is not cramped, especially on desktop. The atlas should have enough horizontal and vertical room to compare clusters and should not be visually subordinate to repeated axis-description cards.
-4. Improve interactive utility: search, Axis A filter, Axis B filter, technology/workload filter, count feedback, selected-paper details, reset/filter affordances, keyboard focus, and clear empty states.
-5. Decide whether the main browsing surface should be a dot atlas, a searchable card/grid list, or both. If both are present, keep them synchronized.
-6. Recover useful legacy behaviors such as clickable matrix cells, compact paper cards with expandable details, stable result count, and persistent selected-paper context.
-7. Keep visual polish restrained and research-oriented: dense but readable, strong hierarchy, no backend services, no PDF hosting.
+1. Improve graph sizing and layout so the Axis A x Axis B visualization is large, legible, and not cramped on desktop.
+2. Implement node hover behavior: a floating summary box near the cursor with title/display name, year/venue when available, Axis A/B placement, and a short summary.
+3. Implement node click behavior: clicking a paper selects it and updates the right panel.
+4. Replace the legacy radar graph idea with an axis coverage cloud graph in the right panel, derived from active metadata: Axis A, Axis B, Axis C first-class objects, Axis D rewrite objects, and optionally technology/workload terms.
+5. Keep taxonomy explanation simple: short text and readable axis definitions, not a large copied visual narrative from the legacy draft.
+6. Keep keyboard accessibility and mobile layout in scope for the graph, hover/selection equivalent, right panel, and coverage cloud.
+7. Treat search/filter controls, role-style matrix, and compact paper cards as optional follow-ups after the core graph interaction is high quality.
 8. Verify with browser screenshots at desktop and mobile widths before calling this milestone complete.
 
-Do not reintroduce legacy `coverage`, ranking, or `trajectory_IR_relevance` metadata. Counts, matrix cells, and visual emphasis are allowed as derived UI state, not as new paper-quality scores.
+Do not reintroduce legacy `coverage`, ranking, or `trajectory_IR_relevance` metadata. The coverage cloud is a derived visual summary of descriptive fields, not a numeric score or ranking.
 
 Acceptance criteria:
 
-- `/library/` communicates the taxonomy and corpus shape within the first screen and makes the atlas the main object, not a small embedded widget.
-- A reader can answer "which stack roles and middle-layer styles dominate?" without opening a paper page.
-- A reader can filter from overview matrix/card interactions into the paper atlas/list and inspect the selected work without losing context.
+- `/library/` makes the taxonomy graph the main object, not a small embedded widget.
+- Hovering a node reliably shows a useful floating summary without overlap problems.
+- Clicking a node reliably updates the selected-paper right panel.
+- The right panel contains a readable axis coverage cloud for the selected paper.
 - The layout is usable at common desktop widths and does not collapse into awkward oversized cards or undersized charts.
 - `npm run validate`, `npm run check`, and `npm run build` pass after implementation.
+
+Implementation quality bar:
+
+- Source priority: use `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` for graph interaction, `src/content/legacy/CIM stack library compact.md` for short display labels when current frontmatter is too long, `src/data/taxonomy.json` for Axis A/B vocabulary and colors, and `src/content/papers/*.md` for active paper metadata.
+- Hover box content: title/display name, year/venue if available, Axis A/B placement, and a short summary.
+- Coverage cloud inputs: Axis A primary/secondary roles, Axis B styles, Axis C first-class objects, Axis D rewrite objects, and only optionally technology/workload terms.
+- Coverage cloud presentation: distinguish role/style/object/rewrite categories with restrained color, grouping, or shape; limit or group long lists; never imply a numeric score.
+- Accessibility: make graph nodes keyboard-selectable or provide an equivalent accessible selection mechanism.
+- Responsive behavior: desktop should emphasize the graph plus right panel; mobile may use a scrollable graph region and stacked right panel.
+- Verification: inspect `/library/` in browser screenshots at desktop and mobile widths; check nonblank graph rendering, legible labels, hover summary placement, click selection, right-panel cloud readability, and no overlapping text.
 
 ## Milestone 3 -- Paper Page Polish
 

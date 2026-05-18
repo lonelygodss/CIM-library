@@ -6,7 +6,7 @@ Finish this as a static Astro paper library. Do not add PDF hosting yet.
 
 Root-level project instructions live in `AGENTS.md`. Use this handoff as a short status note; use `AGENTS.md` for ongoing agent behavior.
 
-Current development plan lives in `docs/future-development-plan.md`. Atlas UI work should follow `docs/atlas-visualization-harness.md`. A ready-to-use restart prompt lives in `docs/next-session-prompt.md`.
+Current development plan lives in `docs/future-development-plan.md`. A ready-to-use restart prompt lives in `docs/next-session-prompt.md`.
 
 ## Design decisions already made
 
@@ -14,7 +14,7 @@ Current development plan lives in `docs/future-development-plan.md`. Atlas UI wo
 - Taxonomy vocabulary source: `src/data/taxonomy.json`.
 - Atlas route: `/library/`.
 - Paper route: `/papers/[slug]/`.
-- Visualization: prioritize a strong `/library/` taxonomy atlas before paper detail-page polish. Use the legacy standalone HTML as the benchmark for overview flow, matrix/list interactions, sizing, layout, and browsing utility.
+- Visualization: prioritize a strong `/library/` taxonomy graph before paper detail-page polish. Use the legacy standalone HTML as the benchmark for node hover summaries, click selection, graph sizing, and selected-paper right-panel visualization. Replace the legacy radar with a derived axis coverage cloud.
 - No coverage score, ranking score, or trajectory-IR relevance metadata in the active schema.
 - Keep the site static and suitable for personal hosting.
 
@@ -64,12 +64,13 @@ On macOS-style case-insensitive filesystems, Git may show case-only filename nor
 
 1. Keep content QA green with `npm run qa`, `npm run validate`, `npm run check`, and `npm run build`.
 2. Improve `/library/` before individual paper pages.
-3. Use `docs/atlas-visualization-harness.md` and `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` as the guide.
-4. Restore or adapt the legacy strengths: first-screen taxonomy framing, role/style matrix with click-to-filter behavior, visible result counts, compact synchronized paper browsing, selected-paper details, and responsive sizing.
-5. Do not reintroduce coverage scores, ranking scores, or `trajectory_IR_relevance` as active metadata.
-6. Improve individual paper page layout only after the atlas is substantially useful.
+3. Use `docs/future-development-plan.md` and `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` as the guide.
+4. Restore or adapt the core legacy graph behaviors: hover summary box, click-to-select node behavior, right-panel selected-paper visualization, and responsive graph sizing.
+5. Keep taxonomy explanation simple and readable. Do not copy the legacy explanatory visualization set unless the graph interaction is already solid.
+6. Do not reintroduce coverage scores, ranking scores, or `trajectory_IR_relevance` as active metadata. The axis coverage cloud is a derived visual summary, not a score.
+7. Improve individual paper page layout only after the atlas is substantially useful.
 
-Use `docs/atlas-visualization-harness.md` for atlas work. Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from draft artifacts.
+Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from draft artifacts.
 
 ## Frontmatter contract
 
