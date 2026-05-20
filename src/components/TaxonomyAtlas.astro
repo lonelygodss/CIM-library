@@ -51,7 +51,7 @@ const { papers, taxonomy } = Astro.props;
   <div class="section-title">
     <div>
       <h2>Interactive paper atlas</h2>
-      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B. Hover or focus for a quick read; select a node to inspect its metadata cloud.</div>
+      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B. Select a node to show its full Axis A x Axis B footprint on the atlas and its object/rewrite cloud in the panel.</div>
     </div>
     <div class="atlas-count" id="filteredStats" aria-live="polite"></div>
   </div>
@@ -251,6 +251,53 @@ const { papers, taxonomy } = Astro.props;
     return top + (bottom - top) * (i / Math.max(1, middleCodes.length - 1));
   }
 
+  function taxonomyFootprint(paper) {
+    const axisRoles = [...new Set(roles(paper).filter((code) => families[code]))];
+    const styles = [...new Set((paper.axis_B ?? []).filter((code) => middles[code]))];
+    return axisRoles.flatMap((family) => styles.map((middle) => ({
+      family,
+      middle,
+      x: xForFamily(family),
+      y: yForMiddle(middle)
+    })));
+  }
+
+  function drawSelectedFootprint(svg) {
+    const paper = currentPaper();
+    if (!paper) return;
+    const points = taxonomyFootprint(paper);
+    if (!points.length) return;
+    const color = families[paper.axis_A.primary]?.color ?? '#335cff';
+    const group = node('g', { class: 'taxonomy-footprint', 'aria-hidden': 'true', 'pointer-events': 'none' });
+
+    const byMiddle = new Map();
+    const byFamily = new Map();
+    points.forEach((point) => {
+      if (!byMiddle.has(point.middle)) byMiddle.set(point.middle, []);
+      if (!byFamily.has(point.family)) byFamily.set(point.family, []);
+      byMiddle.get(point.middle).push(point);
+      byFamily.get(point.family).push(point);
+    });
+    byMiddle.forEach((row) => {
+      if (row.length < 2) return;
+      row.sort((a, b) => a.x - b.x);
+      group.append(node('line', { x1: row[0].x, y1: row[0].y, x2: row[row.length - 1].x, y2: row[0].y, stroke: color, 'stroke-width': 5, opacity: 0.16, 'stroke-linecap': 'round' }));
+    });
+    byFamily.forEach((column) => {
+      if (column.length < 2) return;
+      column.sort((a, b) => a.y - b.y);
+      group.append(node('line', { x1: column[0].x, y1: column[0].y, x2: column[0].x, y2: column[column.length - 1].y, stroke: color, 'stroke-width': 5, opacity: 0.16, 'stroke-linecap': 'round' }));
+    });
+
+    points.forEach((point) => {
+      group.append(node('circle', { cx: point.x, cy: point.y, r: 34, fill: color, opacity: 0.09 }));
+      group.append(node('circle', { cx: point.x, cy: point.y, r: 24, fill: color, opacity: 0.16 }));
+      group.append(node('circle', { cx: point.x, cy: point.y, r: 9, fill: '#fff', stroke: color, 'stroke-width': 3, opacity: 0.96 }));
+      group.append(node('text', { x: point.x, y: point.y - 31, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 900, fill: color }, `${point.family}/${point.middle}`));
+    });
+    svg.append(group);
+  }
+
   function drawAtlas() {
     const svg = $('atlas');
     clear(svg);
@@ -271,6 +318,7 @@ const { papers, taxonomy } = Astro.props;
       svg.append(node('text', { x: 660, y: 380, 'text-anchor': 'middle', fill: '#607086', 'font-size': 17 }, 'No papers match the current filters.'));
       return;
     }
+    drawSelectedFootprint(svg);
     const offsets = groupedPositions(filtered);
     filtered.forEach((paper) => {
       const baseX = xForFamily(paper.axis_A.primary);
@@ -386,9 +434,6 @@ const { papers, taxonomy } = Astro.props;
       $('workMore').innerHTML = '';
       return;
     }
-    const color = families[paper.axis_A.primary]?.color ?? '#335cff';
-    const allRoles = roles(paper).map((code) => `${code} ${families[code]?.short ?? ''}`);
-    const styleLabels = (paper.axis_B ?? []).map((code) => `${code} ${middles[code]?.short ?? ''}`);
     const contextTerms = [...(paper.technology ?? []), ...(paper.workloads ?? [])];
     $('workDetails').innerHTML = `
       <div class="work-title">
@@ -396,7 +441,6 @@ const { papers, taxonomy } = Astro.props;
           <h3>${esc(paper.title)}</h3>
           <div class="subtle">${esc(metadataLine(paper) || paper.subtitle || 'No venue/year in metadata')}</div>
         </div>
-        <span class="badge" style="border-color:${color}; color:${color};">${esc(paper.axis_A.primary)}</span>
       </div>
       <p class="subtle" style="margin:0">${esc(paper.summary)}</p>
       <div class="badges">
@@ -405,17 +449,11 @@ const { papers, taxonomy } = Astro.props;
       <p style="margin:0"><a class="badge" href="/papers/${esc(paper.slug)}/">Open paper page</a></p>
     `;
     $('workMore').innerHTML = `
-      <div class="coverage-cloud" aria-label="Selected paper axis coverage cloud">
-        <div class="cloud-center">
-          <span>Selected paper</span>
-          <strong>${esc(shortTitle(paper))}</strong>
-        </div>
-        ${category('Axis A roles', allRoles, 'role', 5)}
-        ${category('Axis B styles', styleLabels, 'style', 7)}
+      <div class="coverage-cloud" aria-label="Selected paper object and rewrite cloud">
         ${category('Axis C first-class objects', paper.axis_C_first_class_objects ?? [], 'object', 6)}
         ${category('Axis D rewrite objects', paper.axis_D_rewrite_objects ?? [], 'rewrite', 6)}
         ${contextTerms.length ? category('Technology / workloads', contextTerms, 'context', 6) : ''}
-        <p class="cloud-note">Descriptive metadata cloud only; it is not a score or ranking.</p>
+        <p class="cloud-note">Axis A/B footprint is shown on the atlas. This object cloud is descriptive metadata only; it is not a score or ranking.</p>
       </div>
     `;
   }
