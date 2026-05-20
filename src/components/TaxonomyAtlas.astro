@@ -281,19 +281,16 @@ const { papers, taxonomy } = Astro.props;
     byMiddle.forEach((row) => {
       if (row.length < 2) return;
       row.sort((a, b) => a.x - b.x);
-      group.append(node('line', { x1: row[0].x, y1: row[0].y, x2: row[row.length - 1].x, y2: row[0].y, stroke: color, 'stroke-width': 5, opacity: 0.16, 'stroke-linecap': 'round' }));
+      group.append(node('line', { x1: row[0].x, y1: row[0].y, x2: row[row.length - 1].x, y2: row[0].y, stroke: color, 'stroke-width': 34, opacity: 0.16, 'stroke-linecap': 'round' }));
     });
     byFamily.forEach((column) => {
       if (column.length < 2) return;
       column.sort((a, b) => a.y - b.y);
-      group.append(node('line', { x1: column[0].x, y1: column[0].y, x2: column[0].x, y2: column[column.length - 1].y, stroke: color, 'stroke-width': 5, opacity: 0.16, 'stroke-linecap': 'round' }));
+      group.append(node('line', { x1: column[0].x, y1: column[0].y, x2: column[0].x, y2: column[column.length - 1].y, stroke: color, 'stroke-width': 34, opacity: 0.16, 'stroke-linecap': 'round' }));
     });
 
     points.forEach((point) => {
-      group.append(node('circle', { cx: point.x, cy: point.y, r: 34, fill: color, opacity: 0.09 }));
-      group.append(node('circle', { cx: point.x, cy: point.y, r: 24, fill: color, opacity: 0.16 }));
-      group.append(node('circle', { cx: point.x, cy: point.y, r: 9, fill: '#fff', stroke: color, 'stroke-width': 3, opacity: 0.96 }));
-      group.append(node('text', { x: point.x, y: point.y - 31, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 900, fill: color }, `${point.family}/${point.middle}`));
+      group.append(node('rect', { x: point.x - 40, y: point.y - 28, width: 80, height: 56, rx: 16, fill: color, opacity: 0.18 }));
     });
     svg.append(group);
   }
