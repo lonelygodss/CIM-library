@@ -13,7 +13,9 @@ The raw-note migration milestone is complete:
 
 The migration helper `scripts/promote-raw-note.mjs` remains useful for any future imported notes. It promotes the fenced YAML block under `## 12. Suggested metadata entry`, strips obsolete generated migration-only sections, normalizes filenames to slugs, and conservatively coerces schema-sensitive fields.
 
-Current product priority: make `/library/` a strong taxonomy atlas before refining individual paper detail pages. The legacy standalone HTML in `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` is the reference for core graph interaction: hover summary, click selection, and selected-paper right-panel visualization. The taxonomy explanation should be clear and easy to read, not copied as a fancy visual narrative from the draft.
+Current product state: `/library/` has been promoted into the primary public experience. The Astro atlas now has large Axis A x Axis B graph rendering, deterministic node spreading, hover/focus summaries, click selection, a selected-paper right-panel axis coverage cloud, a filtered paper picker, reset controls, and mobile stacking with horizontal graph scroll. The legacy standalone HTML in `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` is now mostly a behavioral reference for any remaining graph-interaction refinements, not a source for obsolete metadata or explanatory copy.
+
+Current product priority: complete a final atlas QA/polish pass, then move to individual paper detail page refinement. The taxonomy explanation should remain short and readable.
 
 ## Milestone 1 -- Content QA
 
@@ -34,30 +36,39 @@ Keep QA changes small and evidence-based. Do not invent missing publication fact
 
 ## Milestone 2 -- Atlas Visualization First
 
+Status: substantially implemented. Keep this milestone green while doing any final polish.
+
 Goal: make `/library/` the primary public experience: a useful, readable, visually strong taxonomy graph that helps a visitor inspect Axis A x Axis B placement before opening single-paper pages.
 
 Use the legacy HTML as the reference for graph interaction behavior, not as a source of obsolete metadata fields or broad UI scope.
 
-Priority fixes:
+Implemented:
 
-1. Improve graph sizing and layout so the Axis A x Axis B visualization is large, legible, and not cramped on desktop.
-2. Implement node hover behavior: a floating summary box near the cursor with title/display name, year/venue when available, Axis A/B placement, and a short summary.
-3. Implement node click behavior: clicking a paper selects it and updates the right panel.
-4. Replace the legacy radar graph idea with an axis coverage cloud graph in the right panel, derived from active metadata: Axis A, Axis B, Axis C first-class objects, Axis D rewrite objects, and optionally technology/workload terms.
-5. Keep taxonomy explanation simple: short text and readable axis definitions, not a large copied visual narrative from the legacy draft.
-6. Keep keyboard accessibility and mobile layout in scope for the graph, hover/selection equivalent, right panel, and coverage cloud.
-7. Treat search/filter controls, role-style matrix, and compact paper cards as optional follow-ups after the core graph interaction is high quality.
-8. Verify with browser screenshots at desktop and mobile widths before calling this milestone complete.
+1. Graph sizing and layout are larger and desktop-forward.
+2. Nodes expose hover/focus summaries with title/display name, year/venue when available, Axis A/B placement, and summary text.
+3. Clicking graph nodes selects a paper and updates the right panel.
+4. The right panel uses a derived metadata cloud for Axis A, Axis B, Axis C first-class objects, Axis D rewrite objects, and technology/workload terms. It does not imply a score.
+5. Taxonomy explanation has been moved after the atlas and shortened into readable Axis A/B rows.
+6. Keyboard/mobile selection has an equivalent path through the filtered paper picker.
+7. Browser verification covered desktop and mobile widths; all 62 nodes rendered, hover summaries appeared, click and picker selection updated the panel, and reset restored the full result set.
+
+Remaining polish candidates:
+
+1. Dense node clusters may benefit from a low-risk zoom, cell-focus, or selected-cell affordance.
+2. Keyboard tab order and focus tooltip behavior should get one more manual QA pass.
+3. Mobile graph inspection is usable through horizontal scroll, but a small scroll affordance may make that clearer.
+4. Right-panel cloud readability should be spot-checked on sparse-metadata papers and papers with very long titles.
+5. Search/filter controls, role-style matrix, and compact paper cards remain optional follow-ups.
 
 Do not reintroduce legacy `coverage`, ranking, or `trajectory_IR_relevance` metadata. The coverage cloud is a derived visual summary of descriptive fields, not a numeric score or ranking.
 
 Acceptance criteria:
 
-- `/library/` makes the taxonomy graph the main object, not a small embedded widget.
-- Hovering a node reliably shows a useful floating summary without overlap problems.
-- Clicking a node reliably updates the selected-paper right panel.
-- The right panel contains a readable axis coverage cloud for the selected paper.
-- The layout is usable at common desktop widths and does not collapse into awkward oversized cards or undersized charts.
+- `/library/` makes the taxonomy graph the main object, not a small embedded widget. Done.
+- Hovering a node reliably shows a useful floating summary without overlap problems. Done in browser spot checks.
+- Clicking a node reliably updates the selected-paper right panel. Done.
+- The right panel contains a readable axis coverage cloud for the selected paper. Done.
+- The layout is usable at common desktop widths and does not collapse into awkward oversized cards or undersized charts. Mostly done; keep checking edge cases.
 - `npm run validate`, `npm run check`, and `npm run build` pass after implementation.
 
 Implementation quality bar:

@@ -61,6 +61,11 @@ const { papers, taxonomy } = Astro.props;
     <select id="middleFilter" aria-label="Filter by middle-layer style"></select>
     <select id="targetFilter" aria-label="Filter by technology or workload"></select>
   </div>
+  <div class="paper-picker-row" aria-label="Paper selection">
+    <label for="paperPicker">Selected paper</label>
+    <select id="paperPicker" aria-label="Select paper from filtered results"></select>
+    <button id="resetFilters" type="button" class="secondary">Reset filters</button>
+  </div>
   <div class="viz-grid">
     <div class="panel viz-card atlas-box">
       <svg id="atlas" viewBox="0 0 1320 760" role="img" aria-label="CIM taxonomy atlas"></svg>
@@ -158,7 +163,9 @@ const { papers, taxonomy } = Astro.props;
     <section class="cloud-group">
       <h4>${esc(label)}</h4>
       <div class="cloud-nodes">
-        ${(items ?? []).filter(Boolean).slice(0, limit).map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')}
+        ${(items ?? []).filter(Boolean).length
+          ? (items ?? []).filter(Boolean).slice(0, limit).map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')
+          : '<span class="cloud-node more">Not specified</span>'}
         ${(items ?? []).filter(Boolean).length > limit ? `<span class="cloud-node more">+${(items ?? []).length - limit}</span>` : ''}
       </div>
     </section>
@@ -200,6 +207,8 @@ const { papers, taxonomy } = Astro.props;
     const targets = [...new Set(papers.flatMap((p) => [...(p.technology ?? []), ...(p.workloads ?? [])]))].sort();
     targetFilter.innerHTML = `<option value="">All technologies/workloads</option>` + targets.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
     ['search', 'familyFilter', 'middleFilter', 'targetFilter'].forEach((id) => $(id).addEventListener('input', applyFilters));
+    $('paperPicker').addEventListener('change', (event) => selectPaper(event.target.value));
+    $('resetFilters').addEventListener('click', resetFilters);
   }
 
   function applyFilters() {
@@ -214,6 +223,16 @@ const { papers, taxonomy } = Astro.props;
       const searchMatch = !q || textBlob(paper).includes(q);
       return familyMatch && middleMatch && targetMatch && searchMatch;
     });
+    if (!filtered.some((p) => p.slug === selectedSlug)) selectedSlug = filtered[0]?.slug ?? papers[0]?.slug ?? null;
+    renderAll();
+  }
+
+  function resetFilters() {
+    $('search').value = '';
+    $('familyFilter').value = '';
+    $('middleFilter').value = '';
+    $('targetFilter').value = '';
+    filtered = [...papers];
     if (!filtered.some((p) => p.slug === selectedSlug)) selectedSlug = filtered[0]?.slug ?? papers[0]?.slug ?? null;
     renderAll();
   }
@@ -342,6 +361,14 @@ const { papers, taxonomy } = Astro.props;
     ].map(([label, value]) => `<div class="mini-stat"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`).join('');
   }
 
+  function renderPicker() {
+    const picker = $('paperPicker');
+    picker.disabled = filtered.length === 0;
+    picker.innerHTML = filtered.length
+      ? filtered.map((paper) => `<option value="${esc(paper.slug)}"${paper.slug === selectedSlug ? ' selected' : ''}>${esc(shortTitle(paper))} — ${esc(paper.title)}</option>`).join('')
+      : '<option>No matching papers</option>';
+  }
+
   function selectPaper(slug) {
     selectedSlug = slug;
     hideTooltip();
@@ -397,6 +424,7 @@ const { papers, taxonomy } = Astro.props;
     renderLegend();
     drawAtlas();
     renderStats();
+    renderPicker();
     renderDetails();
     if (activeTooltipPaper) hideTooltip();
   }

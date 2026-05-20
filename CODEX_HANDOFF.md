@@ -14,7 +14,7 @@ Current development plan lives in `docs/future-development-plan.md`. A ready-to-
 - Taxonomy vocabulary source: `src/data/taxonomy.json`.
 - Atlas route: `/library/`.
 - Paper route: `/papers/[slug]/`.
-- Visualization: prioritize a strong `/library/` taxonomy graph before paper detail-page polish. Use the legacy standalone HTML as the benchmark for node hover summaries, click selection, graph sizing, and selected-paper right-panel visualization. Replace the legacy radar with a derived axis coverage cloud.
+- Visualization: `/library/` is now the primary public experience. The Astro atlas has a larger Axis A x Axis B graph, deterministic node spreading, hover/focus summaries, click-to-select behavior, a selected-paper right-panel metadata cloud, a filtered paper picker, and reset controls. The legacy standalone HTML remains useful as a behavioral reference, but do not reintroduce obsolete radar/coverage-score concepts.
 - No coverage score, ranking score, or trajectory-IR relevance metadata in the active schema.
 - Keep the site static and suitable for personal hosting.
 
@@ -22,7 +22,14 @@ Current development plan lives in `docs/future-development-plan.md`. A ready-to-
 
 All 62 paper notes in `src/content/papers/` have been migrated into schema-valid Astro content entries. The previous raw-note migration blocker is resolved.
 
-Latest verification:
+The `/library/` atlas milestone is substantially implemented:
+
+- `src/components/TaxonomyAtlas.astro` owns the graph, filters, hover tooltip, selection state, paper picker, reset behavior, selected-paper panel, and axis coverage cloud.
+- `src/styles/global.css` contains the atlas layout, tooltip, cloud, selected-panel, mobile, and taxonomy-explainer styling.
+- `src/pages/library.astro` presents the interactive atlas before the supporting taxonomy explanation.
+- Browser verification covered desktop and mobile widths: all 62 nodes render, hover summaries appear, click and picker selection update the right panel, reset restores all 62 papers, and the mobile graph uses horizontal scroll with stacked controls.
+
+Latest verification after atlas updates:
 
 - `npm run validate` passes: `Validated 62 paper metadata file(s).`
 - `npm run check` passes: `0 errors, 0 warnings, 0 hints`.
@@ -63,12 +70,13 @@ On macOS-style case-insensitive filesystems, Git may show case-only filename nor
 ## What to finish next
 
 1. Keep content QA green with `npm run qa`, `npm run validate`, `npm run check`, and `npm run build`.
-2. Improve `/library/` before individual paper pages.
-3. Use `docs/future-development-plan.md` and `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` as the guide.
-4. Restore or adapt the core legacy graph behaviors: hover summary box, click-to-select node behavior, right-panel selected-paper visualization, and responsive graph sizing.
-5. Keep taxonomy explanation simple and readable. Do not copy the legacy explanatory visualization set unless the graph interaction is already solid.
-6. Do not reintroduce coverage scores, ranking scores, or `trajectory_IR_relevance` as active metadata. The axis coverage cloud is a derived visual summary, not a score.
-7. Improve individual paper page layout only after the atlas is substantially useful.
+2. Do one final atlas QA/polish pass before moving to paper pages:
+   - refine dense node clusters if a low-risk zoom, cell-focus, or selected-cell affordance is warranted;
+   - verify keyboard tab order and focus tooltip behavior;
+   - consider a compact visible hint for horizontal graph scrolling on mobile;
+   - check right-panel cloud readability for papers with sparse metadata and very long titles.
+3. After atlas QA is acceptable, move to Milestone 3: individual paper page polish.
+4. Do not reintroduce coverage scores, ranking scores, or `trajectory_IR_relevance` as active metadata. The axis coverage cloud is a derived visual summary, not a score.
 
 Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from draft artifacts.
 
