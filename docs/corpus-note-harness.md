@@ -2,9 +2,7 @@
 
 Use this harness when converting one CIM stack paper into a public corpus note.
 
-Current project priority note: the paper corpus migration is complete enough that the next product milestone is the `/library/` taxonomy atlas visualization, not more single-paper page polish. Use `docs/future-development-plan.md` for atlas UI work. Use this corpus-note harness only when adding or substantially revising paper notes.
-
-For the current raw-note migration, most notes already follow this harness. The task is usually to promote their `## 12. Suggested metadata entry` YAML into Astro frontmatter, not to regenerate the full note.
+The 62-entry raw-note migration is complete. Use this harness only when adding a new paper or substantially revising an existing note. Use `docs/future-development-plan.md` for product/UI work.
 
 ## Input Contract
 
@@ -132,25 +130,14 @@ Use section 9 to fill `src/content/papers/<slug>.md` frontmatter:
 - `artifact`: section 7.
 - `tags`, `baselines`, `integration_roles`, `takeaways`: sections 1, 8, 9, and 10.
 
-## Existing Raw Note Adapter
+## Importing Future Raw Notes
 
-When a note already has `## 12. Suggested metadata entry`:
+Raw-note migration is no longer part of normal development. If a future imported note contains generated metadata sections, use `scripts/promote-raw-note.mjs --dry-run` first, inspect the result, and keep the same conservative evidence rules:
 
-1. Extract the fenced YAML block under that heading.
-2. Use it as the frontmatter candidate.
-3. Normalize the file path to `src/content/papers/<slug>.md`.
-4. Remove the `## 12. Suggested metadata entry` section from the rendered body.
-5. Remove any generated section titled `## 9. Relation to a value-trajectory CIM IR project`.
-6. Renumber `## 10. Comparison to nearby works` to section 9 and `## 11. Corpus-ready final takeaway` to section 10.
-7. Keep the title and remaining public sections intact.
-8. Check the candidate against `docs/metadata-template.md` and `src/content.config.ts`.
+- missing optional URLs stay blank/null;
+- missing arrays stay `[]`;
+- unknown artifact or reproducibility values stay `unknown`;
+- obsolete fields such as `coverage` and `trajectory_IR_relevance` are ignored;
+- generated value-trajectory project sections should not be rendered as public note sections.
 
-Conservative defaults for missing fields:
-
-- missing optional URL: blank/null;
-- missing arrays: `[]`;
-- missing `artifact.status`: `unknown`;
-- missing `artifact.last_checked`: current project date if the note clearly reflects current checked sources, otherwise blank/null;
-- missing `reproducibility_level`: `unknown`;
-
-Ignore obsolete `trajectory_IR_relevance` fields in generated notes. Never invent artifact links, licenses, paper venues, years, or research claims. If a suggested metadata block conflicts with the prose, keep the more conservative value and leave a short `notes` entry.
+Never invent artifact links, licenses, paper venues, years, or research claims. If imported metadata conflicts with prose or checked sources, keep the more conservative value and leave a short `notes` entry.

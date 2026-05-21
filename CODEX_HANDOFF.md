@@ -1,108 +1,69 @@
-# Codex handoff
+# Codex Handoff
 
-## Goal
+## Project
 
-Finish this as a static Astro paper library. Do not add PDF hosting yet.
+Static Astro paper library for CIM compiler/IR-stack research.
 
-Root-level project instructions live in `AGENTS.md`. Use this handoff as a short status note; use `AGENTS.md` for ongoing agent behavior.
-
-Current development plan lives in `docs/future-development-plan.md`. A ready-to-use restart prompt lives in `docs/next-session-prompt.md`.
-
-## Design decisions already made
-
-- Paper metadata source: Markdown frontmatter in `src/content/papers/*.md`.
-- Taxonomy vocabulary source: `src/data/taxonomy.json`.
+- Paper metadata lives in `src/content/papers/*.md` frontmatter.
+- Taxonomy vocabulary lives in `src/data/taxonomy.json`.
 - Atlas route: `/library/`.
 - Paper route: `/papers/[slug]/`.
-- Visualization: `/library/` is now the primary public experience. The Astro atlas has a larger Axis A x Axis B graph, deterministic node spreading, hover/focus summaries, click-to-select behavior, a selected-paper right-panel metadata cloud, a filtered paper picker, and reset controls. The legacy standalone HTML remains useful as a behavioral reference, but do not reintroduce obsolete radar/coverage-score concepts.
-- No coverage score, ranking score, or trajectory-IR relevance metadata in the active schema.
-- Keep the site static and suitable for personal hosting.
+- Keep the site static. Do not add PDF hosting, backend services, or a database.
+- Do not reintroduce coverage scores, ranking scores, or `trajectory_IR_relevance`.
 
-## Current state
+## Current State
 
-All 62 paper notes in `src/content/papers/` have been migrated into schema-valid Astro content entries. The previous raw-note migration blocker is resolved.
+- 62 paper notes are migrated and schema-valid.
+- No raw long-form corpus notes remain in `src/content/papers/`.
+- `/library/` atlas core is substantially done.
+- Current atlas behavior:
+  - large Axis A x Axis B graph;
+  - deterministic node spreading;
+  - hover/focus summaries;
+  - click and picker selection;
+  - filters and reset controls;
+  - selected-paper Axis A x Axis B coverage cloud rendered on the atlas background;
+  - right panel prioritizes Axis C first-class objects and Axis D rewrite objects;
+  - responsive layout and mobile graph scroll.
+- Paper detail pages have initial CSS improvements for long notes, tables, code blocks, and mobile wrapping.
 
-The `/library/` atlas milestone is substantially implemented:
+Latest known checks:
 
-- `src/components/TaxonomyAtlas.astro` owns the graph, filters, hover tooltip, selection state, paper picker, reset behavior, selected-paper panel, and axis coverage cloud.
-- `src/styles/global.css` contains the atlas layout, tooltip, cloud, selected-panel, mobile, and taxonomy-explainer styling.
-- `src/pages/library.astro` presents the interactive atlas before the supporting taxonomy explanation.
-- Browser verification covered desktop and mobile widths: all 62 nodes render, hover summaries appear, click and picker selection update the right panel, reset restores all 62 papers, and the mobile graph uses horizontal scroll with stacked controls.
-
-Latest verification after atlas updates:
-
-- `npm run validate` passes: `Validated 62 paper metadata file(s).`
-- `npm run check` passes: `0 errors, 0 warnings, 0 hints`.
-- `npm run build` passes and builds 64 pages into `dist/`.
-
-The final migration batch converted:
-
-- `openc2.md`
-- `opencimtc.md`
-- `ouroboros.md`
-- `papi.md`
-- `pim-eda.md`
-- `pim-hls.md`
-- `pim-opt.md`
-- `pim-tc.md`
-- `pimacc.md`
-- `pimcomp.md`
-- `pimsim-nn.md`
-- `pimsyn-nn.md`
-- `pimeva.md`
-- `pimsynth.md`
-- `puma.md`
-- `polyhedral-based-compilation-framework-for-in-memoryneural-network-accelerators.md`
-- `prim.md`
-- `rescim.md`
-- `reconfigurable-dataflow-cim-accelerator-for-multi-scale-vision-transformer.md`
-- `sega-dcim.md`
-- `sherlock.md`
-- `simplepim.md`
-- `sparsep.md`
-- `syndcim.md`
-- `unindp.md`
-
-Several artifact URLs and conservative metadata values were manually normalized when the note already contained checked evidence. Examples include OpenCIMTC, PIM-EDA, PIM-Opt, PIMACC, PIMCOMP, PIMSIM-NN, PIMSYN-NN, PrIM, and PUMA.
-
-On macOS-style case-insensitive filesystems, Git may show case-only filename normalizations as modifications under the original tracked names until staging. The on-disk lowercase kebab-case filenames are authoritative.
-
-## What to finish next
-
-1. Keep content QA green with `npm run qa`, `npm run validate`, `npm run check`, and `npm run build`.
-2. Do one final atlas QA/polish pass before moving to paper pages:
-   - refine dense node clusters if a low-risk zoom, cell-focus, or selected-cell affordance is warranted;
-   - verify keyboard tab order and focus tooltip behavior;
-   - consider a compact visible hint for horizontal graph scrolling on mobile;
-   - check right-panel cloud readability for papers with sparse metadata and very long titles.
-3. After atlas QA is acceptable, move to Milestone 3: individual paper page polish.
-4. Do not reintroduce coverage scores, ranking scores, or `trajectory_IR_relevance` as active metadata. The axis coverage cloud is a derived visual summary, not a score.
-
-Use `docs/corpus-note-harness.md` when generating full public notes. Use `docs/legacy-source-map.md` when recovering original overview text or compact-source material from draft artifacts.
-
-## Frontmatter contract
-
-Required fields:
-
-```yaml
-slug: lowercase-kebab-case
-title: Paper title
-summary: public one-paragraph summary
-axis_A:
-  primary: A1|A2|A3|A4|A5|A6
-  secondary: []
-axis_B: [B1]
+```bash
+npm run validate
+npm run check
+npm run build
 ```
 
-Keep arrays inline where possible. The Astro schema is the strict source of truth; `scripts/validate-library.mjs` is a fast preflight check.
+All were green after the latest atlas coverage-cloud work.
 
-Obsolete generated fields such as `coverage` and `trajectory_IR_relevance` should stay out of migrated entries.
+## Next Work
 
-## Future imports
+Primary focus: improve individual paper detail pages.
 
-For any future raw generated note:
+- Make long notes easier to read and scan.
+- Improve metadata panels and Axis C / Axis D presentation.
+- Add source/provenance affordances if they improve public trust.
+- Keep mobile behavior robust for long titles, tables, code blocks, and sidebars.
 
-1. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` first.
-2. Promote the note with `scripts/promote-raw-note.mjs` only after inspecting planned filenames and warnings.
-3. Restore a schema-valid year, URL, or reproducibility label only when official source material or checked note evidence supports it.
-4. Run `npm run validate`, then `npm run check`, then `npm run build`.
+Secondary focus: improve atlas scoping/filtering after detail pages are clearer.
+
+- Do not add raw string-search filters for Axis C and Axis D. First normalize Axis C first-class objects and Axis D rewrite objects into controlled vocabulary fields, then add an atlas layout switch between the current Axis A x Axis B view and a normalized Axis C x Axis D view.
+- Normalize technology and workload metadata into separate controlled facets, then expose clean separate selectors.
+- Consider selected-cell or dense-cluster scoped views.
+- Consider preserving atlas state between `/library/` and paper detail pages.
+
+## References
+
+- `docs/future-development-plan.md`: current development plan.
+- `docs/next-session-prompt.md`: restart prompt.
+- `docs/corpus-note-harness.md`: use only when adding or substantially revising paper notes.
+- `docs/metadata-template.md`: frontmatter shape.
+- `src/content/legacy/*`: legacy source material. Keep intact unless explicitly asked otherwise.
+
+## Guardrails
+
+- Keep content QA green: `npm run qa`, `npm run validate`, `npm run check`, `npm run build`.
+- Do not weaken `src/content.config.ts` to accommodate malformed notes.
+- Do not invent paper facts, artifact links, licenses, venues, years, or reproducibility claims.
+- Keep metadata descriptive, not evaluative.

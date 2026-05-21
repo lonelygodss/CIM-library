@@ -132,6 +132,8 @@ const { papers, taxonomy } = Astro.props;
   const firstMiddle = (paper) => paper.axis_B?.[0] ?? 'B1';
   const roles = (paper) => [paper.axis_A.primary, ...(paper.axis_A.secondary ?? [])];
   const metadataLine = (paper) => [paper.year, paper.venue].filter(Boolean).join(' · ');
+  const currentAtlasUrl = () => `${window.location.pathname}${window.location.search}`;
+  const detailHref = (paper) => `/papers/${esc(paper.slug)}/?from=${encodeURIComponent(currentAtlasUrl())}`;
   const paperLabel = (paper) => paper.subtitle?.replace(/^Scoped CIM stack note( seed)?$/i, '')?.trim() || paper.title;
   const shortTitle = (paper) => paper.title
     .replace(/^([^:—-]{2,42})[:—-].*$/, '$1')
@@ -152,6 +154,7 @@ const { papers, taxonomy } = Astro.props;
     ...(paper.axis_C_first_class_objects ?? []),
     ...(paper.axis_D_rewrite_objects ?? [])
   ].join(' ').toLowerCase();
+  const uniqueTerms = (items) => [...new Set(items.flat().filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const clear = (node) => { while (node.firstChild) node.removeChild(node.firstChild); };
   const node = (name, attrs = {}, text = '') => {
     const el = document.createElementNS(svgNS, name);
@@ -204,14 +207,63 @@ const { papers, taxonomy } = Astro.props;
     const targetFilter = $('targetFilter');
     familyFilter.innerHTML = `<option value="">All Axis A roles</option>` + familyCodes.map((code) => `<option value="${code}">${code} — ${esc(families[code].short)}</option>`).join('');
     middleFilter.innerHTML = `<option value="">All Axis B styles</option>` + middleCodes.map((code) => `<option value="${code}">${code} — ${esc(middles[code].short)}</option>`).join('');
-    const targets = [...new Set(papers.flatMap((p) => [...(p.technology ?? []), ...(p.workloads ?? [])]))].sort();
-    targetFilter.innerHTML = `<option value="">All technologies/workloads</option>` + targets.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
+    const technologies = uniqueTerms(papers.map((p) => p.technology ?? []));
+    const workloads = uniqueTerms(papers.map((p) => p.workloads ?? []));
+    targetFilter.innerHTML = `
+      <option value="">All technologies/workloads</option>
+      <optgroup label="Technology">
+        ${technologies.map((tag) => `<option value="technology:${esc(tag)}">${esc(tag)}</option>`).join('')}
+      </optgroup>
+      <optgroup label="Workload">
+        ${workloads.map((tag) => `<option value="workload:${esc(tag)}">${esc(tag)}</option>`).join('')}
+      </optgroup>
+    `;
     ['search', 'familyFilter', 'middleFilter', 'targetFilter'].forEach((id) => $(id).addEventListener('input', applyFilters));
     $('paperPicker').addEventListener('change', (event) => selectPaper(event.target.value));
     $('resetFilters').addEventListener('click', resetFilters);
   }
 
-  function applyFilters() {
+  function hydrateFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const selected = params.get('paper');
+    if (selected && papers.some((paper) => paper.slug === selected)) selectedSlug = selected;
+    const values = {
+      search: params.get('q') ?? '',
+      familyFilter: params.get('a') ?? '',
+      middleFilter: params.get('b') ?? '',
+      targetFilter: params.get('target') ?? ''
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const el = $(id);
+      if (!el) return;
+      el.value = value;
+      if (el.value !== value) el.value = '';
+    });
+  }
+
+  function updateUrlState() {
+    const params = new URLSearchParams();
+    const q = $('search').value.trim();
+    if (q) params.set('q', q);
+    if ($('familyFilter').value) params.set('a', $('familyFilter').value);
+    if ($('middleFilter').value) params.set('b', $('middleFilter').value);
+    if ($('targetFilter').value) params.set('target', $('targetFilter').value);
+    if (selectedSlug) params.set('paper', selectedSlug);
+    const query = params.toString();
+    const next = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+    window.history.replaceState(null, '', next);
+  }
+
+  function matchesTarget(paper, target) {
+    if (!target) return true;
+    const [kind, ...rest] = target.split(':');
+    const value = rest.join(':');
+    if (kind === 'technology') return (paper.technology ?? []).includes(value);
+    if (kind === 'workload') return (paper.workloads ?? []).includes(value);
+    return [...(paper.technology ?? []), ...(paper.workloads ?? [])].includes(target);
+  }
+
+  function applyFilters({ syncUrl = true } = {}) {
     const q = $('search').value.trim().toLowerCase();
     const family = $('familyFilter').value;
     const middle = $('middleFilter').value;
@@ -219,11 +271,12 @@ const { papers, taxonomy } = Astro.props;
     filtered = papers.filter((paper) => {
       const familyMatch = !family || roles(paper).includes(family);
       const middleMatch = !middle || (paper.axis_B ?? []).includes(middle);
-      const targetMatch = !target || [...(paper.technology ?? []), ...(paper.workloads ?? [])].includes(target);
+      const targetMatch = matchesTarget(paper, target);
       const searchMatch = !q || textBlob(paper).includes(q);
       return familyMatch && middleMatch && targetMatch && searchMatch;
     });
     if (!filtered.some((p) => p.slug === selectedSlug)) selectedSlug = filtered[0]?.slug ?? papers[0]?.slug ?? null;
+    if (syncUrl) updateUrlState();
     renderAll();
   }
 
@@ -234,6 +287,7 @@ const { papers, taxonomy } = Astro.props;
     $('targetFilter').value = '';
     filtered = [...papers];
     if (!filtered.some((p) => p.slug === selectedSlug)) selectedSlug = filtered[0]?.slug ?? papers[0]?.slug ?? null;
+    updateUrlState();
     renderAll();
   }
 
@@ -399,10 +453,12 @@ const { papers, taxonomy } = Astro.props;
     const topRole = Object.entries(roleCounts).sort((a, b) => b[1] - a[1])[0];
     const middleCounts = Object.fromEntries(middleCodes.map((code) => [code, filtered.filter((p) => (p.axis_B ?? []).includes(code)).length]));
     const topMiddle = Object.entries(middleCounts).sort((a, b) => b[1] - a[1])[0];
+    const filterCount = ['search', 'familyFilter', 'middleFilter', 'targetFilter'].filter((id) => $(id).value).length;
     $('filteredStats').innerHTML = [
       ['Papers', filtered.length],
       ['Top Axis A', topRole ? `${topRole[0]} (${topRole[1]})` : '—'],
-      ['Top Axis B', topMiddle ? `${topMiddle[0]} (${topMiddle[1]})` : '—']
+      ['Top Axis B', topMiddle ? `${topMiddle[0]} (${topMiddle[1]})` : '—'],
+      ['Filters', filterCount]
     ].map(([label, value]) => `<div class="mini-stat"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`).join('');
   }
 
@@ -417,6 +473,7 @@ const { papers, taxonomy } = Astro.props;
   function selectPaper(slug) {
     selectedSlug = slug;
     hideTooltip();
+    updateUrlState();
     renderAll();
   }
 
@@ -443,7 +500,7 @@ const { papers, taxonomy } = Astro.props;
       <div class="badges">
         ${(paper.tags ?? []).slice(0, 8).map((tag) => `<span class="badge">${esc(tag)}</span>`).join('')}
       </div>
-      <p style="margin:0"><a class="badge" href="/papers/${esc(paper.slug)}/">Open paper page</a></p>
+      <p style="margin:0"><a class="badge" href="${detailHref(paper)}">Open paper page</a></p>
     `;
     $('workMore').innerHTML = `
       <div class="coverage-cloud" aria-label="Selected paper object and rewrite cloud">
@@ -465,6 +522,7 @@ const { papers, taxonomy } = Astro.props;
   }
 
   setupFilters();
-  renderAll();
+  hydrateFromUrl();
+  applyFilters();
 })();
 </script>

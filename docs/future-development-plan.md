@@ -2,129 +2,103 @@
 
 ## Current State
 
-The repository contains 62 Markdown paper notes in `src/content/papers/`, and all 62 are now valid Astro content entries with YAML frontmatter.
+This is a static Astro paper library for CIM compiler/IR-stack research.
 
-The raw-note migration milestone is complete:
+- `src/content/papers/` contains 62 schema-valid Markdown paper entries.
+- The raw-note migration milestone is complete; no raw long-form notes remain.
+- The active metadata contract is descriptive. It does not include coverage scores, ranking scores, or `trajectory_IR_relevance`.
+- `/library/` is the primary public atlas route.
+- `/papers/[slug]/` renders individual long-form corpus notes.
+- Keep the site static and suitable for personal hosting. Do not add PDF hosting, backend services, or a database unless the project direction changes.
 
-- `npm run validate` passes with `Validated 62 paper metadata file(s).`
-- `npm run check` passes with `0 errors, 0 warnings, 0 hints`.
-- `npm run build` passes and builds 64 static pages into `dist/`.
-- No raw long-form notes remain in `src/content/papers/`.
+Keep these checks green while changing UI or content:
 
-The migration helper `scripts/promote-raw-note.mjs` remains useful for any future imported notes. It promotes the fenced YAML block under `## 12. Suggested metadata entry`, strips obsolete generated migration-only sections, normalizes filenames to slugs, and conservatively coerces schema-sensitive fields.
+```bash
+npm run qa
+npm run validate
+npm run check
+npm run build
+```
 
-Current product state: `/library/` has been promoted into the primary public experience. The Astro atlas now has large Axis A x Axis B graph rendering, deterministic node spreading, hover/focus summaries, click selection, a selected-paper right-panel axis coverage cloud, a filtered paper picker, reset controls, and mobile stacking with horizontal graph scroll. The legacy standalone HTML in `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` is now mostly a behavioral reference for any remaining graph-interaction refinements, not a source for obsolete metadata or explanatory copy.
+Latest known good baseline:
 
-Current product priority: complete a final atlas QA/polish pass, then move to individual paper detail page refinement. The taxonomy explanation should remain short and readable.
+- `npm run validate`: `Validated 62 paper metadata file(s).`
+- `npm run check`: `0 errors, 0 warnings, 0 hints`.
+- `npm run build`: 64 static pages.
 
-## Milestone 1 -- Content QA
+## Completed Focus -- Atlas Core
 
-Status: substantially complete. Keep this milestone green while doing UI work.
-
-Recommended checks:
-
-1. Scan for duplicate slugs and title collisions.
-2. Compare the final corpus count against the legacy atlas count of 62 records.
-3. Check typo-like titles and names such as `LearnCNM2Predic`, `MIREDOW`, `CIM-Prune`, `OpenACMv`, `PIMeva`, and the long `In-MemoryNeural` filename.
-4. Verify all Axis A and Axis B values are from `src/data/taxonomy.json`.
-5. Spot-check high-priority paper and artifact URLs.
-6. Review entries whose migration helper blanked nonnumeric years, blanked non-HTTP(S) artifact values, or mapped unsupported reproducibility labels to `unknown`.
-7. Search for lingering generated-note artifacts such as `Suggested metadata entry`, `trajectory_IR_relevance`, and value-trajectory project prose.
-8. Run `npm run validate`, `npm run check`, and `npm run build` after QA edits.
-
-Keep QA changes small and evidence-based. Do not invent missing publication facts or artifact links.
-
-## Milestone 2 -- Atlas Visualization First
-
-Status: substantially implemented. Keep this milestone green while doing any final polish.
-
-Goal: make `/library/` the primary public experience: a useful, readable, visually strong taxonomy graph that helps a visitor inspect Axis A x Axis B placement before opening single-paper pages.
-
-Use the legacy HTML as the reference for graph interaction behavior, not as a source of obsolete metadata fields or broad UI scope.
+The main `/library/` atlas focus is now substantially done.
 
 Implemented:
 
-1. Graph sizing and layout are larger and desktop-forward.
-2. Nodes expose hover/focus summaries with title/display name, year/venue when available, Axis A/B placement, and summary text.
-3. Clicking graph nodes selects a paper and updates the right panel.
-4. The right panel uses a derived metadata cloud for Axis A, Axis B, Axis C first-class objects, Axis D rewrite objects, and technology/workload terms. It does not imply a score.
-5. Taxonomy explanation has been moved after the atlas and shortened into readable Axis A/B rows.
-6. Keyboard/mobile selection has an equivalent path through the filtered paper picker.
-7. Browser verification covered desktop and mobile widths; all 62 nodes rendered, hover summaries appeared, click and picker selection updated the panel, and reset restored the full result set.
+- large Axis A x Axis B graph as the first main section on `/library/`;
+- deterministic node spreading for dense cells;
+- hover/focus summaries and click-to-select behavior;
+- filtered paper picker and reset controls;
+- selected-paper right panel focused on Axis C first-class objects and Axis D rewrite objects;
+- selected-paper Axis A x Axis B coverage shown directly on the atlas as a non-scoring background cloud;
+- short taxonomy explanation after the graph;
+- responsive controls and mobile horizontal graph scroll;
+- paper detail page CSS improvements for long notes, tables, code blocks, and mobile wrapping.
 
-Remaining polish candidates:
+Do not rebuild the atlas from scratch. Future atlas work should be incremental and should use current frontmatter plus `src/data/taxonomy.json` as source of truth.
 
-1. Dense node clusters may benefit from a low-risk zoom, cell-focus, or selected-cell affordance.
-2. Keyboard tab order and focus tooltip behavior should get one more manual QA pass.
-3. Mobile graph inspection is usable through horizontal scroll, but a small scroll affordance may make that clearer.
-4. Right-panel cloud readability should be spot-checked on sparse-metadata papers and papers with very long titles.
-5. Search/filter controls, role-style matrix, and compact paper cards remain optional follow-ups.
+## Next Focus -- Paper Detail Pages
 
-Do not reintroduce legacy `coverage`, ranking, or `trajectory_IR_relevance` metadata. The coverage cloud is a derived visual summary of descriptive fields, not a numeric score or ranking.
+The next product milestone is individual paper detail page improvement. The goal is to make long corpus notes easier to read, scan, and use as evidence for atlas filtering.
 
-Acceptance criteria:
+Priority work:
 
-- `/library/` makes the taxonomy graph the main object, not a small embedded widget. Done.
-- Hovering a node reliably shows a useful floating summary without overlap problems. Done in browser spot checks.
-- Clicking a node reliably updates the selected-paper right panel. Done.
-- The right panel contains a readable axis coverage cloud for the selected paper. Done.
-- The layout is usable at common desktop widths and does not collapse into awkward oversized cards or undersized charts. Mostly done; keep checking edge cases.
-- `npm run validate`, `npm run check`, and `npm run build` pass after implementation.
+1. Improve the long-note reading layout on `/papers/[slug]/`.
+2. Make metadata easier to scan without duplicating the full note.
+3. Surface Axis C and Axis D content clearly, since these are now the most useful detail-page anchors.
+4. Add source/provenance affordances if they improve public trust.
+5. Improve mobile behavior for long titles, tables, code blocks, and metadata panels.
 
-Implementation quality bar:
+Keep changes schema-compatible unless there is a clear reason to update `src/content.config.ts`.
 
-- Source priority: use `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html` for graph interaction, `src/content/legacy/CIM stack library compact.md` for short display labels when current frontmatter is too long, `src/data/taxonomy.json` for Axis A/B vocabulary and colors, and `src/content/papers/*.md` for active paper metadata.
-- Hover box content: title/display name, year/venue if available, Axis A/B placement, and a short summary.
-- Coverage cloud inputs: Axis A primary/secondary roles, Axis B styles, Axis C first-class objects, Axis D rewrite objects, and only optionally technology/workload terms.
-- Coverage cloud presentation: distinguish role/style/object/rewrite categories with restrained color, grouping, or shape; limit or group long lists; never imply a numeric score.
-- Accessibility: make graph nodes keyboard-selectable or provide an equivalent accessible selection mechanism.
-- Responsive behavior: desktop should emphasize the graph plus right panel; mobile may use a scrollable graph region and stacked right panel.
-- Verification: inspect `/library/` in browser screenshots at desktop and mobile widths; check nonblank graph rendering, legible labels, hover summary placement, click selection, right-panel cloud readability, and no overlapping text.
+## Next Focus -- Detail-Driven Atlas Scoping
 
-## Milestone 3 -- Paper Page Polish
+After detail pages are more usable, improve atlas scoping and filtering using the same descriptive metadata.
 
-Only after atlas visualization is substantially improved:
+Useful directions:
 
-- improve individual paper page layout for long notes;
-- tighten typography and spacing for corpus-note sections;
-- add source/provenance affordances if useful;
-- make paper metadata easier to scan on mobile;
-- keep the site static and suitable for personal hosting.
+- normalize Axis C first-class objects and Axis D rewrite objects into controlled vocabulary fields, then add an atlas layout switch that can render either the current Axis A x Axis B view or a normalized Axis C x Axis D view;
+- normalize technology and workload metadata into separate controlled facets, then expose clean, separate technology and workload selectors rather than relying on raw phrase search;
+- scoped views for dense clusters or selected cells;
+- detail-page back-links or query parameters that preserve atlas filter/selection context;
+- compact paper lists/cards only when they help navigate filtered results;
+- optional static search index after detail pages and metadata scanability are stable.
 
-## Milestone 4 -- Corpus Navigation Extensions
+The atlas should remain descriptive. Do not introduce coverage, quality, ranking, or relevance scores.
 
-After the atlas and paper pages are stable:
+## Content QA
 
-- add tag pages if useful;
-- add Axis A / Axis B detail pages if useful;
-- consider a static search index;
-- consider source provenance badges if they improve public trust.
+Content QA is mostly green, but keep these checks in mind during edits:
 
-## Milestone 5 -- Research Extensions
+- preserve the 62-entry corpus unless intentionally adding/removing papers;
+- keep slugs unique and filename-aligned;
+- keep Axis A/B values within `src/data/taxonomy.json`;
+- keep generated-note artifacts out of rendered notes;
+- keep artifact URLs, years, venues, and reproducibility labels evidence-based;
+- do not invent publication facts or artifact behavior.
 
-Future research-facing improvements:
+Use `scripts/promote-raw-note.mjs` only for future imported raw notes. The regular development path should not need raw-note migration instructions.
 
-- add explicit source provenance fields for paper, artifact, docs, and checked date;
-- add a controlled vocabulary for `integration_roles`;
-- add comparison pages for clusters such as ONNX-to-ISA stacks, UPMEM runtime stacks, macro generators, and simulator/cost-model frameworks.
+## Research Extensions
 
-## Migration Helper Notes
+Later research-facing improvements:
 
-For future imports, use this workflow:
+- explicit source provenance fields for paper, artifact, docs, and checked date;
+- controlled vocabulary for `integration_roles`;
+- comparison pages for clusters such as ONNX-to-ISA stacks, UPMEM runtime stacks, macro generators, and simulator/cost-model frameworks;
+- tag pages or Axis A/B detail pages if they prove useful after detail-page polish.
 
-1. Create a stub with `npm run new:paper -- <slug> "<Paper Title>"`, or import a raw long-form note that contains `## 12. Suggested metadata entry`.
-2. Run `node scripts/promote-raw-note.mjs --dry-run <files...>` and inspect planned filenames and warnings.
-3. Promote with `scripts/promote-raw-note.mjs` when the dry-run looks correct.
-4. Restore schema-valid values only when checked evidence is already present in the note or official source material.
-5. Run `npm run validate`.
-
-The helper should remain conservative. It should fail loudly when metadata is ambiguous instead of inventing values.
-
-## Non-Goals For Now
+## Non-Goals
 
 - Do not add PDF hosting.
-- Do not add a database or backend service.
-- Do not weaken the content schema.
-- Do not introduce a quality score or ranking model.
-- Do not add coverage scores or trajectory-IR relevance metadata unless the project direction changes.
-- Do not automatically rewrite scholarly prose unless the user explicitly asks for editorial cleanup.
+- Do not add backend services or a database.
+- Do not weaken the content schema to accommodate malformed notes.
+- Do not introduce quality scores, coverage scores, ranking scores, or `trajectory_IR_relevance`.
+- Do not automatically rewrite scholarly prose unless explicitly requested.

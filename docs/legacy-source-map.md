@@ -1,17 +1,16 @@
 # Legacy Source Map
 
-This project began as a generated standalone HTML atlas plus compact source notes. Keep the legacy files available because they contain migration material that is not fully represented in the current two seed paper entries.
+This project began as a generated standalone HTML atlas plus compact source notes. Keep the legacy files available as provenance and recovery material, but treat current Markdown frontmatter and `src/data/taxonomy.json` as the active source of truth.
 
 ## Files
 
 - `src/content/legacy/cim_compiler_ir_taxonomy_visualization.html`
   - Original standalone atlas.
   - Contains embedded paper records, role/style counts, display names, short overviews, and visualization logic.
-  - Use this when recovering the old atlas overview text, original grouping, legacy display labels, or old visualization behavior.
-  - For the current atlas milestone, treat this as the UI reference for graph interaction: node hover summary, click selection, selected-paper right-panel visualization, and responsive graph sizing.
+  - Use only when recovering old overview text, original grouping, legacy display labels, or behavior that is missing from the current Astro atlas.
 - `src/content/legacy/CIM stack library compact.md`
   - Compact source material for the 62-entry paper library.
-  - Use this as the main seed when creating new `src/content/papers/*.md` entries.
+  - Use as seed material for future paper additions or note revisions, then re-check paper/artifact evidence.
 - `src/content/legacy/CIM taxonomy.md`
   - Longer taxonomy background.
   - Use this to resolve ambiguity before changing `src/data/taxonomy.json`.
@@ -25,9 +24,9 @@ This project began as a generated standalone HTML atlas plus compact source note
 - Do not restore the old visual totals as quality rankings.
 - If a future task asks for "original paper overview", first check the embedded records in the legacy HTML, then cross-check the matching compact note.
 - If a future task asks for "coverage score", treat it as a legacy-atlas request unless the user explicitly asks to reintroduce coverage metadata.
-- If a future task asks to improve the atlas, start with `docs/future-development-plan.md` and the legacy HTML before touching paper detail pages. Focus on the core graph interaction before adding matrix/list/filter features.
+- The raw-note migration and atlas-core milestones are complete. Current product focus lives in `docs/future-development-plan.md`.
 
-## Migration Order
+## Future Paper Import Order
 
 1. Choose a paper from `CIM stack library compact.md`.
 2. Recover any legacy display name or short overview from the HTML if useful.
