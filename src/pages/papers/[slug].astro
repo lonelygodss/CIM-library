@@ -34,7 +34,9 @@ if (data.artifact?.url && !linkEntries.some((entry) => entry.url === data.artifa
 }
 const contextTerms = [...data.technology, ...data.workloads];
 const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
-const noteSections = [];
+type NoteHeading = typeof noteOutline[number];
+type NoteSection = NoteHeading & { children: NoteHeading[] };
+const noteSections: NoteSection[] = [];
 for (const heading of noteOutline) {
   if (heading.depth === 2 || noteSections.length === 0) {
     noteSections.push({ ...heading, children: [] });
