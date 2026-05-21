@@ -44,34 +44,28 @@ Implemented:
 
 Do not rebuild the atlas from scratch. Future atlas work should be incremental and should use current frontmatter plus `src/data/taxonomy.json` as source of truth.
 
-## Next Focus -- Paper Detail Pages
+## Next Focus -- Detail Pages and Atlas Scoping
 
-The next product milestone is individual paper detail page improvement. The goal is to make long corpus notes easier to read, scan, and use as evidence for atlas filtering.
+The next product milestone should treat paper detail pages and atlas scoping as one connected improvement loop. The detail page is where users inspect evidence and vocabulary; the atlas is where the same vocabulary becomes navigable. Improve them together so metadata refinements, controlled facets, back-links, and rendering fixes reinforce the same browsing workflow.
 
 Priority work:
 
 1. Improve the long-note reading layout on `/papers/[slug]/`.
 2. Make metadata easier to scan without duplicating the full note.
 3. Surface Axis C and Axis D content clearly, since these are now the most useful detail-page anchors.
-4. Add source/provenance affordances if they improve public trust.
-5. Improve mobile behavior for long titles, tables, code blocks, and metadata panels.
-
-Keep changes schema-compatible unless there is a clear reason to update `src/content.config.ts`.
-
-## Next Focus -- Detail-Driven Atlas Scoping
-
-After detail pages are more usable, improve atlas scoping and filtering using the same descriptive metadata.
-
-Useful directions:
-
-- normalize Axis C first-class objects and Axis D rewrite objects into controlled vocabulary fields, then add an atlas layout switch that can render either the current Axis A x Axis B view or a normalized Axis C x Axis D view;
-- normalize technology and workload metadata into separate controlled facets, then expose clean, separate technology and workload selectors rather than relying on raw phrase search;
-- scoped views for dense clusters or selected cells;
-- detail-page back-links or query parameters that preserve atlas filter/selection context;
-- compact paper lists/cards only when they help navigate filtered results;
-- optional static search index after detail pages and metadata scanability are stable.
+4. Normalize Axis C first-class objects and Axis D rewrite objects into controlled vocabulary fields, then use that vocabulary both on detail pages and in atlas filtering/layout.
+5. Add an atlas layout switch that can render either the current Axis A x Axis B view or a normalized Axis C x Axis D view.
+6. Normalize technology and workload metadata into separate controlled facets, then expose clean, separate technology and workload selectors instead of relying on raw phrase search.
+7. Preserve atlas filter/selection context through detail-page back-links or query parameters.
+8. Add source/provenance affordances if they improve public trust.
+9. Add scoped atlas views for dense clusters or selected cells when they help users move from overview to detail.
+10. Improve mobile behavior for long titles, tables, code blocks, metadata panels, and atlas/detail transitions.
+11. Refine rendered note content: audit Markdown display edge cases, formula/math notation, escaped symbols, and table/code rendering so corpus notes display faithfully instead of exposing raw Markdown or unrendered formulas.
+12. Consider compact paper lists/cards and an optional static search index only after the detail-page and metadata scanability path is stable.
 
 The atlas should remain descriptive. Do not introduce coverage, quality, ranking, or relevance scores.
+
+Keep changes schema-compatible unless there is a clear reason to update `src/content.config.ts`.
 
 ## Content QA
 

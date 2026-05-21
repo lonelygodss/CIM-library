@@ -339,3 +339,5 @@ Integration would be most direct through a small adapter that extracts AccelCIM-
 | **NeuroSim** | CIM modeling and technology/architecture evaluation | AccelCIM positions NeuroSim-like tools among analytical modeling baselines; its differentiator is post-layout macro and array PPA plus explicit macro-array dataflow exploration. ([arXiv](https://arxiv.org/pdf/2604.17692)) | Corpus should separate technology-scaled analytical modeling from backend-layout-calibrated DSE. |
 
 ## 10. Corpus-ready final takeaway
+
+- AccelCIM’s real contribution is a **systematic SRAM-CIM macro-array dataflow exploration framework** with post-layout-aware PPA evaluation.

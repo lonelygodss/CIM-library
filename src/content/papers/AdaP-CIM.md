@@ -267,3 +267,5 @@ The cost model is therefore **measurement-table/synthesis backed**, not an inspe
 | **DPE-CIM** | Posit-derived dynamic encoding and speculative alignment. | DPE-CIM appears to continue the AdaP-CIM direction under “dynamic Posit encoding,” with a five-page ISCAS 2025 publication and broader software/hardware synthesis claims. ([HKUST](https://researchportal.hkust.edu.hk/en/publications/dpe-cim-compute-in-memory-accelerator-using-dynamic-posit-encodin/)) | Treat DPE-CIM as a related successor/near neighbor, while keeping AdaP-CIM’s evidenced scope tied to the DATE 2024 two-page version. |
 
 ## 10. Corpus-ready final takeaway
+
+- AdaP-CIM’s real contribution is a **Posit-derived numeric format plus CIM alignment datapath**, centered on bounded regime length, exponent-extension encoding, and speculative max-exponent computation.

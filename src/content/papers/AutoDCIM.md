@@ -262,3 +262,5 @@ The public abstract states that AutoDCIM-generated macros show competitive effic
 | **OpenACM** | Open-source DCIM compiler infrastructure | OpenACM classifies AutoDCIM as fixed-point, closed-source, basic SRAM analysis, adder-tree based; it adds configurable approximation and advanced SRAM analysis. ([arXiv](https://arxiv.org/html/2601.11292)) | The corpus should record whether approximation/accuracy is a first-class object or outside the demonstrated scope. |
 
 ## 10. Corpus-ready final takeaway
+
+- AutoDCIM is a **digital SRAM-CIM macro compiler** whose public contribution is specification-to-layout macro generation.

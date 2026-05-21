@@ -303,3 +303,5 @@ Integration would be most direct through a small reimplementation that extracts 
 | **AMOS** | Automatic mapping for tensor computations with hardware abstraction | AMOS is a general spatial-accelerator mapper; ARES imports that style of hardware abstraction/search into PIM-specific constraints such as bit-level memory layout and compute-in-memory operand legality. ([Si-Ze Zheng](https://sizezheng.github.io/files/ARES_A_Mapping_Framework_of_DNNs_Towards_Diverse_PIMs_with_General_Abstractions.pdf)) | ARES belongs in the “tensor mapping with PIM-specific layout legality” branch of the corpus. |
 
 ## 10. Corpus-ready final takeaway
+
+- ARES’s core contribution is a **PIM hardware abstraction for mapping**, pairing a tensorized compute equation with a bit-level memory mapping matrix and offset.

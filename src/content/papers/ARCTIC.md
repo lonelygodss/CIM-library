@@ -284,3 +284,5 @@ The bibliographic record identifies the work as DATE 2024 with DOI `10.23919/DAT
 | **OpenACM / OpenACMv2** | Open-source DCIM macro generation and backend physical flow. ([GitHub](https://github.com/ShenShan123/OpenACM)) | OpenACM exposes code, configs, OpenROAD flow, and approximate multiplier/SRAM/PE generators; ARCTIC’s public evidence is paper-only. | Useful artifact-rich comparison for reusable macro-generator interfaces and config-as-IR design. |
 
 ## 10. Corpus-ready final takeaway
+
+- ARCTIC is a **SRAM-based digital-CIM macro compiler**, centered on hardware-parameterized macro generation rather than DNN graph compilation.
