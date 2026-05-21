@@ -105,7 +105,30 @@ section { margin: 24px 0; }
 .axis-row code { font-family: var(--mono); font-weight: 900; color: var(--accent); }
 .axis-row span { color: var(--muted); font-size: 13px; }
 .axis-row b { display: block; color: #27364f; font-size: 14px; margin-bottom: 2px; }
-.controls { display: grid; grid-template-columns: 2fr repeat(4, minmax(150px, 1fr)); gap: 10px; margin: 12px 0 18px; }
+.layout-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 4px;
+  margin: 4px 0 12px;
+}
+.layout-toggle button {
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #34425c;
+  box-shadow: none;
+  padding: 8px 12px;
+}
+.layout-toggle button.is-active,
+.layout-toggle button[aria-pressed="true"] {
+  background: #111a33;
+  color: #fff;
+}
+.controls { display: grid; grid-template-columns: minmax(220px, 2fr) repeat(6, minmax(140px, 1fr)); gap: 10px; margin: 0 0 18px; }
 .controls input, .controls select, button { width: 100%; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); padding: 11px 12px; font: inherit; box-shadow: 0 2px 10px rgba(30,40,70,0.04); }
 button { cursor: pointer; font-weight: 750; background: #111a33; color: #fff; border-color: #111a33; }
 button.secondary { background: #fff; color: #22304a; border-color: var(--line); }
@@ -151,7 +174,7 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   opacity: 0;
   background: linear-gradient(90deg, rgba(251, 252, 255, 0), rgba(251, 252, 255, 0.96));
 }
-#atlas { min-width: 960px; width: 100%; height: auto; display: block; }
+#atlas { min-width: 1200px; width: 100%; height: auto; display: block; }
 #atlas g[role="button"]:focus { outline: none; }
 #atlas g[role="button"]:focus circle:last-of-type { stroke: #111a33; stroke-width: 4; }
 .atlas-node.is-muted { transition: opacity .12s ease; }
@@ -459,8 +482,10 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   .paper-hero-actions .chip { justify-content: center; }
   .hero-card { padding: 22px; border-radius: 20px; }
   .section-title { display: block; }
+  .layout-toggle { display: grid; }
   .atlas-count { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 0; margin-top: 12px; }
   .atlas-count .mini-stat { min-width: 0; }
+  .atlas-count .mini-stat strong { white-space: normal; overflow-wrap: anywhere; font-size: 15px; }
   .grid-cards, .axis-explainer, .controls, .summary-row, .axis-stack, .object-rewrite-grid { grid-template-columns: 1fr; }
   .detail-panel, .pad, .prose { padding: 16px; }
   .metadata-list div { grid-template-columns: 1fr; gap: 2px; }

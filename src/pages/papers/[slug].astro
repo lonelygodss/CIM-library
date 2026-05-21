@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import taxonomy from '../../data/taxonomy.json';
+import { normalizePaperAxes } from '../../lib/axisNormalization';
 
 export async function getStaticPaths() {
   const papers = await getCollection('papers');
@@ -33,6 +34,7 @@ if (data.artifact?.url && !linkEntries.some((entry) => entry.url === data.artifa
   linkEntries.push({ kind: 'artifact', url: data.artifact.url });
 }
 const contextTerms = [...data.technology, ...data.workloads];
+const normalizedAxes = normalizePaperAxes(data, taxonomy);
 const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 type NoteHeading = typeof noteOutline[number];
 type NoteSection = NoteHeading & { children: NoteHeading[] };
@@ -102,10 +104,26 @@ const emptyLabel = 'Unknown / not specified';
             </div>
           </section>
           <section>
+            <h3>Normalized Axis C categories</h3>
+            <div class="cloud-nodes detail-cloud">
+              {normalizedAxes.axis_C_object_vocab.length
+                ? normalizedAxes.axis_C_object_vocab.map((item) => <span class="cloud-node object">{item}</span>)
+                : <span class="cloud-node more">{emptyLabel}</span>}
+            </div>
+          </section>
+          <section>
             <h3>Axis D: rewrite objects</h3>
             <div class="cloud-nodes detail-cloud">
               {data.axis_D_rewrite_objects.length
                 ? data.axis_D_rewrite_objects.map((item) => <span class="cloud-node rewrite">{item}</span>)
+                : <span class="cloud-node more">{emptyLabel}</span>}
+            </div>
+          </section>
+          <section>
+            <h3>Normalized Axis D types</h3>
+            <div class="cloud-nodes detail-cloud">
+              {normalizedAxes.axis_D_rewrite_types.length
+                ? normalizedAxes.axis_D_rewrite_types.map((item) => <span class="cloud-node rewrite">{item}</span>)
                 : <span class="cloud-node more">{emptyLabel}</span>}
             </div>
           </section>

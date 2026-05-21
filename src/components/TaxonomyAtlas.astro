@@ -1,4 +1,6 @@
 ---
+import { axisCategorySets, normalizePaperAxes } from '../lib/axisNormalization';
+
 type AxisA = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'A6';
 type AxisB = 'B1' | 'B2' | 'B3' | 'B4' | 'B5' | 'B6' | 'B7';
 
@@ -33,11 +35,15 @@ type Paper = {
   axis_B: AxisB[];
   axis_C_first_class_objects?: string[];
   axis_D_rewrite_objects?: string[];
+  axis_C_object_vocab?: string[];
+  axis_D_rewrite_types?: string[];
 };
 
 type Taxonomy = {
   families: Record<AxisA, Family>;
   middles: Record<AxisB, Middle>;
+  objects_vocab?: string[];
+  rewrite_types?: Record<string, string>;
 };
 
 interface Props {
@@ -46,19 +52,30 @@ interface Props {
 }
 
 const { papers, taxonomy } = Astro.props;
+const normalizedPapers = papers.map((paper) => ({
+  ...paper,
+  ...normalizePaperAxes(paper, taxonomy)
+}));
+const axisCategories = axisCategorySets(taxonomy);
 ---
 <section id="atlas-section" class="panel pad">
   <div class="section-title">
     <div>
       <h2>Interactive paper atlas</h2>
-      <div class="subtle">Each circle is a paper. Horizontal position is primary Axis A; vertical position is the first listed Axis B. Select a node to show its full Axis A x Axis B footprint on the atlas and its object/rewrite cloud in the panel.</div>
+      <div class="subtle">Each circle is a paper. Switch between the stack-role view and the normalized object/rewrite view; selection shows the paper footprint and controlled vocabulary cloud.</div>
     </div>
     <div class="atlas-count" id="filteredStats" aria-live="polite"></div>
+  </div>
+  <div class="layout-toggle" role="group" aria-label="Atlas layout">
+    <button id="layoutAB" type="button" data-layout="ab" aria-pressed="true">Axis A x B</button>
+    <button id="layoutCD" type="button" data-layout="cd" aria-pressed="false">Axis C x D</button>
   </div>
   <div class="controls" aria-label="Taxonomy filters">
     <input id="search" type="search" placeholder="Search paper, abstraction, object, evidence..." aria-label="Search papers" />
     <select id="familyFilter" aria-label="Filter by stack role"></select>
     <select id="middleFilter" aria-label="Filter by middle-layer style"></select>
+    <select id="objectFilter" aria-label="Filter by normalized first-class object"></select>
+    <select id="rewriteFilter" aria-label="Filter by normalized rewrite object"></select>
     <select id="technologyFilter" aria-label="Filter by technology"></select>
     <select id="workloadFilter" aria-label="Filter by workload"></select>
   </div>
@@ -69,7 +86,7 @@ const { papers, taxonomy } = Astro.props;
   </div>
   <div class="viz-grid">
     <div class="panel viz-card atlas-box">
-      <svg id="atlas" viewBox="0 0 1320 760" role="img" aria-label="CIM taxonomy atlas"></svg>
+      <svg id="atlas" viewBox="0 0 1600 820" role="img" aria-label="CIM taxonomy atlas"></svg>
       <div class="legend" id="familyLegend"></div>
     </div>
     <aside class="panel viz-card selected-panel" aria-live="polite">
@@ -113,20 +130,25 @@ const { papers, taxonomy } = Astro.props;
   </div>
 </section>
 
-<script is:inline type="application/json" id="paper-data" set:html={JSON.stringify(papers)}></script>
+<script is:inline type="application/json" id="paper-data" set:html={JSON.stringify(normalizedPapers)}></script>
 <script is:inline type="application/json" id="taxonomy-data" set:html={JSON.stringify(taxonomy)}></script>
+<script is:inline type="application/json" id="axis-category-data" set:html={JSON.stringify(axisCategories)}></script>
 <script is:inline>
 (() => {
   const papers = JSON.parse(document.getElementById('paper-data').textContent);
   const taxonomy = JSON.parse(document.getElementById('taxonomy-data').textContent);
+  const axisCategories = JSON.parse(document.getElementById('axis-category-data').textContent);
   const families = taxonomy.families;
   const middles = taxonomy.middles;
   const familyCodes = Object.keys(families);
   const middleCodes = Object.keys(middles);
+  const objectCategories = axisCategories.objectCategories;
+  const rewriteCategories = axisCategories.rewriteCategories;
   const svgNS = 'http://www.w3.org/2000/svg';
   let selectedSlug = papers[0]?.slug ?? null;
   let filtered = [...papers];
   let activeTooltipPaper = null;
+  let atlasLayout = 'ab';
 
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
@@ -153,7 +175,9 @@ const { papers, taxonomy } = Astro.props;
     ...(paper.workloads ?? []),
     ...(paper.baselines ?? []),
     ...(paper.axis_C_first_class_objects ?? []),
-    ...(paper.axis_D_rewrite_objects ?? [])
+    ...(paper.axis_D_rewrite_objects ?? []),
+    ...(paper.axis_C_object_vocab ?? []),
+    ...(paper.axis_D_rewrite_types ?? [])
   ].join(' ').toLowerCase();
   const uniqueTerms = (items) => [...new Set(items.flat().filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const clear = (node) => { while (node.firstChild) node.removeChild(node.firstChild); };
@@ -176,7 +200,9 @@ const { papers, taxonomy } = Astro.props;
   `;
 
   function cellKey(paper) {
-    return `${paper.axis_A.primary}:${firstMiddle(paper)}`;
+    return atlasLayout === 'cd'
+      ? `${paper.axis_C_object_vocab?.[0]}:${paper.axis_D_rewrite_types?.[0]}`
+      : `${paper.axis_A.primary}:${firstMiddle(paper)}`;
   }
 
   function groupedPositions(items) {
@@ -205,15 +231,20 @@ const { papers, taxonomy } = Astro.props;
   function setupFilters() {
     const familyFilter = $('familyFilter');
     const middleFilter = $('middleFilter');
+    const objectFilter = $('objectFilter');
+    const rewriteFilter = $('rewriteFilter');
     const technologyFilter = $('technologyFilter');
     const workloadFilter = $('workloadFilter');
     familyFilter.innerHTML = `<option value="">All Axis A roles</option>` + familyCodes.map((code) => `<option value="${code}">${code} — ${esc(families[code].short)}</option>`).join('');
     middleFilter.innerHTML = `<option value="">All Axis B styles</option>` + middleCodes.map((code) => `<option value="${code}">${code} — ${esc(middles[code].short)}</option>`).join('');
+    objectFilter.innerHTML = `<option value="">All Axis C objects</option>` + objectCategories.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
+    rewriteFilter.innerHTML = `<option value="">All Axis D rewrites</option>` + rewriteCategories.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
     const technologies = uniqueTerms(papers.map((p) => p.technology ?? []));
     const workloads = uniqueTerms(papers.map((p) => p.workloads ?? []));
     technologyFilter.innerHTML = `<option value="">All technologies</option>` + technologies.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
     workloadFilter.innerHTML = `<option value="">All workloads</option>` + workloads.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
-    ['search', 'familyFilter', 'middleFilter', 'technologyFilter', 'workloadFilter'].forEach((id) => $(id).addEventListener('input', applyFilters));
+    ['search', 'familyFilter', 'middleFilter', 'objectFilter', 'rewriteFilter', 'technologyFilter', 'workloadFilter'].forEach((id) => $(id).addEventListener('input', applyFilters));
+    document.querySelectorAll('[data-layout]').forEach((button) => button.addEventListener('click', () => setLayout(button.dataset.layout)));
     $('paperPicker').addEventListener('change', (event) => selectPaper(event.target.value));
     $('resetFilters').addEventListener('click', resetFilters);
   }
@@ -222,6 +253,8 @@ const { papers, taxonomy } = Astro.props;
     const params = new URLSearchParams(window.location.search);
     const selected = params.get('paper');
     if (selected && papers.some((paper) => paper.slug === selected)) selectedSlug = selected;
+    const requestedLayout = params.get('layout');
+    if (requestedLayout === 'cd') atlasLayout = 'cd';
     const legacyTarget = params.get('target') ?? '';
     const legacyTargetParts = legacyTarget.split(':');
     const legacyTargetKind = legacyTargetParts[0];
@@ -230,6 +263,8 @@ const { papers, taxonomy } = Astro.props;
       search: params.get('q') ?? '',
       familyFilter: params.get('a') ?? '',
       middleFilter: params.get('b') ?? '',
+      objectFilter: params.get('c') ?? '',
+      rewriteFilter: params.get('d') ?? '',
       technologyFilter: params.get('tech') ?? (legacyTargetKind === 'technology' ? legacyTargetValue : ''),
       workloadFilter: params.get('workload') ?? (legacyTargetKind === 'workload' ? legacyTargetValue : '')
     };
@@ -243,10 +278,13 @@ const { papers, taxonomy } = Astro.props;
 
   function updateUrlState() {
     const params = new URLSearchParams();
+    if (atlasLayout === 'cd') params.set('layout', 'cd');
     const q = $('search').value.trim();
     if (q) params.set('q', q);
     if ($('familyFilter').value) params.set('a', $('familyFilter').value);
     if ($('middleFilter').value) params.set('b', $('middleFilter').value);
+    if ($('objectFilter').value) params.set('c', $('objectFilter').value);
+    if ($('rewriteFilter').value) params.set('d', $('rewriteFilter').value);
     if ($('technologyFilter').value) params.set('tech', $('technologyFilter').value);
     if ($('workloadFilter').value) params.set('workload', $('workloadFilter').value);
     if (selectedSlug) params.set('paper', selectedSlug);
@@ -259,15 +297,19 @@ const { papers, taxonomy } = Astro.props;
     const q = $('search').value.trim().toLowerCase();
     const family = $('familyFilter').value;
     const middle = $('middleFilter').value;
+    const objectCategory = $('objectFilter').value;
+    const rewriteCategory = $('rewriteFilter').value;
     const technology = $('technologyFilter').value;
     const workload = $('workloadFilter').value;
     filtered = papers.filter((paper) => {
       const familyMatch = !family || roles(paper).includes(family);
       const middleMatch = !middle || (paper.axis_B ?? []).includes(middle);
+      const objectMatch = !objectCategory || (paper.axis_C_object_vocab ?? []).includes(objectCategory);
+      const rewriteMatch = !rewriteCategory || (paper.axis_D_rewrite_types ?? []).includes(rewriteCategory);
       const technologyMatch = !technology || (paper.technology ?? []).includes(technology);
       const workloadMatch = !workload || (paper.workloads ?? []).includes(workload);
       const searchMatch = !q || textBlob(paper).includes(q);
-      return familyMatch && middleMatch && technologyMatch && workloadMatch && searchMatch;
+      return familyMatch && middleMatch && objectMatch && rewriteMatch && technologyMatch && workloadMatch && searchMatch;
     });
     if (!filtered.some((p) => p.slug === selectedSlug)) selectedSlug = filtered[0]?.slug ?? null;
     if (syncUrl) updateUrlState();
@@ -278,6 +320,8 @@ const { papers, taxonomy } = Astro.props;
     $('search').value = '';
     $('familyFilter').value = '';
     $('middleFilter').value = '';
+    $('objectFilter').value = '';
+    $('rewriteFilter').value = '';
     $('technologyFilter').value = '';
     $('workloadFilter').value = '';
     filtered = [...papers];
@@ -288,16 +332,51 @@ const { papers, taxonomy } = Astro.props;
 
   function xForFamily(code) {
     const left = 160;
-    const right = 1230;
+    const right = 1490;
     const i = Math.max(0, familyCodes.indexOf(code));
     return left + (right - left) * (i / Math.max(1, familyCodes.length - 1));
   }
 
   function yForMiddle(code) {
-    const top = 100;
-    const bottom = 665;
+    const top = 110;
+    const bottom = 720;
     const i = Math.max(0, middleCodes.indexOf(code));
     return top + (bottom - top) * (i / Math.max(1, middleCodes.length - 1));
+  }
+
+  function xForObject(category) {
+    const left = 160;
+    const right = 1500;
+    const i = Math.max(0, objectCategories.indexOf(category));
+    return left + (right - left) * (i / Math.max(1, objectCategories.length - 1));
+  }
+
+  function yForRewrite(category) {
+    const top = 120;
+    const bottom = 720;
+    const i = Math.max(0, rewriteCategories.indexOf(category));
+    return top + (bottom - top) * (i / Math.max(1, rewriteCategories.length - 1));
+  }
+
+  function shortCategory(label) {
+    return label
+      .replace('hardware template / macro choice', 'template')
+      .replace('operator graph transformation', 'graph')
+      .replace('loop or tensor-schedule transformation', 'loop/tensor')
+      .replace('mapping, placement, tiling, or allocation', 'mapping')
+      .replace('mode selection across compute, memory, or device classes', 'mode')
+      .replace('instruction, microprogram, or trace generation', 'instruction')
+      .replace('numeric format, precision, quantization, or approximation', 'numeric')
+      .replace('runtime scheduling, placement, batching, or data movement', 'runtime')
+      .replace('fault, variation, calibration, or accuracy handling', 'accuracy')
+      .replace('benchmark, API, or workload-porting pattern', 'benchmark')
+      .replace('ADC / DAC / peripherals', 'ADC/DAC')
+      .replace('nonideality / faults', 'nonideality')
+      .replace('loop / tensor schedule', 'loop/tensor')
+      .replace('chip / emulator address', 'address')
+      .replace('memory service properties', 'mem service')
+      .replace('Uncategorized object', 'uncat.')
+      .replace('Uncategorized rewrite', 'uncat.');
   }
 
   function taxonomyFootprint(paper) {
@@ -311,28 +390,39 @@ const { papers, taxonomy } = Astro.props;
     })));
   }
 
+  function objectRewriteFootprint(paper) {
+    const objects = [...new Set((paper.axis_C_object_vocab ?? []).filter((category) => objectCategories.includes(category)))];
+    const rewrites = [...new Set((paper.axis_D_rewrite_types ?? []).filter((category) => rewriteCategories.includes(category)))];
+    return objects.flatMap((objectCategory) => rewrites.map((rewriteCategory) => ({
+      objectCategory,
+      rewriteCategory,
+      x: xForObject(objectCategory),
+      y: yForRewrite(rewriteCategory)
+    })));
+  }
+
   function drawSelectedFootprint(svg) {
     const paper = currentPaper();
     if (!paper) return;
-    const points = taxonomyFootprint(paper);
+    const points = atlasLayout === 'cd' ? objectRewriteFootprint(paper) : taxonomyFootprint(paper);
     if (!points.length) return;
     const color = families[paper.axis_A.primary]?.color ?? '#335cff';
     const group = node('g', { class: 'taxonomy-footprint', 'aria-hidden': 'true', 'pointer-events': 'none' });
 
-    const byMiddle = new Map();
-    const byFamily = new Map();
+    const byRow = new Map();
+    const byColumn = new Map();
     points.forEach((point) => {
-      if (!byMiddle.has(point.middle)) byMiddle.set(point.middle, []);
-      if (!byFamily.has(point.family)) byFamily.set(point.family, []);
-      byMiddle.get(point.middle).push(point);
-      byFamily.get(point.family).push(point);
+      if (!byRow.has(point.y)) byRow.set(point.y, []);
+      if (!byColumn.has(point.x)) byColumn.set(point.x, []);
+      byRow.get(point.y).push(point);
+      byColumn.get(point.x).push(point);
     });
-    byMiddle.forEach((row) => {
+    byRow.forEach((row) => {
       if (row.length < 2) return;
       row.sort((a, b) => a.x - b.x);
       group.append(node('line', { x1: row[0].x, y1: row[0].y, x2: row[row.length - 1].x, y2: row[0].y, stroke: color, 'stroke-width': 34, opacity: 0.16, 'stroke-linecap': 'round' }));
     });
-    byFamily.forEach((column) => {
+    byColumn.forEach((column) => {
       if (column.length < 2) return;
       column.sort((a, b) => a.y - b.y);
       group.append(node('line', { x1: column[0].x, y1: column[0].y, x2: column[0].x, y2: column[column.length - 1].y, stroke: color, 'stroke-width': 34, opacity: 0.16, 'stroke-linecap': 'round' }));
@@ -347,31 +437,44 @@ const { papers, taxonomy } = Astro.props;
   function drawAtlas() {
     const svg = $('atlas');
     clear(svg);
-    svg.append(node('rect', { x: 0, y: 0, width: 1320, height: 760, rx: 16, fill: '#fbfcff' }));
-    familyCodes.forEach((code) => {
-      const x = xForFamily(code);
-      svg.append(node('line', { x1: x, y1: 70, x2: x, y2: 695, stroke: '#dce4ef', 'stroke-width': 1 }));
-      svg.append(node('text', { x, y: 32, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 900, fill: '#24364f' }, code));
-      svg.append(node('text', { x, y: 53, 'text-anchor': 'middle', 'font-size': 13, fill: '#607086' }, families[code].short));
-    });
-    middleCodes.forEach((code) => {
-      const y = yForMiddle(code);
-      svg.append(node('line', { x1: 104, y1: y, x2: 1268, y2: y, stroke: '#dce4ef', 'stroke-width': 1 }));
-      svg.append(node('text', { x: 26, y: y + 5, 'font-size': 15, 'font-weight': 900, fill: '#24364f' }, code));
-      svg.append(node('text', { x: 62, y: y + 5, 'font-size': 13, fill: '#607086' }, middles[code].short));
-    });
+    svg.append(node('rect', { x: 0, y: 0, width: 1600, height: 820, rx: 16, fill: '#fbfcff' }));
+    if (atlasLayout === 'cd') {
+      objectCategories.forEach((category) => {
+        const x = xForObject(category);
+        svg.append(node('line', { x1: x, y1: 88, x2: x, y2: 748, stroke: '#dce4ef', 'stroke-width': 1 }));
+        svg.append(node('text', { x, y: 74, transform: `rotate(-32 ${x} 74)`, 'text-anchor': 'end', 'font-size': 11, 'font-weight': 900, fill: '#24364f' }, shortCategory(category)));
+      });
+      rewriteCategories.forEach((category) => {
+        const y = yForRewrite(category);
+        svg.append(node('line', { x1: 118, y1: y, x2: 1548, y2: y, stroke: '#dce4ef', 'stroke-width': 1 }));
+        svg.append(node('text', { x: 22, y: y + 4, 'font-size': 12, 'font-weight': 900, fill: '#24364f' }, shortCategory(category)));
+      });
+    } else {
+      familyCodes.forEach((code) => {
+        const x = xForFamily(code);
+        svg.append(node('line', { x1: x, y1: 70, x2: x, y2: 748, stroke: '#dce4ef', 'stroke-width': 1 }));
+        svg.append(node('text', { x, y: 32, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 900, fill: '#24364f' }, code));
+        svg.append(node('text', { x, y: 53, 'text-anchor': 'middle', 'font-size': 13, fill: '#607086' }, families[code].short));
+      });
+      middleCodes.forEach((code) => {
+        const y = yForMiddle(code);
+        svg.append(node('line', { x1: 104, y1: y, x2: 1548, y2: y, stroke: '#dce4ef', 'stroke-width': 1 }));
+        svg.append(node('text', { x: 26, y: y + 5, 'font-size': 15, 'font-weight': 900, fill: '#24364f' }, code));
+        svg.append(node('text', { x: 62, y: y + 5, 'font-size': 13, fill: '#607086' }, middles[code].short));
+      });
+    }
     if (!filtered.length) {
-      svg.append(node('text', { x: 660, y: 380, 'text-anchor': 'middle', fill: '#607086', 'font-size': 17 }, 'No papers match the current filters.'));
+      svg.append(node('text', { x: 800, y: 410, 'text-anchor': 'middle', fill: '#607086', 'font-size': 17 }, 'No papers match the current filters.'));
       return;
     }
     drawSelectedFootprint(svg);
     const offsets = groupedPositions(filtered);
     filtered.forEach((paper) => {
-      const baseX = xForFamily(paper.axis_A.primary);
-      const baseY = yForMiddle(firstMiddle(paper));
+      const baseX = atlasLayout === 'cd' ? xForObject(paper.axis_C_object_vocab?.[0]) : xForFamily(paper.axis_A.primary);
+      const baseY = atlasLayout === 'cd' ? yForRewrite(paper.axis_D_rewrite_types?.[0]) : yForMiddle(firstMiddle(paper));
       const offset = offsets.get(paper.slug) ?? { dx: 0, dy: 0 };
-      const x = Math.max(126, Math.min(1276, baseX + offset.dx));
-      const y = Math.max(84, Math.min(702, baseY + offset.dy));
+      const x = Math.max(128, Math.min(1554, baseX + offset.dx));
+      const y = Math.max(92, Math.min(760, baseY + offset.dy));
       const isSelected = paper.slug === selectedSlug;
       const r = isSelected ? 18 : 10;
       const color = families[paper.axis_A.primary]?.color ?? '#335cff';
@@ -399,7 +502,9 @@ const { papers, taxonomy } = Astro.props;
     return `
       <b>${esc(paperLabel(paper))}</b>
       ${metadataLine(paper) ? `<span>${esc(metadataLine(paper))}</span>` : ''}
-      <span>${esc(paper.axis_A.primary)} ${esc(families[paper.axis_A.primary]?.short ?? '')} · ${esc(firstMiddle(paper))} ${esc(middles[firstMiddle(paper)]?.short ?? '')}</span>
+      <span>${atlasLayout === 'cd'
+        ? `${esc(paper.axis_C_object_vocab?.[0] ?? '')} · ${esc(paper.axis_D_rewrite_types?.[0] ?? '')}`
+        : `${esc(paper.axis_A.primary)} ${esc(families[paper.axis_A.primary]?.short ?? '')} · ${esc(firstMiddle(paper))} ${esc(middles[firstMiddle(paper)]?.short ?? '')}`}</span>
       <p>${esc(paper.summary)}</p>
     `;
   }
@@ -445,15 +550,17 @@ const { papers, taxonomy } = Astro.props;
   }
 
   function renderStats() {
-    const roleCounts = Object.fromEntries(familyCodes.map((code) => [code, filtered.filter((p) => p.axis_A.primary === code).length]));
-    const topRole = Object.entries(roleCounts).sort((a, b) => b[1] - a[1])[0];
-    const middleCounts = Object.fromEntries(middleCodes.map((code) => [code, filtered.filter((p) => (p.axis_B ?? []).includes(code)).length]));
-    const topMiddle = Object.entries(middleCounts).sort((a, b) => b[1] - a[1])[0];
-    const filterCount = ['search', 'familyFilter', 'middleFilter', 'technologyFilter', 'workloadFilter'].filter((id) => $(id).value).length;
+    const xCodes = atlasLayout === 'cd' ? objectCategories : familyCodes;
+    const yCodes = atlasLayout === 'cd' ? rewriteCategories : middleCodes;
+    const xCounts = Object.fromEntries(xCodes.map((code) => [code, filtered.filter((p) => atlasLayout === 'cd' ? (p.axis_C_object_vocab ?? []).includes(code) : p.axis_A.primary === code).length]));
+    const topX = Object.entries(xCounts).sort((a, b) => b[1] - a[1])[0];
+    const yCounts = Object.fromEntries(yCodes.map((code) => [code, filtered.filter((p) => atlasLayout === 'cd' ? (p.axis_D_rewrite_types ?? []).includes(code) : (p.axis_B ?? []).includes(code)).length]));
+    const topY = Object.entries(yCounts).sort((a, b) => b[1] - a[1])[0];
+    const filterCount = ['search', 'familyFilter', 'middleFilter', 'objectFilter', 'rewriteFilter', 'technologyFilter', 'workloadFilter'].filter((id) => $(id).value).length;
     $('filteredStats').innerHTML = [
       ['Papers', filtered.length],
-      ['Top Axis A', topRole ? `${topRole[0]} (${topRole[1]})` : '—'],
-      ['Top Axis B', topMiddle ? `${topMiddle[0]} (${topMiddle[1]})` : '—'],
+      [atlasLayout === 'cd' ? 'Top Axis C' : 'Top Axis A', topX ? `${shortCategory(topX[0])} (${topX[1]})` : '—'],
+      [atlasLayout === 'cd' ? 'Top Axis D' : 'Top Axis B', topY ? `${shortCategory(topY[0])} (${topY[1]})` : '—'],
       ['Filters', filterCount]
     ].map(([label, value]) => `<div class="mini-stat"><strong>${esc(value)}</strong><span>${esc(label)}</span></div>`).join('');
   }
@@ -469,6 +576,17 @@ const { papers, taxonomy } = Astro.props;
   function selectPaper(slug) {
     selectedSlug = slug;
     hideTooltip();
+    updateUrlState();
+    renderAll();
+  }
+
+  function setLayout(layout) {
+    atlasLayout = layout === 'cd' ? 'cd' : 'ab';
+    document.querySelectorAll('[data-layout]').forEach((button) => {
+      const isActive = button.dataset.layout === atlasLayout;
+      button.setAttribute('aria-pressed', String(isActive));
+      button.classList.toggle('is-active', isActive);
+    });
     updateUrlState();
     renderAll();
   }
@@ -503,9 +621,11 @@ const { papers, taxonomy } = Astro.props;
     $('workMore').innerHTML = `
       <div class="coverage-cloud" aria-label="Selected paper object and rewrite cloud">
         ${category('Axis C first-class objects', paper.axis_C_first_class_objects ?? [], 'object', 6)}
+        ${category('Normalized Axis C categories', paper.axis_C_object_vocab ?? [], 'object', 6)}
         ${category('Axis D rewrite objects', paper.axis_D_rewrite_objects ?? [], 'rewrite', 6)}
+        ${category('Normalized Axis D types', paper.axis_D_rewrite_types ?? [], 'rewrite', 6)}
         ${contextTerms.length ? category('Technology / workloads', contextTerms, 'context', 6) : ''}
-        <p class="cloud-note">Axis A/B footprint is shown on the atlas. This object cloud is descriptive metadata only; it is not a score or ranking.</p>
+        <p class="cloud-note">Axis C/D categories are derived from the controlled vocabulary in taxonomy.json. This cloud is descriptive metadata only; it is not a score or ranking.</p>
       </div>
     `;
   }
@@ -521,6 +641,7 @@ const { papers, taxonomy } = Astro.props;
 
   setupFilters();
   hydrateFromUrl();
+  setLayout(atlasLayout);
   applyFilters();
 })();
 </script>
