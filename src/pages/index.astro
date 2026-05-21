@@ -1,18 +1,28 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import TaxonomyAtlas from '../components/TaxonomyAtlas.astro';
+import taxonomy from '../data/taxonomy.json';
+
+const entries = await getCollection('papers');
+const papers = entries
+  .map((entry) => ({ id: entry.id, ...entry.data }))
+  .sort((a, b) => a.title.localeCompare(b.title));
 ---
-<BaseLayout title="Paper Library">
+<BaseLayout title="CIM Compiler/IR Paper Library">
   <header class="hero wrap">
     <div class="hero-card">
-      <div class="eyebrow"><span class="dot"></span> Static corpus draft</div>
-      <h1>CIM Compiler/IR Paper Library</h1>
-      <p>Browse the taxonomy atlas or open individual paper notes generated from Markdown content.</p>
+      <div class="eyebrow"><span class="dot"></span> CIM compiler/IR corpus</div>
+      <h1>Paper Library Taxonomy Atlas</h1>
+      <p>A static, Markdown-backed atlas for paper notes classified by stack role, middle-layer abstraction, first-class CIM objects, and rewrite object.</p>
     </div>
   </header>
+  <nav class="toc wrap" aria-label="Page sections">
+    <a href="#atlas-section">Interactive atlas</a>
+    <a href="#taxonomy">Taxonomy axes</a>
+  </nav>
   <main class="wrap">
-    <section class="panel pad">
-      <h2>Start here</h2>
-      <p><a class="badge" href="/library/">Open the library atlas</a></p>
-    </section>
+    <TaxonomyAtlas papers={papers} taxonomy={taxonomy} />
   </main>
+  <footer class="wrap footer">Static Astro draft. Paper metadata comes from Markdown frontmatter in <code>src/content/papers</code>.</footer>
 </BaseLayout>

@@ -33,7 +33,15 @@ if (data.artifact?.url && !linkEntries.some((entry) => entry.url === data.artifa
   linkEntries.push({ kind: 'artifact', url: data.artifact.url });
 }
 const contextTerms = [...data.technology, ...data.workloads];
-const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3).slice(0, 14);
+const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const noteSections = [];
+for (const heading of noteOutline) {
+  if (heading.depth === 2 || noteSections.length === 0) {
+    noteSections.push({ ...heading, children: [] });
+  } else {
+    noteSections[noteSections.length - 1].children.push(heading);
+  }
+}
 const paperMeta = [data.year, data.venue, data.authors_or_group].filter(Boolean).join(' · ');
 const emptyLabel = 'Unknown / not specified';
 ---
@@ -45,7 +53,7 @@ const emptyLabel = 'Unknown / not specified';
       {paperMeta && <p class="paper-meta-line">{paperMeta}</p>}
       <p class="paper-hero-summary">{data.summary}</p>
       <div class="paper-hero-actions">
-        <a class="chip dark" href="/library/" data-atlas-back>Back to atlas</a>
+        <a class="chip dark" href="/" data-atlas-back>Back to atlas</a>
         {data.links?.paper && <a class="chip dark" href={data.links.paper}>Paper source</a>}
         {data.artifact?.url && <a class="chip dark" href={data.artifact.url}>Artifact</a>}
       </div>
@@ -103,7 +111,34 @@ const emptyLabel = 'Unknown / not specified';
       </div>
     </section>
 
-    <div class="paper-layout">
+    <div class:list={['paper-layout', { 'without-outline': noteSections.length === 0 }]}>
+      {noteSections.length > 0 && (
+        <nav class="note-outline section-nav" aria-label="Corpus note outline">
+          <div class="section-nav-title">Note outline</div>
+          <div class="outline-stack">
+            {noteSections.map((section) => (
+              section.children.length > 0 ? (
+                <details class="outline-section">
+                  <summary>
+                    <a class="outline-summary-link" href={`#${section.slug}`}>{section.text}</a>
+                  </summary>
+                  <ol>
+                    {section.children.map((heading) => (
+                      <li>
+                        <a href={`#${heading.slug}`}>{heading.text}</a>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              ) : (
+                <div class="outline-section outline-leaf">
+                  <a href={`#${section.slug}`}>{section.text}</a>
+                </div>
+              )
+            ))}
+          </div>
+        </nav>
+      )}
       <article class="prose paper-prose">
         <Content />
       </article>
@@ -143,18 +178,6 @@ const emptyLabel = 'Unknown / not specified';
             </ul>
           </div>
         )}
-        {noteOutline.length > 0 && (
-          <nav class="panel pad note-outline" aria-label="Corpus note outline">
-            <h2>Note outline</h2>
-            <ol>
-              {noteOutline.map((heading) => (
-                <li class={`depth-${heading.depth}`}>
-                  <a href={`#${heading.slug}`}>{heading.text}</a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        )}
       </aside>
     </div>
   </main>
@@ -162,9 +185,16 @@ const emptyLabel = 'Unknown / not specified';
   <script is:inline>
     (() => {
       const from = new URLSearchParams(window.location.search).get('from');
-      if (!from || !from.startsWith('/library/')) return;
+      if (!from || !from.startsWith('/') || from.startsWith('//')) return;
       document.querySelectorAll('[data-atlas-back]').forEach((link) => {
         link.setAttribute('href', from);
+      });
+    })();
+  </script>
+  <script is:inline>
+    (() => {
+      document.querySelectorAll('.outline-summary-link').forEach((link) => {
+        link.addEventListener('click', (event) => event.stopPropagation());
       });
     })();
   </script>
