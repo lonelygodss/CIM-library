@@ -94,6 +94,18 @@ Current mechanical audit reading:
 - artifact status and artifact URL fields currently have no contradiction according to the QA script.
 - artifact URL-only entries and `links.artifact` / `artifact.url` disagreements are currently zero.
 
+## Completed Focus -- Audit Pass From Next-Session Steps 1-5
+
+Implemented or confirmed:
+
+- audited normalized Axis C/D output across representative macro-generator, mapper/compiler, simulator, runtime, benchmark, suite, and mapper-family entries;
+- tightened Axis C instruction-stream normalization so numeric `bit_stream` / `bit stream` terms are not incorrectly classified as instruction streams;
+- rechecked `pim-eda.md` against the umbrella PIM-Toolchain repository, ICT CAS project page, and Xiaoming Chen profile; no standalone canonical suite paper was identified, so `links.paper` remains intentionally blank;
+- preserved `links.artifact` and `artifact.url` alignment; QA still reports zero artifact URL-only entries and zero artifact link/url disagreements;
+- audited rendered-note Markdown patterns: 117 inline TeX-style formulas in 4 files, 5 display formulas in 3 files, tables in 60 files, and fenced code blocks in 60 files;
+- added dependency-free Markdown-pipeline formatting for TeX-style `\(...\)` and `\[...\]` math delimiters so formulas are visually separated from prose without changing corpus Markdown;
+- audited raw technology/workload metadata: 93 unique technology terms and 276 unique workload terms. The terms are useful but noisy; keep them as raw descriptive facets for now and defer a controlled vocabulary until there is a clear browsing problem to solve.
+
 ## Next Focus -- Detail Pages and Atlas Scoping
 
 The next product milestone should treat paper detail pages and atlas scoping as one connected improvement loop. The detail page is where users inspect evidence and vocabulary; the atlas is where the same vocabulary becomes navigable. Improve them together so metadata refinements, controlled facets, back-links, and rendering fixes reinforce the same browsing workflow.
@@ -102,13 +114,11 @@ Remaining priority work:
 
 1. Improve the long-note reading layout on `/papers/[slug]/`.
 2. Make metadata easier to scan without duplicating the full note.
-3. Continue source/provenance backfill for `pim-eda.md` only if checked evidence identifies a canonical paper for the suite/toolchain as a whole.
-4. Preserve alignment between `links.artifact` and `artifact.url` unless a future schema change intentionally separates source-card links from artifact-status URLs.
-5. Audit normalized Axis C/D categories for false positives or overly broad buckets; keep them descriptive.
-6. Consider whether normalized technology/workload metadata needs a controlled vocabulary beyond the current separate selectors.
-7. Improve mobile behavior for long titles, tables, code blocks, metadata panels, and atlas/detail transitions.
-8. Refine rendered note content: audit Markdown display edge cases, formula/math notation, escaped symbols, and table/code rendering so corpus notes display faithfully instead of exposing raw Markdown or unrendered formulas.
-9. Consider compact paper lists/cards and an optional static search index only after the detail-page and metadata scanability path is stable.
+3. Improve mobile behavior for long titles, tables, code blocks, metadata panels, and atlas/detail transitions.
+4. Continue periodic Axis C/D spot checks when adding or heavily revising entries; tune normalization only when the evidence clearly supports a more precise category.
+5. Continue source/provenance backfill for `pim-eda.md` only if checked evidence identifies a canonical paper for the suite/toolchain as a whole.
+6. Preserve alignment between `links.artifact` and `artifact.url` unless a future schema change intentionally separates source-card links from artifact-status URLs.
+7. Consider compact paper lists/cards and an optional static search index only after the detail-page and metadata scanability path is stable.
 
 The atlas should remain descriptive. Do not introduce coverage, quality, ranking, or relevance scores.
 

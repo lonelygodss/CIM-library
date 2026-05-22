@@ -17,7 +17,7 @@ const objectRules: Array<[string, RegExp]> = [
   ['crossbar / array', /\b(crossbar|array|xb|mvmu|ou|rram|reram|pcm|sram|bitcell|1t1r|wordline|bitline|compute lookup)\b/],
   ['operator graph', /\b(graph|operator|op|dag|onnx|torch|layer|conv|matmul|gemm|gemv)\b|\b(model graph|neural network|network topology)\b/],
   ['loop / tensor schedule', /\b(loop|tensor|schedule|tiling|partition|linalg|affine|polyhedral|dataflow|scatter|gather|einsum)\b|\b(loop tile|tensor tile)\b/],
-  ['instruction stream', /\b(instruction|command|isa|microprogram|trace|meta op|program|kernel|launch|code|stream)\b/],
+  ['instruction stream', /\b(instruction|command|isa|microprogram|u program|meta op)\b|\b(trace|program|kernel|launch|code)\s+(stream|sequence|file|artifact|generation|queue)\b/],
   ['numeric format', /\b(bit|precision|quant|numeric|fixed|float|bf16|int\d*|format|shift|compressor|approx|exponent|fraction|significance|cell precision)\b/],
   ['ADC / DAC / peripherals', /\b(adc|dac|peripheral|sense|sensing|mux|driver|accumulator|adder|shift add|post processing|reduction path)\b/],
   ['nonideality / faults', /\b(nonideality|fault|variation|drift|noise|error|accuracy|calibration|bist|test vector|ir drop)\b/],

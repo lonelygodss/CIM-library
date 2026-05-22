@@ -502,6 +502,28 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 .prose pre code { background: transparent; border: 0; padding: 0; color: inherit; white-space: pre; }
 .prose table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .prose th, .prose td { border: 1px solid var(--line); padding: 8px; vertical-align: top; min-width: 128px; }
+.math-inline,
+.math-display {
+  font-family: var(--mono);
+  color: #24364f;
+  background: #f8fafc;
+  border: 1px solid #e2e8f2;
+  border-radius: 6px;
+}
+.math-inline {
+  display: inline;
+  padding: 1px 4px;
+  white-space: normal;
+}
+.math-display {
+  display: block;
+  max-width: 100%;
+  margin: 12px 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  white-space: pre;
+  -webkit-overflow-scrolling: touch;
+}
 .sidebar {
   position: sticky;
   top: calc(var(--nav-height) + 16px);

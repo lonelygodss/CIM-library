@@ -5,7 +5,7 @@ Use this prompt to start the next Codex session.
 ```text
 We are in /Users/xiongzijian/coding/CIM-library.
 
-This is a static Astro CIM compiler/IR paper library. Read AGENTS.md first, then CODEX_HANDOFF.md, docs/future-development-plan.md, docs/corpus-note-harness.md, and docs/metadata-template.md.
+This is a static Astro CIM compiler/IR paper library. Read AGENTS.md first, then docs/future-development-plan.md, docs/corpus-note-harness.md, and docs/metadata-template.md.
 
 Current state:
 - src/content/papers contains 62 schema-valid Markdown paper entries.
@@ -45,16 +45,22 @@ Recently completed:
   - no entries currently lack all frontmatter source links;
   - artifact.last_checked remains complete;
   - artifact status/url contradictions, artifact URL-only entries, and links.artifact vs artifact.url disagreements remain at zero.
-- Updated CODEX_HANDOFF.md and docs/future-development-plan.md with the latest state.
+- Updated docs/future-development-plan.md with the latest state.
+- Completed the next-session steps 1-5 audit pass:
+  - spot-checked Axis C/D normalization across representative paper families;
+  - tightened Axis C instruction-stream normalization so `bit_stream` / `bit stream` terms remain numeric-format terms instead of false instruction-stream matches;
+  - rechecked pim-eda provenance against the umbrella repository, ICT CAS project page, and Xiaoming Chen profile; no standalone canonical suite paper was found, so links.paper remains blank intentionally;
+  - preserved links.artifact and artifact.url alignment; artifact URL-only entries and link/url disagreements remain at zero;
+  - audited Markdown display patterns and added dependency-free Markdown-pipeline formatting for TeX-style `\(...\)` and `\[...\]` formulas;
+  - audited raw technology/workload terms and deferred controlled vocabularies for now because the current terms remain descriptive but noisy.
 
 Good next steps:
-1. Audit Axis C/D normalization quality against a handful of papers from different families; tune rules only when evidence clearly supports it.
-2. Continue provenance backfill for pim-eda.md only if checked evidence identifies a canonical paper for the suite/toolchain as a whole; otherwise leave links.paper blank.
-3. Preserve links.artifact and artifact.url alignment unless a future schema change intentionally separates those concepts.
-4. Audit rendered note content for Markdown display edge cases, formula/math notation, escaped symbols, tables, and code blocks.
-5. Consider whether technology/workload raw terms need controlled vocabularies after the current separate filters.
-6. Keep improving mobile behavior for atlas/detail transitions, long titles, tables, code blocks, metadata panels, and dense-cell summaries.
-7. Consider compact paper list/card views or a static search index only after detail-page scanability is stable.
+1. Keep improving mobile behavior for atlas/detail transitions, long titles, tables, code blocks, metadata panels, and dense-cell summaries.
+2. Improve long-note scanability on `/papers/[slug]/` without duplicating the full note.
+3. Continue periodic Axis C/D spot checks when adding or heavily revising entries; tune rules only when evidence clearly supports it.
+4. Continue provenance backfill for pim-eda.md only if checked evidence identifies a canonical paper for the suite/toolchain as a whole; otherwise leave links.paper blank.
+5. Preserve links.artifact and artifact.url alignment unless a future schema change intentionally separates those concepts.
+6. Consider compact paper list/card views or a static search index only after detail-page scanability is stable.
 
 Implementation guidance:
 - Use current frontmatter and src/data/taxonomy.json as source of truth.

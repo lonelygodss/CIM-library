@@ -284,4 +284,21 @@ const provenanceSummary = [
       });
     })();
   </script>
+  <script is:inline>
+    (() => {
+      const escapeHtml = (value) => value.replace(/[&<>"']/g, (match) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[match]));
+      document.querySelectorAll('.paper-prose p').forEach((paragraph) => {
+        if (paragraph.children.length > 0) return;
+        const match = paragraph.textContent.match(/^\s*\[([\s\S]+)\]\s*$/);
+        if (!match) return;
+        paragraph.innerHTML = `<span class="math-display">${escapeHtml(match[1].trim())}</span>`;
+      });
+    })();
+  </script>
 </BaseLayout>
