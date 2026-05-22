@@ -8,70 +8,46 @@ We are in /Users/xiongzijian/coding/CIM-library.
 This is a static Astro CIM compiler/IR paper library. Read AGENTS.md first, then docs/future-development-plan.md, docs/corpus-note-harness.md, and docs/metadata-template.md.
 
 Current state:
-- src/content/papers contains 62 schema-valid Markdown paper entries.
-- The raw-note migration milestone is complete; no raw corpus notes remain.
-- The active schema is descriptive. Do not add coverage scores, ranking scores, or trajectory_IR_relevance.
-- / is the primary public atlas entry and renders the atlas directly; /library/ still renders the same atlas.
-- /papers/[slug]/ renders individual long-form paper notes.
+- src/content/papers contains 62 schema-valid Markdown paper entries; no raw corpus notes remain.
+- / is the primary public atlas entry; /library/ renders the same atlas for compatibility.
+- /papers/[slug]/ renders individual long-form corpus notes.
+- The public metadata contract is descriptive. Do not add coverage scores, ranking scores, or trajectory_IR_relevance.
 - Axis C/D normalization is render-time only through src/lib/axisNormalization.ts and src/data/taxonomy.json; do not weaken src/content.config.ts.
+- Detail pages include provenance/source affordances, normalized Axis C/D chips, context chips, note outline, scan metadata, and Markdown math display cleanup through src/lib/rehypeMathDelimiters.mjs.
+- The current atlas/detail-page base is stable enough. Future work should shift toward cluster analysis and visualization rather than more minor refinements to completed views.
 - npm run qa, npm run validate, npm run check, and npm run build are currently green.
 
-Recently completed:
-- Normalized Axis C first-class objects and Axis D rewrite objects into controlled render-time categories.
-- Added separate Axis C and Axis D atlas filters.
-- Added an atlas layout switch between Axis A x Axis B and normalized Axis C x Axis D.
-- Preserved atlas URL state with layout=cd, c=, d=, exact scoped cells through cx=/cy=, tech=, workload=, and paper=.
-- Added normalized Axis C/D and context chips on detail pages that link back into scoped atlas views.
-- Reworked the atlas presentation:
-  - larger responsive graph profiles for A/B and C/D;
-  - graph-first single-column atlas layout;
-  - click pins the selected paper while hover previews another paper's footprint and object/rewrite cloud;
-  - expandable object/rewrite/context clouds for long metadata lists;
-  - dense-cell summary under the atlas with one-click exact scoping for plotted cells.
-- Expanded the taxonomy explanation to include Axis C object vocabulary and Axis D rewrite vocabulary.
-- Added detail-page provenance affordances:
-  - provenance strip for paper source, artifact link, artifact status, and last-checked date;
-  - hero source actions derived from existing paper/artifact/docs/code links;
-  - richer source cards with source-role descriptions and hostnames;
-  - source note clarifying that artifact status and checked date come from recorded corpus metadata rather than live monitoring.
-- Added source/provenance QA coverage:
-  - npm run qa reports links.paper, links.artifact, artifact.url, links.docs, and links.code population;
-  - missing paper-source links and entries with no recorded source links are informational audit items;
-  - artifact last_checked coverage and links.artifact vs artifact.url disagreements are checked separately.
-- Backfilled high-confidence links.paper values from existing body citations:
-  - links.paper is now populated for 61/62 entries;
-  - links.artifact is now populated for 38/62 entries and aligned with artifact.url coverage;
-  - pim-eda.md is the only remaining entry without links.paper; it is a suite/toolchain entry composed from several related papers, so leave it blank unless a canonical suite paper is identified;
-  - no entries currently lack all frontmatter source links;
-  - artifact.last_checked remains complete;
-  - artifact status/url contradictions, artifact URL-only entries, and links.artifact vs artifact.url disagreements remain at zero.
-- Updated docs/future-development-plan.md with the latest state.
-- Completed the next-session steps 1-5 audit pass:
-  - spot-checked Axis C/D normalization across representative paper families;
-  - tightened Axis C instruction-stream normalization so `bit_stream` / `bit stream` terms remain numeric-format terms instead of false instruction-stream matches;
-  - rechecked pim-eda provenance against the umbrella repository, ICT CAS project page, and Xiaoming Chen profile; no standalone canonical suite paper was found, so links.paper remains blank intentionally;
-  - preserved links.artifact and artifact.url alignment; artifact URL-only entries and link/url disagreements remain at zero;
-  - audited Markdown display patterns and added dependency-free Markdown-pipeline formatting for TeX-style `\(...\)` and `\[...\]` formulas;
-  - audited raw technology/workload terms and deferred controlled vocabularies for now because the current terms remain descriptive but noisy.
+Progress from the latest iteration:
+- Completed the Axis C/D audit pass and tightened instruction-stream normalization so bit-stream terms no longer false-match instruction streams.
+- Rechecked pim-eda provenance; no standalone canonical suite paper was found, so links.paper remains intentionally blank.
+- Preserved links.artifact and artifact.url alignment; artifact URL-only entries and link/url disagreements remain at zero.
+- Added dependency-free rehype formatting for TeX-style inline/display formulas.
+- Audited raw technology/workload terms and deferred controlled vocabularies because the terms are useful but noisy.
+- Removed stale handoff references and redundant math-formatting scaffolding.
+- Updated docs/README/AGENTS context to reflect the completed migration and the next cluster-analysis direction.
+
+New future goal:
+- Build a cluster-analysis and visualization layer, likely as a new static page rather than more atlas polish.
+- Explain clusters of works by shared stack objects, rewrite styles, technologies, workloads, artifacts, and source/provenance patterns.
+- Add a coarse academic working-group layer where evidence supports it: repeated author groups, lab/project names, repository owners, or visible publication families.
+- Do not build a detailed affiliation graph, author social network, or fine-grained collaboration map. The goal is vague orientation about working groups and occasional cooperation, not bibliometric authority.
 
 Good next steps:
-1. Keep improving mobile behavior for atlas/detail transitions, long titles, tables, code blocks, metadata panels, and dense-cell summaries.
-2. Improve long-note scanability on `/papers/[slug]/` without duplicating the full note.
-3. Continue periodic Axis C/D spot checks when adding or heavily revising entries; tune rules only when evidence clearly supports it.
-4. Continue provenance backfill for pim-eda.md only if checked evidence identifies a canonical paper for the suite/toolchain as a whole; otherwise leave links.paper blank.
-5. Preserve links.artifact and artifact.url alignment unless a future schema change intentionally separates those concepts.
-6. Consider compact paper list/card views or a static search index only after detail-page scanability is stable.
+1. Discuss and choose the first cluster-page shape: card list, graph, or hybrid.
+2. Decide where cluster metadata should live: new src/data/clusters.json, derived data, or optional annotations.
+3. Decide whether academic working groups should be manually curated labels or inferred cautiously from authors_or_group and source/project evidence.
+4. Prototype one or two high-confidence clusters before generalizing the visualization.
+5. Keep existing atlas/detail-page maintenance incremental and secondary.
 
 Implementation guidance:
 - Use current frontmatter and src/data/taxonomy.json as source of truth.
-- Keep the public metadata contract descriptive.
+- Keep the site static and schema-compatible unless there is a clear reason to change the schema.
+- Keep cluster/group claims descriptive and evidence-based; mark uncertain groupings as tentative.
 - Keep legacy files intact unless explicitly asked to archive or rewrite them.
-- Prefer incremental changes over rebuilding the atlas.
-- Do not weaken src/content.config.ts.
 - Re-run npm run qa, npm run validate, npm run check, and npm run build after edits.
 
 Report:
-- What detail-page, atlas-scoping, or provenance changes were made;
+- What cluster, visualization, provenance, or content changes were made;
 - Browser viewport checks if UI changed;
 - qa/validate/check/build results;
 - Remaining follow-up items.

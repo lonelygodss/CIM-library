@@ -25,20 +25,19 @@ Do not treat generated legacy notes as ground truth. Use them as hypotheses to c
 - `src/content/papers/*.md` is the paper database. Each file has YAML frontmatter plus a Markdown corpus note.
 - `src/content.config.ts` is the strict Astro schema.
 - `src/data/taxonomy.json` is the Axis A/B vocabulary plus supporting object/rewrite vocabulary.
-- `src/pages/library.astro` renders the atlas route at `/library/`.
+- `src/pages/index.astro` is the primary public atlas route at `/`.
+- `src/pages/library.astro` renders the same atlas route at `/library/` for compatibility.
 - `src/pages/papers/[slug].astro` renders individual paper notes.
-- `src/components/TaxonomyAtlas.astro` owns filtering, the Axis A x Axis B atlas, and the selected-paper panel.
+- `src/components/TaxonomyAtlas.astro` owns filtering, the Axis A x Axis B and normalized Axis C x Axis D atlas layouts, URL-scoped selections, dense-cell summaries, and the selected-paper panel.
+- `src/lib/axisNormalization.ts` normalizes Axis C/D labels at render time from `src/data/taxonomy.json`; do not add required frontmatter fields for those normalized categories unless the public metadata contract changes.
 
 ## Migration State
 
-The project may temporarily contain raw long-form notes in `src/content/papers/` that are not yet valid Astro content entries. There are 62 paper notes total:
+The raw-note migration milestone is complete. `src/content/papers/` currently contains 62 schema-valid Markdown entries and no raw corpus notes.
 
-- `accelcim.md`, `adap-cim.md`, `arctic.md`, `ares.md`, `autodcim.md`, `cimflow.md`, and `turbo-charged-mapper.md` are structured entries.
-- The remaining 55 notes are raw corpus notes that usually include `## 12. Suggested metadata entry` with a fenced YAML block.
+If future raw notes are imported, do not weaken `src/content.config.ts` to make them silently pass. Promote each raw note's suggested metadata into frontmatter, normalize the filename to the slug, remove obsolete generated sections, and keep the remaining public note body.
 
-Do not weaken `src/content.config.ts` to make raw notes silently pass. The correct next step is to promote each raw note's suggested metadata into frontmatter, normalize the filename to the slug, remove obsolete value-trajectory IR project sections, and keep the remaining public note body.
-
-Use `docs/future-development-plan.md` for the migration plan and `docs/next-session-prompt.md` for a restart prompt.
+Use `docs/future-development-plan.md` for the active roadmap and `docs/next-session-prompt.md` for a restart prompt.
 
 ## Paper Entry Workflow
 
@@ -106,5 +105,6 @@ If dependencies are not installed, `npm run validate` still works because it use
 - Do not add PDF hosting yet.
 - Do not add backend services or a database unless the project direction changes.
 - Prefer small, inspectable metadata changes over automatic prose parsing.
-- Improve visual components only after content and schema validation are stable.
+- Future visual work should focus on cluster analysis and navigation rather than further polishing the completed atlas/detail-page base.
+- For academic-group views, aim for vague working groups that explain clusters of works and occasional collaborations. Do not build a detailed affiliation graph, author social network, or fine-grained institutional map unless explicitly requested later.
 - Keep legacy source files intact unless the user asks to rewrite or archive them.

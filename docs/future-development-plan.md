@@ -11,6 +11,7 @@ This is a static Astro paper library for CIM compiler/IR-stack research.
 - `/papers/[slug]/` renders individual long-form corpus notes.
 - Axis C first-class objects and Axis D rewrite objects are normalized at render time from `src/data/taxonomy.json` vocabulary, without adding new required frontmatter fields.
 - The atlas supports both Axis A x Axis B and normalized Axis C x Axis D layouts.
+- The current atlas/detail-page base is good enough for the next phase; future work should shift toward cluster analysis and visualization rather than more minor atlas polish.
 - Keep the site static and suitable for personal hosting. Do not add PDF hosting, backend services, or a database unless the project direction changes.
 
 Keep these checks green while changing UI or content:
@@ -96,29 +97,43 @@ Current mechanical audit reading:
 
 ## Completed Focus -- Audit Pass From Next-Session Steps 1-5
 
-Implemented or confirmed:
+This pass closed the previous restart prompt's first five tasks.
 
-- audited normalized Axis C/D output across representative macro-generator, mapper/compiler, simulator, runtime, benchmark, suite, and mapper-family entries;
-- tightened Axis C instruction-stream normalization so numeric `bit_stream` / `bit stream` terms are not incorrectly classified as instruction streams;
-- rechecked `pim-eda.md` against the umbrella PIM-Toolchain repository, ICT CAS project page, and Xiaoming Chen profile; no standalone canonical suite paper was identified, so `links.paper` remains intentionally blank;
-- preserved `links.artifact` and `artifact.url` alignment; QA still reports zero artifact URL-only entries and zero artifact link/url disagreements;
-- audited rendered-note Markdown patterns: 117 inline TeX-style formulas in 4 files, 5 display formulas in 3 files, tables in 60 files, and fenced code blocks in 60 files;
-- added dependency-free Markdown-pipeline formatting for TeX-style `\(...\)` and `\[...\]` math delimiters so formulas are visually separated from prose without changing corpus Markdown;
-- audited raw technology/workload metadata: 93 unique technology terms and 276 unique workload terms. The terms are useful but noisy; keep them as raw descriptive facets for now and defer a controlled vocabulary until there is a clear browsing problem to solve.
+- Axis C/D normalization was spot-checked across macro-generator, mapper/compiler, simulator, runtime, benchmark, suite, and mapper-family entries.
+- Axis C instruction-stream matching was tightened so `bit_stream` / `bit stream` terms stay under numeric-format categories instead of falsely matching instruction streams.
+- `pim-eda.md` provenance was rechecked against the umbrella PIM-Toolchain repository, ICT CAS project page, and Xiaoming Chen profile. No standalone canonical suite paper was identified, so `links.paper` remains intentionally blank.
+- `links.artifact` and `artifact.url` remain aligned. QA reports zero artifact URL-only entries and zero artifact link/url disagreements.
+- Rendered-note Markdown was audited for formulas, tables, and code blocks. A dependency-free rehype formatter now styles TeX-style inline/display formulas without changing corpus Markdown.
+- Raw technology/workload terms were audited. They remain descriptive but noisy, so controlled vocabularies should wait until there is a concrete browsing problem to solve.
 
-## Next Focus -- Detail Pages and Atlas Scoping
+## Completed Focus -- Cleanup and Handoff
 
-The next product milestone should treat paper detail pages and atlas scoping as one connected improvement loop. The detail page is where users inspect evidence and vocabulary; the atlas is where the same vocabulary becomes navigable. Improve them together so metadata refinements, controlled facets, back-links, and rendering fixes reinforce the same browsing workflow.
+This iteration also cleaned up context for future work:
 
-Remaining priority work:
+- removed stale handoff-file references from the restart path and README;
+- removed redundant math-formatting scaffolding, leaving a single rehype-based formatter;
+- condensed `docs/next-session-prompt.md` into a current-state restart prompt instead of a long historical changelog;
+- updated `AGENTS.md` so it reflects the completed raw-note migration and current atlas architecture.
 
-1. Improve the long-note reading layout on `/papers/[slug]/`.
-2. Make metadata easier to scan without duplicating the full note.
-3. Improve mobile behavior for long titles, tables, code blocks, metadata panels, and atlas/detail transitions.
-4. Continue periodic Axis C/D spot checks when adding or heavily revising entries; tune normalization only when the evidence clearly supports a more precise category.
-5. Continue source/provenance backfill for `pim-eda.md` only if checked evidence identifies a canonical paper for the suite/toolchain as a whole.
-6. Preserve alignment between `links.artifact` and `artifact.url` unless a future schema change intentionally separates source-card links from artifact-status URLs.
-7. Consider compact paper lists/cards and an optional static search index only after the detail-page and metadata scanability path is stable.
+## Next Focus -- Cluster Analysis and Visualization
+
+The next product milestone should make the corpus useful as a map of research clusters, not only as a paper-by-paper atlas. The existing close-group behavior is a good base; future work should explain why papers sit near each other, what stack object or workflow binds them, and which families of work form recognizable lines of research.
+
+Likely direction:
+
+1. Add a new cluster-focused page, likely a static route such as `/clusters/`, rather than overloading the current atlas.
+2. Derive clusters from existing descriptive metadata first: Axis A/B, normalized Axis C/D, technology, workloads, artifacts, baselines, notes, and source links.
+3. Provide cluster cards or panels that name the binding theme, list representative papers, show shared first-class objects/rewrite objects, and link back into scoped atlas views.
+4. Add a vague academic working-group layer where evidence supports it: repeated author groups, lab/project names, repository owners, or visible publication families. This should describe broad working groups that produced clusters of works and occasional cross-group cooperation.
+5. Avoid a detailed affiliation map, author connection graph, or fine-grained collaboration network. The goal is orientation, not bibliometric authority.
+6. Keep the implementation static and inspectable. Prefer hand-authored or lightly derived cluster metadata over opaque automatic clustering until the desired view is clearer.
+
+Open design questions for the next session:
+
+- Should cluster metadata live in a new `src/data/clusters.json`, in frontmatter, or as derived data from existing entries?
+- Should academic working groups be manually curated labels, inferred from `authors_or_group`, or introduced only as optional cluster annotations?
+- Should the first version be a list/card view, a graph, or a hybrid with cards plus a compact visualization?
+- How much evidence should be shown for a cluster assignment without making the page feel like a citation audit?
 
 The atlas should remain descriptive. Do not introduce coverage, quality, ranking, or relevance scores.
 
@@ -141,10 +156,11 @@ Use `scripts/promote-raw-note.mjs` only for future imported raw notes. The regul
 
 Later research-facing improvements:
 
-- explicit source provenance fields for paper, artifact, docs, and checked date;
+- explicit source provenance fields for paper, artifact, docs, and checked date if cluster/group views need stronger evidence display;
+- cluster pages for families such as ONNX-to-ISA stacks, UPMEM runtime stacks, macro generators, simulator/cost-model frameworks, PIM EDA/PIMCOMP/PIMSYN/PIMSIM-related work, and SRAM/digital-CIM compiler lines;
+- vague academic working-group annotations for recognizable families of work, kept intentionally coarse and evidence-based;
 - controlled vocabulary for `integration_roles`;
-- comparison pages for clusters such as ONNX-to-ISA stacks, UPMEM runtime stacks, macro generators, and simulator/cost-model frameworks;
-- tag pages or Axis A/B detail pages if they prove useful after detail-page polish.
+- tag pages or Axis A/B detail pages only if they support cluster navigation.
 
 ## Non-Goals
 

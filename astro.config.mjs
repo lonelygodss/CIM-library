@@ -1,5 +1,4 @@
 import { defineConfig } from 'astro/config';
-import remarkMathDelimiters from './src/lib/remarkMathDelimiters.mjs';
 import rehypeMathDelimiters from './src/lib/rehypeMathDelimiters.mjs';
 
 export default defineConfig({
@@ -7,7 +6,6 @@ export default defineConfig({
   site: 'https://example.com',
   base: '/',
   markdown: {
-    remarkPlugins: [remarkMathDelimiters],
     rehypePlugins: [rehypeMathDelimiters],
     shikiConfig: { theme: 'github-light' }
   }
