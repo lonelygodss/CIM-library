@@ -12,6 +12,7 @@ This is the compact default context for current project state. Keep it short; mo
   - `/projects/cim-library/` narrative CIM Library landing page.
   - `/library/` stable full atlas app.
   - `/clusters/` static cluster and coarse working-group route.
+  - `/papers/` plain index of recorded paper notes.
   - `/papers/[slug]/` stable paper notes.
 - Public metadata contract is descriptive: Axis A/B placement, first-class objects, rewrite objects, artifact status, integration roles, notes, and takeaways.
 - Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
@@ -39,13 +40,13 @@ Main implementation surfaces:
 - `src/pages/clusters/index.astro`
 - `src/data/clusters.json`
 - `src/pages/projects/cim-library/index.astro`
-- CIM Library local navigator across project overview, atlas, clusters, and paper notes.
+- CIM Library local navigator across project overview, atlas, clusters, paper index, and paper notes.
 
 Current manifest/visualization question:
 
 - The generated manifest now represents the library, route inventory, public views, and compact cluster-layer stats before further cluster investigation content is added.
 - `public/cim-library.manifest.json` is schema version `0.2.0` and includes `routes`, `views`, and `cluster_layer`.
-- The CIM Library local navigator is implemented in `src/components/CimLibraryNav.astro` and appears on project overview, atlas, cluster, and paper-note routes.
+- The CIM Library local navigator is implemented in `src/components/CimLibraryNav.astro` and appears on project overview, atlas, cluster, paper-index, and paper-note routes.
 - Preserve the descriptive paper metadata contract and keep clusters separate from paper frontmatter unless the contract is intentionally changed.
 - Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
 
@@ -89,8 +90,10 @@ Known baseline:
 - 62 paper metadata files validated.
 - Website contract OK.
 - `astro check`: 0 errors, 0 warnings, 0 hints.
-- Static build: 67 pages.
+- Static build: 68 pages.
 - Navigation smoke check: global nav active state is stable; `/`, `/projects/`, and the CIM Library route family map to Home, Projects, and CIM Library respectively. CIM Library local nav active states are Overview, Atlas, Clusters, and Notes; no horizontal overflow on desktop or mobile.
 - Link-structure smoke check: `/projects/cim-library/` has no duplicate route cards or inline route links; `/clusters/` has one structured atlas-slice panel with 7 slice links and no per-cluster atlas buttons.
-- `/projects/cim-library/` smoke check: manifest-backed stats show 62 papers, 7 clusters, 13 investigation notes, 3 public views; no horizontal overflow on desktop or mobile.
+- `/projects/cim-library/` smoke check: manifest-backed stats show 62 papers, 7 clusters, 13 investigation notes, 4 public views; no horizontal overflow on desktop or mobile.
+- `/library/` smoke check: in-page atlas sections use a left sidebar, not top card buttons; no horizontal overflow on desktop or mobile.
+- `/papers/` smoke check: plain note index renders 62 paper links, keeps the local Notes nav active, and has no horizontal overflow on desktop or mobile.
 - `/clusters/` smoke check: 7 clusters, 13 investigation cards, no horizontal overflow on desktop or mobile.

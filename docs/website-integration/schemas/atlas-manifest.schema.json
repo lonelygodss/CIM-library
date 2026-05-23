@@ -33,13 +33,14 @@
     },
     "routes": {
       "type": "object",
-      "required": ["home", "project_index", "project", "atlas", "clusters", "paper_detail_pattern"],
+      "required": ["home", "project_index", "project", "atlas", "clusters", "paper_index", "paper_detail_pattern"],
       "properties": {
         "home": { "type": "string", "pattern": "^/" },
         "project_index": { "type": "string", "pattern": "^/" },
         "project": { "type": "string", "pattern": "^/" },
         "atlas": { "type": "string", "pattern": "^/" },
         "clusters": { "type": "string", "pattern": "^/" },
+        "paper_index": { "type": "string", "pattern": "^/" },
         "paper_detail_pattern": { "type": "string", "pattern": "^/" }
       }
     },

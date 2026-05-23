@@ -10,14 +10,15 @@ Read AGENTS.md and docs/active-context.md first. Then use docs/README.md to choo
 Current default state:
 - Static Astro CIM compiler/IR paper library inside a personal website shell.
 - 62 schema-valid paper entries; no raw corpus notes remain.
-- Stable routes: /, /projects/, /projects/cim-library/, /library/, /clusters/, /papers/[slug]/.
-- /library/ and /papers/[slug]/ must remain stable.
+- Stable routes: /, /projects/, /projects/cim-library/, /library/, /clusters/, /papers/, /papers/[slug]/.
+- /library/, /papers/, and /papers/[slug]/ must remain stable.
 - src/data/clusters.json is the hand-authored cluster source, separate from paper frontmatter.
 - /clusters/ is the current cluster and coarse working-group route.
 - The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation cards, but cluster investigation is paused while the manifest/visualization layer is refined.
 - Active focus doc: docs/focus/manifest-visualization-refinement.md.
-- Manifest schema is currently 0.2.0 with route inventory, public view descriptors, and compact cluster-layer stats.
-- CIM Library local navigator is implemented in src/components/CimLibraryNav.astro and should stay aligned with the global navigator while remaining lower hierarchy.
+- Manifest schema is currently 0.2.0 with route inventory, public view descriptors, and compact cluster-layer stats, including the /papers/ note-index route.
+- CIM Library local navigator is implemented in src/components/CimLibraryNav.astro and should stay aligned with the global navigator while remaining lower hierarchy. Its Notes item points to /papers/ and is active for both /papers/ and /papers/[slug]/.
+- /library/ uses a left in-page section sidebar for Interactive atlas and Taxonomy axes, matching the paper-detail section-navigation pattern.
 - Paused cluster focus can be resumed from docs/focus/cluster-analysis-working-groups.md.
 - Working-group labels must remain coarse and evidence-based; LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims.
 - Do not add coverage scores, ranking scores, quality scores, or trajectory_IR_relevance.

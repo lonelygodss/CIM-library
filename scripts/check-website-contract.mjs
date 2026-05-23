@@ -122,10 +122,10 @@ if (exists(manifestPath)) {
     if (!manifest.stats?.axis_A_counts || !manifest.stats?.axis_B_counts) {
       fail(`${manifestPath} missing axis count summaries`);
     }
-    if (!manifest.routes?.atlas || !manifest.routes?.project || !manifest.routes?.clusters) {
+    if (!manifest.routes?.atlas || !manifest.routes?.project || !manifest.routes?.clusters || !manifest.routes?.paper_index) {
       fail(`${manifestPath} missing route inventory`);
     }
-    if (!Array.isArray(manifest.views) || manifest.views.length < 3) {
+    if (!Array.isArray(manifest.views) || manifest.views.length < 4) {
       fail(`${manifestPath} missing public view descriptors`);
     }
     if (!manifest.cluster_layer?.stats) {

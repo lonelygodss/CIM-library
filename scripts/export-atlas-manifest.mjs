@@ -367,6 +367,7 @@ const manifest = {
     project: '/projects/cim-library/',
     atlas: '/library/',
     clusters: clustersData?.route || '/clusters/',
+    paper_index: '/papers/',
     paper_detail_pattern: '/papers/[slug]/'
   },
   views: [
@@ -387,6 +388,12 @@ const manifest = {
       route: clustersData?.route || '/clusters/',
       label: 'Cluster and working-group notes',
       description: 'Hand-authored cluster hypotheses and coarse investigation notes over the corpus.'
+    },
+    {
+      id: 'paper-notes',
+      route: '/papers/',
+      label: 'Paper notes',
+      description: 'Plain listing of all recorded paper notes in the CIM Library.'
     }
   ],
   taxonomy: {

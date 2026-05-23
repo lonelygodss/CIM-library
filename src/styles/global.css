@@ -27,6 +27,15 @@ body {
 a { color: var(--link); }
 .wrap { width: min(980px, calc(100vw - 32px)); margin: 0 auto; }
 .atlas-wrap { width: min(1440px, calc(100vw - 32px)); }
+.atlas-page-layout {
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.atlas-page-content {
+  min-width: 0;
+}
 .site-nav {
   position: static;
   z-index: 200;
@@ -540,6 +549,40 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   gap: 20px;
   align-items: start;
   justify-content: center;
+}
+.paper-index {
+  margin-top: 24px;
+}
+.paper-index-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.paper-index-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 320px);
+  gap: 20px;
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+}
+.paper-index-list li:first-child {
+  border-top: 0;
+}
+.paper-index-list a {
+  color: var(--link);
+  text-decoration: none;
+}
+.paper-index-list a:hover,
+.paper-index-list a:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.paper-index-list span {
+  color: var(--muted);
+  font-size: 13px;
 }
 .paper-layout.without-outline { grid-template-columns: minmax(0, 980px) minmax(240px, 300px); }
 .paper-layout > * { min-width: 0; }
@@ -1300,6 +1343,7 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 .footer { color: var(--muted); font-size: 13px; padding: 24px 0 46px; }
 .empty { padding: 24px; color: var(--muted); text-align: center; }
 @media (max-width: 1180px) {
+  .atlas-page-layout,
   .paper-layout { grid-template-columns: 1fr; }
   .detail-overview { grid-template-columns: 1fr; }
   .provenance-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1326,6 +1370,10 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   .publication-list,
   .paper-link-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .paper-index-list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 @media (max-width: 720px) {

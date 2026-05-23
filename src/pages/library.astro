@@ -17,12 +17,17 @@ const papers = entries
     <h1>Paper Library Taxonomy Atlas</h1>
     <p>A static, Markdown-backed atlas for paper notes classified by stack role, middle-layer abstraction, first-class CIM objects, and rewrite object.</p>
   </header>
-  <nav class="toc wrap" aria-label="Page sections">
-    <a href="#atlas-section">Interactive atlas</a>
-    <a href="#taxonomy">Taxonomy axes</a>
-  </nav>
-  <main class="wrap atlas-wrap">
-    <TaxonomyAtlas papers={papers} taxonomy={taxonomy} />
+  <main class="wrap atlas-wrap atlas-page-layout">
+    <nav class="section-nav atlas-section-nav" aria-label="Atlas page sections">
+      <div class="section-nav-title">Atlas Sections</div>
+      <div class="outline-stack">
+        <div class="outline-section outline-leaf"><a href="#atlas-section">Interactive atlas</a></div>
+        <div class="outline-section outline-leaf"><a href="#taxonomy">Taxonomy axes</a></div>
+      </div>
+    </nav>
+    <div class="atlas-page-content">
+      <TaxonomyAtlas papers={papers} taxonomy={taxonomy} />
+    </div>
   </main>
   <footer class="wrap footer">Static Astro draft. Paper metadata comes from Markdown frontmatter in <code>src/content/papers</code>.</footer>
 </BaseLayout>

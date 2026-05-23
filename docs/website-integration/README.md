@@ -4,7 +4,7 @@
 
 These notes record the stable integration surface that lets the CIM paper atlas behave as one project inside a personal website, and gives future research modules a similar registry/manifest pattern.
 
-The initialization pass is complete. Treat this directory as maintenance context, not as active scaffolding. The repo should remain a static Astro site. The atlas content source stays in Markdown frontmatter under `src/content/papers/`; taxonomy vocabulary stays in `src/data/taxonomy.json`; the main atlas route remains `/library/`; the cluster route remains `/clusters/`; individual papers remain under `/papers/[slug]/`.
+The initialization pass is complete. Treat this directory as maintenance context, not as active scaffolding. The repo should remain a static Astro site. The atlas content source stays in Markdown frontmatter under `src/content/papers/`; taxonomy vocabulary stays in `src/data/taxonomy.json`; the main atlas route remains `/library/`; the cluster route remains `/clusters/`; the plain paper index remains `/papers/`; individual papers remain under `/papers/[slug]/`.
 
 The current active focus is tracked in `docs/active-context.md`. Paused and active focus state lives under `docs/focus/`.
 
@@ -19,11 +19,12 @@ personal website shell
 ├── /projects/cim-library/    narrative landing page for this atlas
 ├── /library/                 interactive CIM atlas
 ├── /clusters/                cluster and working-group notes
+├── /papers/                  plain index of recorded paper notes
 ├── /papers/[slug]/           paper notes
 └── /<future-project>/        future project modules
 ```
 
-The atlas remains a first-class route instead of being squeezed into a tiny card. The homepage and project index should summarize it and link into `/library/`, `/clusters/`, and representative papers.
+The atlas remains a first-class route instead of being squeezed into a tiny card. The homepage and project index should summarize it and link into `/library/`, `/clusters/`, `/papers/`, and representative papers.
 
 ## Integration Contract
 

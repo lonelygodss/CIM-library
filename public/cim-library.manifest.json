@@ -4,7 +4,7 @@
   "title": "CIM Compiler/IR Paper Library",
   "kind": "research-atlas",
   "route": "/library/",
-  "generated_at": "2026-05-23T19:28:25.886Z",
+  "generated_at": "2026-05-23T19:47:42.196Z",
   "source": {
     "content_root": "src/content/papers",
     "taxonomy_path": "src/data/taxonomy.json",
@@ -17,6 +17,7 @@
     "project": "/projects/cim-library/",
     "atlas": "/library/",
     "clusters": "/clusters/",
+    "paper_index": "/papers/",
     "paper_detail_pattern": "/papers/[slug]/"
   },
   "views": [
@@ -37,6 +38,12 @@
       "route": "/clusters/",
       "label": "Cluster and working-group notes",
       "description": "Hand-authored cluster hypotheses and coarse investigation notes over the corpus."
+    },
+    {
+      "id": "paper-notes",
+      "route": "/papers/",
+      "label": "Paper notes",
+      "description": "Plain listing of all recorded paper notes in the CIM Library."
     }
   ],
   "taxonomy": {

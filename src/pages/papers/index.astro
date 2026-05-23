@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../components/CimLibraryNav.astro';
+import profile from '../../data/profile.json';
+
+const entries = await getCollection('papers');
+const papers = entries
+  .map((entry) => entry.data)
+  .sort((a, b) => a.title.localeCompare(b.title));
+---
+
+<BaseLayout
+  title={`CIM Library Paper Notes | ${profile.name}`}
+  description="Plain listing of all recorded paper notes in the CIM Library."
+>
+  <CimLibraryNav />
+  <main class="wrap page-shell">
+    <header class="page-header">
+      <p class="eyebrow eyebrow--dark">CIM compiler/IR corpus</p>
+      <h1>Paper Notes</h1>
+      <p>A plain index of every recorded paper note in the current CIM Library corpus.</p>
+    </header>
+
+    <section class="paper-index" aria-label="All recorded paper notes">
+      <div class="section-title">
+        <h2>All Notes</h2>
+        <span class="subtle">{papers.length} papers</span>
+      </div>
+      <ol class="paper-index-list">
+        {papers.map((paper) => (
+          <li>
+            <a href={`/papers/${paper.slug}/`}>{paper.title}</a>
+            <span>{[paper.year, paper.venue, paper.authors_or_group].filter(Boolean).join(' / ') || 'Year, venue, or group not specified'}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  </main>
+</BaseLayout>
