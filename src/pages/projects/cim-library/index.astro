@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import projects from '../../../data/project-registry.json';
+import profile from '../../../data/profile.json';
+import cimManifest from '../../../../public/cim-library.manifest.json';
+
+const project = projects.find((entry) => entry.id === 'cim-library');
+if (!project) throw new Error('Missing cim-library project registry entry');
+
+const representativeSlugs = ['cimflow', 'arctic', 'cimloop', 'pimcomp'];
+const representativePapers = representativeSlugs
+  .flatMap((slug) => {
+    const paper = cimManifest.papers.find((entry) => entry.slug === slug);
+    return paper ? [paper] : [];
+  });
+const topTechnologies = cimManifest.stats.top_technologies.slice(0, 6);
+const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
+---
+
+<BaseLayout
+  title={`${project.title} | ${profile.name}`}
+  description={project.summary}
+>
+  <main class="project-landing">
+    <header class="project-hero wrap">
+      <p class="eyebrow"><span class="dot"></span>{project.kind} / {project.status}</p>
+      <h1>{project.title}</h1>
+      <p>{project.summary}</p>
+      <div class="home-hero__actions">
+        <a class="action-link action-link--primary" href="/library/">Open full atlas</a>
+        <a class="action-link" href="/library/?layout=cd">Browse objects and rewrites</a>
+        <a class="action-link" href={project.repo}>Repository</a>
+      </div>
+    </header>
+
+    <section class="wrap landing-grid" aria-label="CIM Library overview">
+      <article class="landing-panel landing-panel--wide">
+        <p class="eyebrow eyebrow--dark">Purpose</p>
+        <h2>A paper corpus for asking what CIM stacks make first-class</h2>
+        <p>The library tracks what each stack names, types, rewrites, verifies, serializes, and eventually hands to the backend. It is built as Markdown content plus a static Astro atlas, so the corpus can be inspected, versioned, and hosted without a database.</p>
+      </article>
+      <aside class="stat-board stat-board--landing">
+        <div>
+          <strong>{cimManifest.stats.paper_count}</strong>
+          <span>papers</span>
+        </div>
+        <div>
+          <strong>{cimManifest.stats.year_min}-{cimManifest.stats.year_max}</strong>
+          <span>year range</span>
+        </div>
+        <div>
+          <strong>{Object.keys(cimManifest.stats.axis_C_object_vocab_counts).length}</strong>
+          <span>object families</span>
+        </div>
+        <div>
+          <strong>{Object.keys(cimManifest.stats.axis_D_rewrite_type_counts).length}</strong>
+          <span>rewrite families</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="wrap landing-grid" aria-label="Atlas facets">
+      <article class="landing-panel">
+        <p class="eyebrow eyebrow--dark">Top Technologies</p>
+        <ul class="rank-list">
+          {topTechnologies.map((item) => <li><span>{item.label}</span><b>{item.count}</b></li>)}
+        </ul>
+      </article>
+      <article class="landing-panel">
+        <p class="eyebrow eyebrow--dark">Top Workloads</p>
+        <ul class="rank-list">
+          {topWorkloads.map((item) => <li><span>{item.label}</span><b>{item.count}</b></li>)}
+        </ul>
+      </article>
+    </section>
+
+    <section class="wrap home-section" aria-labelledby="representative-papers">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow eyebrow--dark">Representative Notes</p>
+          <h2 id="representative-papers">Entry points into the corpus</h2>
+        </div>
+        <a class="inline-link" href="/library/">Open atlas</a>
+      </div>
+      <div class="paper-link-grid">
+        {representativePapers.map((paper) => (
+          <article>
+            <p>{paper.year} · {paper.venue}</p>
+            <h3><a href={paper.route}>{paper.title}</a></h3>
+            <span>{paper.axis_A.primary} / {paper.axis_B.join(', ')}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

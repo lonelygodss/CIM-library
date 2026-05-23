@@ -1,0 +1,37 @@
+---
+type ProjectEntry = {
+  id: string;
+  title: string;
+  kind?: string;
+  status?: string;
+  summary: string;
+  route: string;
+  landing_route?: string;
+  repo?: string;
+  source_manifest?: string;
+  tags?: string[];
+  featured?: boolean;
+};
+
+interface Props {
+  project: ProjectEntry;
+}
+
+const { project } = Astro.props;
+const landingHref = project.landing_route || project.route;
+---
+
+<article class="project-card">
+  <p class="project-card__eyebrow">{project.kind}{project.status ? ` / ${project.status}` : ''}</p>
+  <h2><a href={landingHref}>{project.title}</a></h2>
+  <p>{project.summary}</p>
+  {project.tags?.length ? (
+    <ul class="project-card__tags" aria-label={`${project.title} tags`}>
+      {project.tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+  ) : null}
+  <div class="project-card__actions">
+    <a href={landingHref}>Project page</a>
+    <a href={project.route}>Open atlas</a>
+  </div>
+</article>

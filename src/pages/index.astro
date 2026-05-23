@@ -1,28 +1,129 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import TaxonomyAtlas from '../components/TaxonomyAtlas.astro';
-import taxonomy from '../data/taxonomy.json';
+import ProjectCard from '../components/ProjectCard.astro';
+import profile from '../data/profile.json';
+import projects from '../data/project-registry.json';
+import cimManifest from '../../public/cim-library.manifest.json';
 
-const entries = await getCollection('papers');
-const papers = entries
-  .map((entry) => ({ id: entry.id, ...entry.data }))
-  .sort((a, b) => a.title.localeCompare(b.title));
+const featuredProjects = projects.filter((project) => project.featured);
+const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
+const selectedPublications = profile.publications.slice(0, 3);
 ---
-<BaseLayout title="CIM Compiler/IR Paper Library">
-  <header class="hero wrap">
-    <div class="hero-card">
-      <div class="eyebrow"><span class="dot"></span> CIM compiler/IR corpus</div>
-      <h1>Paper Library Taxonomy Atlas</h1>
-      <p>A static, Markdown-backed atlas for paper notes classified by stack role, middle-layer abstraction, first-class CIM objects, and rewrite object.</p>
-    </div>
-  </header>
-  <nav class="toc wrap" aria-label="Page sections">
-    <a href="#atlas-section">Interactive atlas</a>
-    <a href="#taxonomy">Taxonomy axes</a>
-  </nav>
-  <main class="wrap">
-    <TaxonomyAtlas papers={papers} taxonomy={taxonomy} />
+
+<BaseLayout
+  title={`${profile.name} | Research and Projects`}
+  description={`${profile.name} is a Ph.D. student at ${profile.institution} working on Compute-in-Memory architecture, memristor devices, and research tooling.`}
+>
+  <main class="site-home">
+    <section class="home-hero">
+      <div class="home-hero__visual" aria-hidden="true">
+        <span class="home-hero__node node-a">CIM</span>
+        <span class="home-hero__node node-b">IR</span>
+        <span class="home-hero__node node-c">Device</span>
+        <span class="home-hero__node node-d">Compiler</span>
+      </div>
+      <div class="wrap home-hero__inner">
+        <p class="eyebrow"><span class="dot"></span>{profile.current_role}</p>
+        <h1>{profile.name}</h1>
+        <p class="home-hero__native">{profile.native_name}</p>
+        <p class="home-hero__lead">{profile.profile_summary}</p>
+        <div class="home-hero__actions" aria-label="Primary links">
+          <a class="action-link action-link--primary" href="/projects/">Projects</a>
+          <a class="action-link" href="/library/">CIM Library</a>
+          <a class="action-link" href={`mailto:${profile.email}`}>Email</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap home-grid" aria-label="Research profile">
+      <div class="profile-panel">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow eyebrow--dark">Research Focus</p>
+            <h2>Computing systems from devices to compiler abstractions</h2>
+          </div>
+        </div>
+        <ul class="focus-list">
+          {profile.research_focus.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+
+      <aside class="profile-panel profile-panel--compact">
+        <p class="eyebrow eyebrow--dark">Current Base</p>
+        <h2>{profile.institution}</h2>
+        <p>{profile.location}</p>
+        <dl class="compact-facts">
+          {profile.education.map((item) => (
+            <div>
+              <dt>{item.period}</dt>
+              <dd>{item.degree}<span>{item.school}</span></dd>
+            </div>
+          ))}
+        </dl>
+      </aside>
+    </section>
+
+    <section class="wrap home-section" aria-labelledby="featured-projects">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow eyebrow--dark">Featured Project</p>
+          <h2 id="featured-projects">Static research systems</h2>
+        </div>
+        <a class="inline-link" href="/projects/">All projects</a>
+      </div>
+      <div class="project-grid">
+        {featuredProjects.map((project) => <ProjectCard project={project} />)}
+      </div>
+    </section>
+
+    <section class="wrap home-section atlas-summary" aria-labelledby="atlas-summary-heading">
+      <div>
+        <p class="eyebrow eyebrow--dark">CIM Library Snapshot</p>
+        <h2 id="atlas-summary-heading">{cimManifest.stats.paper_count} papers across {cimManifest.stats.year_min}-{cimManifest.stats.year_max}</h2>
+        <p>The atlas organizes Compute-in-Memory compiler and IR work by stack role, middle-layer representation, first-class objects, and rewrite objects.</p>
+        <div class="home-hero__actions">
+          <a class="action-link action-link--primary" href="/projects/cim-library/">Project page</a>
+          <a class="action-link" href="/library/?layout=cd">Axis C/D atlas</a>
+        </div>
+      </div>
+      <div class="stat-board" aria-label="CIM Library statistics">
+        <div>
+          <strong>{Object.keys(cimManifest.stats.axis_A_counts).length}</strong>
+          <span>Axis A roles</span>
+        </div>
+        <div>
+          <strong>{Object.keys(cimManifest.stats.axis_B_counts).length}</strong>
+          <span>Axis B styles</span>
+        </div>
+        <div>
+          <strong>{Object.keys(cimManifest.stats.axis_C_object_vocab_counts).length}</strong>
+          <span>Object families</span>
+        </div>
+        <div>
+          <strong>{Object.keys(cimManifest.stats.axis_D_rewrite_type_counts).length}</strong>
+          <span>Rewrite families</span>
+        </div>
+      </div>
+      <ul class="technology-strip" aria-label="Top CIM technologies">
+        {topTechnologies.map((item) => <li><span>{item.label}</span><b>{item.count}</b></li>)}
+      </ul>
+    </section>
+
+    <section class="wrap home-section" aria-labelledby="selected-publications">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow eyebrow--dark">Selected Publications</p>
+          <h2 id="selected-publications">Research record</h2>
+        </div>
+      </div>
+      <div class="publication-list">
+        {selectedPublications.map((publication) => (
+          <article>
+            <h3>{publication.title}</h3>
+            <p>{publication.venue} · {publication.year}{publication.role ? ` · ${publication.role}` : ''}</p>
+          </article>
+        ))}
+      </div>
+    </section>
   </main>
-  <footer class="wrap footer">Static Astro draft. Paper metadata comes from Markdown frontmatter in <code>src/content/papers</code>.</footer>
 </BaseLayout>
