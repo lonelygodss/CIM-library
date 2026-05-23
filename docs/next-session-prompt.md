@@ -13,16 +13,26 @@ Current default state:
 - Stable routes: /, /projects/, /projects/cim-library/, /library/, /clusters/, /papers/[slug]/.
 - /library/ and /papers/[slug]/ must remain stable.
 - src/data/clusters.json is the hand-authored cluster source, separate from paper frontmatter.
-- /clusters/ is the active cluster and coarse working-group route.
-- The cluster layer currently has 7 cluster hypotheses and 11 deeper investigation cards.
+- /clusters/ is the current cluster and coarse working-group route.
+- The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation cards, but cluster investigation is paused while the manifest/visualization layer is refined.
+- Active focus doc: docs/focus/manifest-visualization-refinement.md.
+- Paused cluster focus can be resumed from docs/focus/cluster-analysis-working-groups.md.
 - Working-group labels must remain coarse and evidence-based; LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims.
 - Do not add coverage scores, ranking scores, quality scores, or trajectory_IR_relevance.
 
+Session scope:
+- Prefer one coherent batch over a tiny single edit when the user says to proceed.
+- For manifest/visualization work, a reasonable batch can include manifest audit, exporter/contract updates, one route or project-summary visual refinement, docs updates, and smoke checks.
+- For cluster work, first read docs/focus/cluster-analysis-working-groups.md; a reasonable batch can include 2-4 related investigation updates, the necessary source checks, data edits, docs count/status updates, and route smoke checks.
+- For website/docs/paper work, a reasonable batch can include all files needed for one complete user-visible slice, plus the matching context updates.
+- Stop early only when evidence is missing, a claim would become too speculative, or the next step needs a new product/research decision.
+
 Good next steps depend on the requested focus:
-- Cluster work: continue evidence checking and add/update investigation notes in src/data/clusters.json.
+- Active manifest/visualization work: read docs/focus/manifest-visualization-refinement.md, then audit scripts/export-atlas-manifest.mjs, public/cim-library.manifest.json, scripts/check-website-contract.mjs, src/components/TaxonomyAtlas.astro, src/pages/library.astro, src/pages/clusters/index.astro, and src/pages/projects/cim-library/index.astro as needed.
+- Cluster work: resume from docs/focus/cluster-analysis-working-groups.md before editing src/data/clusters.json.
 - Paper work: read docs/corpus-note-harness.md and docs/metadata-template.md only then.
 - Website work: read docs/website-integration/README.md only then.
-- Docs work: read docs/iteration-docs-playbook.md and docs/archive/README.md.
+- Docs work: read docs/iteration-docs-playbook.md and docs/focus/README.md.
 
 After substantial edits, run:
 npm run qa

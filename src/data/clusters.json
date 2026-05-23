@@ -554,6 +554,20 @@
       "uncertainty": "Medium confidence because the grouped systems differ substantially in technology, maturity, and artifact scope. Use this as an inspection path, not a single research lineage.",
       "working_groups": [
         {
+          "label": "Serialized CIM-IR / compiler-contract examples",
+          "relationship": "comparison set for explicit serialized backend contracts",
+          "representative_papers": ["cimflow", "opencimtc"],
+          "evidence": "CIMFlow documents an ONNX-to-CG-to-OP-to-ISA/simulator flow with intermediate compiler outputs, while OpenCIMTC exposes YAML CIM-IR and generated training, optimization, and simulator scripts.",
+          "uncertainty": "Comparison set only. CIMFlow is a digital-CIM compiler/simulator framework and OpenCIMTC is a memristor/RRAM full-stack co-design flow; no lineage or schema compatibility is implied."
+        },
+        {
+          "label": "Graph-to-assembly / meta-operator compiler examples",
+          "relationship": "comparison set for backend-visible compiler state",
+          "representative_papers": ["puma", "cim-mlc"],
+          "evidence": "PUMA exposes compiler source, programming-interface headers, tests, generated assembly, and simulator execution, while CIM-MLC exposes codegen, configuration, optimization, and output folders for multi-level meta-operator flows.",
+          "uncertainty": "Comparison set only. PUMA is an architecture-specific archived stack; CIM-MLC is a beta multi-template compiler artifact."
+        },
+        {
           "label": "Public full-stack artifact examples",
           "relationship": "representational boundary comparison set",
           "representative_papers": ["cimflow", "puma", "opencimtc"],
@@ -562,6 +576,68 @@
         }
       ],
       "working_group_investigations": [
+        {
+          "label": "CIMFlow/OpenCIMTC serialized compiler-contract comparison",
+          "status": "started",
+          "scope": "Treat as a comparison of explicit serialized compiler contracts: CIMFlow's digital-CIM compiler/simulator files and OpenCIMTC's memristor CIM-IR plus generated scripts. This is not a lineage claim.",
+          "why_coherent": "The common object is a compiler state that survives outside the compiler process: source graph, hardware/config parameters, mapped layer or graph state, backend calculation parameters, generated instruction or simulator code, and run outputs.",
+          "continuity_evidence": [
+            "CIMFlow documentation describes a two-level compiler from ONNX through CG-level graph partitioning and OP-level ISA generation, with separate commands for CG compilation, OP compilation, and cycle-accurate simulation.",
+            "CIMFlow's CLI examples make the file boundary concrete: CG compilation can emit an `instructions.json`-style intermediate, OP compilation consumes CG output and emits executable instructions, and simulation consumes compiled instructions.",
+            "OpenCIMTC's README workflow makes the YAML/script boundary concrete: ONNX is converted to mapped CIM-IR YAML, then the flow generates PDT training code, optimized IR YAML, simulator code, inference code, and weight files."
+          ],
+          "boundary": "Do not describe these as compatible IRs. CIMFlow's contract is organized around digital-CIM CG/OP/ISA/simulator stages, while OpenCIMTC's contract is organized around Attribute/Mapping/Calculation YAML plus hardware-aware training, optimization, and simulator or chip execution.",
+          "next_checks": [
+            "Inspect representative generated CIMFlow `instructions.json` and OpenCIMTC `*_mapped_ir*.yaml` files before making a field-level comparison table.",
+            "Check whether either project exposes a schema or verifier beyond examples and Python classes.",
+            "Keep analog/memristor calculation knobs separate from digital-CIM ISA fields when comparing backend contracts."
+          ],
+          "source_links": [
+            {
+              "label": "CIMFlow compiler documentation",
+              "url": "https://www.cimflow.org/docs/Compiler"
+            },
+            {
+              "label": "CIMFlow CLI reference",
+              "url": "https://www.cimflow.org/docs/Framework/cli"
+            },
+            {
+              "label": "OpenCIMTC repository",
+              "url": "https://github.com/Tsinghua-LEMON-Lab/OpenCIMTC"
+            }
+          ]
+        },
+        {
+          "label": "PUMA/CIM-MLC hidden graph-to-backend state comparison",
+          "status": "started",
+          "scope": "Treat as a comparison of compiler stacks where the most reusable state is partly hidden in graph objects, pass order, placement state, and codegen templates, then becomes visible as PUMA assembly or CIM-MLC meta-operator outputs.",
+          "why_coherent": "The common object is graph-to-backend lowering state: model graph nodes, hardware hierarchy, tensor or MVM partitioning, resource placement, communication or pipeline decisions, register/address state, and generated instruction or meta-operator streams.",
+          "continuity_evidence": [
+            "The PUMA compiler repository exposes `include`, `src`, and `test` directories, matching the paper-note reading that the public boundary is a programming interface plus examples that generate PUMA-specific assembly and simulator inputs.",
+            "The PUMA note identifies the hidden state as compiler-built model graph, tensor tiling, MVMU/core/tile placement, FIFO and shared-memory allocation, MVM coalescing, register allocation, and simulator configuration.",
+            "The CIM-MLC repository exposes `codegen`, `configs`, `optimization`, `output`, and `simulator` folders, matching the note's reading that ONNX annotations, architecture Python configs, pass-local state, and tier-specific codegen templates are the effective compiler state before meta-operator output."
+          ],
+          "boundary": "Do not merge PUMA and CIM-MLC as one artifact lineage. PUMA is a narrow ISA-programmable memristor accelerator stack with archived compiler code; CIM-MLC is a multi-level scheduling framework over selected CIM templates with beta artifact status.",
+          "next_checks": [
+            "Inspect generated `.puma` files and CIM-MLC `output/*_inst.txt` files before naming stable instruction or meta-operator fields.",
+            "Compare where each stack stores placement state: explicit generated code, reports, ONNX attributes, Python configs, or simulator configuration.",
+            "Check whether either artifact provides enough examples for a future detail-page matrix of source graph, placement object, backend stream, and simulator contract."
+          ],
+          "source_links": [
+            {
+              "label": "PUMA compiler repository",
+              "url": "https://github.com/illinois-impact/puma-compiler"
+            },
+            {
+              "label": "PUMA simulator how-to",
+              "url": "https://github.com/Aayush-Ankit/puma-simulator/blob/training/how_to_run.md"
+            },
+            {
+              "label": "CIM-MLC repository",
+              "url": "https://github.com/Zhaoshixin-sky/CIM-MLC"
+            }
+          ]
+        },
         {
           "label": "Public full-stack artifact boundary comparison",
           "status": "started",

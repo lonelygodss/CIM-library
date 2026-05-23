@@ -1,6 +1,6 @@
 # Documentation Map
 
-Use this file to choose context deliberately. New sessions should not read every document in `docs/`.
+Use this file to choose context deliberately. New sessions should not read every document in `docs/`, but they should read enough task-specific context to complete a coherent batch of work.
 
 ## Default Context
 
@@ -17,15 +17,22 @@ Read only when the task calls for it:
 
 | Task | Read |
 |---|---|
+| Continue the current active focus | `docs/focus/manifest-visualization-refinement.md`, then the files it names as needed |
+| Switch or resume focus | `docs/focus/README.md`, then the target focus file |
 | Add or revise a paper note | `docs/corpus-note-harness.md`, `docs/metadata-template.md`, `docs/legacy-source-map.md` |
-| Work on cluster or working-group analysis | `src/data/clusters.json`, `docs/future-development-plan.md`, archive seed if needed |
+| Work on cluster or working-group analysis | `docs/focus/cluster-analysis-working-groups.md`, then `src/data/clusters.json`, `docs/future-development-plan.md`, archive seed if needed |
 | Work on website shell, registry, manifest, or route contract | `docs/website-integration/README.md`, then specific ADR/plan files only if needed |
 | Reorganize docs or close/open an iteration | `docs/iteration-docs-playbook.md`, `docs/archive/README.md` |
 | Recover legacy atlas/corpus provenance | `docs/legacy-source-map.md`, then the named files under `src/content/legacy/` |
 
+A coherent batch may span several related files in the same task row. For example, cluster work can read the roadmap, cluster data, representative paper notes, and official artifact links needed for 2-4 related investigation updates. Avoid crossing into unrelated rows unless the implementation requires it.
+
 ## Active Docs
 
 - `docs/active-context.md` — concise active project state and next focus.
+- `docs/focus/README.md` — focus-switch index and retrieval protocol.
+- `docs/focus/manifest-visualization-refinement.md` — active manifest/visualization focus.
+- `docs/focus/cluster-analysis-working-groups.md` — paused cluster-analysis focus state.
 - `docs/future-development-plan.md` — detailed roadmap and rationale; not default session context.
 - `docs/next-session-prompt.md` — short restart prompt for explicitly requested continuation.
 - `docs/iteration-docs-playbook.md` — how to maintain, slim, archive, and update docs across iterations.

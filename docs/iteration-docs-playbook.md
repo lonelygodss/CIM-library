@@ -15,8 +15,10 @@ These files must stay concise and stable. They should tell a future agent what t
 
 Task-specific docs live outside the default context:
 
+- Current focus work: `docs/focus/manifest-visualization-refinement.md` while that focus is active.
+- Focus switching or resuming a paused focus: `docs/focus/README.md`, then the target file under `docs/focus/`.
 - Paper-note work: `docs/corpus-note-harness.md`, `docs/metadata-template.md`, `docs/legacy-source-map.md`.
-- Cluster work: `docs/future-development-plan.md`, `src/data/clusters.json`, relevant paper notes, and archived cluster seed if needed.
+- Cluster work: `docs/focus/cluster-analysis-working-groups.md`, `docs/future-development-plan.md`, `src/data/clusters.json`, relevant paper notes, and archived cluster seed if needed.
 - Website work: `docs/website-integration/README.md` and the specific contract/ADR files it points to.
 - Docs work: this playbook and `docs/archive/README.md`.
 
@@ -38,6 +40,19 @@ Read archives only when:
 3. Keep `docs/next-session-prompt.md` short. It should point to `AGENTS.md`, `docs/active-context.md`, and task-specific docs only by need.
 4. Do not paste long task plans into `AGENTS.md`.
 
+## Switching Focus
+
+Use `docs/focus/` when a project focus is paused but should be recoverable without reading archives.
+
+1. Save the outgoing focus state in `docs/focus/<topic>.md`, including status, source files, route/data state, resume guidance, guardrails, and latest verification.
+2. Add or update the incoming focus file in `docs/focus/`.
+3. Update `docs/focus/README.md` so the active and paused focus files are discoverable.
+4. Update `docs/active-context.md` to name the incoming focus and link the paused focus file.
+5. Update `docs/next-session-prompt.md` so a future `proceed` resumes the incoming focus.
+6. When the incoming focus is marked done, restore or choose the next active focus by reading the relevant focus file and repeating this protocol.
+
+Move a focus file to `docs/archive/` only when it is completed, superseded, or no longer expected to resume.
+
 ## During an Iteration
 
 - Update active implementation details near the source of truth.
@@ -45,6 +60,7 @@ Read archives only when:
 - Keep docs factual: what exists, what is uncertain, what to check next.
 - Mark comparison sets explicitly when evidence does not support a lineage claim.
 - Do not copy the same state summary into several docs; update `docs/active-context.md` once and link outward.
+- Let a session complete one coherent batch when the next step is clear. Batches may include several related source checks, data edits, docs updates, and verification steps, as long as they stay within the same project focus and evidence standard.
 
 ## Closing an Iteration
 

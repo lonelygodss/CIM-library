@@ -19,29 +19,50 @@ This is the compact default context for current project state. Keep it short; mo
 
 ## Active Focus
 
-The active research layer is cluster analysis and coarse working-group investigation over the existing corpus.
+The active focus is manifest and visualization refinement for the CIM Library. Pause additional cluster investigation until the manifest/visualization shape is clearer.
 
-Current cluster source:
+Current focus doc:
 
-- `src/data/clusters.json`
+- `docs/focus/manifest-visualization-refinement.md`
 
-Current route:
+Retrievable paused focus:
 
+- `docs/focus/cluster-analysis-working-groups.md`
+
+Main implementation surfaces:
+
+- `scripts/export-atlas-manifest.mjs`
+- `public/cim-library.manifest.json`
+- `scripts/check-website-contract.mjs`
+- `src/components/TaxonomyAtlas.astro`
+- `src/pages/library.astro`
 - `src/pages/clusters/index.astro`
+- `src/data/clusters.json`
+- `src/pages/projects/cim-library/index.astro`
 
-Current cluster page shape:
+Current manifest/visualization question:
 
-- 7 hand-authored cluster hypotheses.
-- 11 deeper investigation cards.
-- Working-group labels remain coarse and evidence-based.
-- LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims.
-- `/library/` and `/projects/cim-library/` link to `/clusters/`.
+- Decide how the generated manifest and visual routes should represent the library, cluster layer, route inventory, and project summaries before adding more cluster investigation content.
+- Preserve the descriptive paper metadata contract and keep clusters separate from paper frontmatter unless the contract is intentionally changed.
+- Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
+
+## Session Scope
+
+When asked to continue or proceed, prefer a complete coherent batch instead of a very small edit.
+
+- Manifest/visualization sessions can audit the current manifest and visual route consumers, update generated manifest/contract/docs, and refine one coherent route or summary slice.
+- Cluster sessions should resume only after reading `docs/focus/cluster-analysis-working-groups.md`.
+- Website, docs, or paper sessions can touch all files needed for one complete user-visible slice.
+- Keep the batch bounded by evidence quality: stop before making speculative lineage, affiliation, scoring, or ranking claims.
 
 ## Task-Specific Docs
 
 Use `docs/README.md` to choose additional context. Important examples:
 
 - Cluster details and roadmap: `docs/future-development-plan.md`.
+- Focus switch map: `docs/focus/README.md`.
+- Manifest/visualization focus: `docs/focus/manifest-visualization-refinement.md`.
+- Paused cluster focus: `docs/focus/cluster-analysis-working-groups.md`.
 - Original cluster seed: `docs/archive/2026-05-cluster-analysis-working-groups-seed.md`.
 - Paper-entry workflow: `docs/corpus-note-harness.md` and `docs/metadata-template.md`.
 - Website contract: `docs/website-integration/README.md`.
@@ -66,4 +87,4 @@ Known baseline:
 - Website contract OK.
 - `astro check`: 0 errors, 0 warnings, 0 hints.
 - Static build: 67 pages.
-- `/clusters/` smoke check: 7 clusters, 11 investigation cards, no horizontal overflow on desktop or mobile.
+- `/clusters/` smoke check: 7 clusters, 13 investigation cards, no horizontal overflow on desktop or mobile.

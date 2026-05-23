@@ -57,7 +57,9 @@ Implemented:
 
 The brief archive for this iteration is `docs/archive/2026-05-personal-website-integration-iteration.md`.
 
-## Next Focus -- Cluster Analysis and Working Groups
+## Paused Focus -- Cluster Analysis and Working Groups
+
+Status: paused / retrievable while manifest and visualization refinement is active. Resume from `docs/focus/cluster-analysis-working-groups.md`.
 
 The first-pass cluster-analysis and academic-working-group layer has been reactivated from `docs/archive/2026-05-cluster-analysis-working-groups-seed.md`.
 
@@ -93,6 +95,8 @@ Working-group investigation depth has started for:
 - UVA LavaLab PIMeval-to-PIMsynth API/compiler artifacts;
 - HARMONI as the public LLM memory-hierarchy modeling anchor;
 - LLM serving and near-memory runtime-state comparison set;
+- CIMFlow/OpenCIMTC serialized compiler-contract comparison;
+- PUMA/CIM-MLC hidden graph-to-backend state comparison;
 - public full-stack artifact boundary comparison set.
 
 These are intentionally coarse groups or comparison sets with deeper evidence notes, not collaboration graphs.
@@ -122,3 +126,15 @@ Guardrails:
 - Do not weaken `src/content.config.ts` to accommodate malformed notes.
 - Do not automatically rewrite scholarly prose unless explicitly requested.
 - Keep legacy source files intact unless explicitly asked to archive or rewrite them.
+
+## Active Focus -- Manifest and Visualization Refinement
+
+Status: active. Use `docs/focus/manifest-visualization-refinement.md` as the focused working doc.
+
+Before adding more cluster investigation content, refine how the library exports and presents static data:
+
+- audit `scripts/export-atlas-manifest.mjs` and `public/cim-library.manifest.json`;
+- decide whether cluster summaries belong in the existing atlas manifest, a separate cluster manifest, or only `src/data/clusters.json`;
+- refine `/library/`, `/clusters/`, and project-page visualization affordances where the manifest/data model makes that clearer;
+- update `scripts/check-website-contract.mjs` when the generated public contract changes;
+- keep all changes static, inspectable, and compatible with the descriptive paper metadata contract.
