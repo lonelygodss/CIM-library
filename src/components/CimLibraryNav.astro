@@ -1,0 +1,33 @@
+---
+import cimManifest from '../../public/cim-library.manifest.json';
+
+const currentPath = Astro.url.pathname;
+const routes = cimManifest.routes;
+const links = [
+  { href: routes.project, label: 'Overview', section: 'overview' },
+  { href: routes.atlas, label: 'Atlas', section: 'atlas' },
+  { href: routes.clusters, label: 'Clusters', section: 'clusters' },
+  { href: routes.atlas, label: 'Notes', section: 'notes' }
+];
+
+function currentSection() {
+  if (currentPath.startsWith('/papers/')) return 'notes';
+  if (currentPath.startsWith(routes.clusters)) return 'clusters';
+  if (currentPath.startsWith(routes.atlas)) return 'atlas';
+  if (currentPath.startsWith(routes.project)) return 'overview';
+  return '';
+}
+
+const activeSection = currentSection();
+---
+
+<nav class="project-nav" aria-label="CIM Library navigation">
+  <div class="project-nav-inner wrap">
+    <a class="project-nav-brand" href={routes.project}>CIM Library</a>
+    <div class="project-nav-links">
+      {links.map((link) => (
+        <a href={link.href} aria-current={activeSection === link.section ? 'page' : undefined}>{link.label}</a>
+      ))}
+    </div>
+  </div>
+</nav>

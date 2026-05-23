@@ -10,6 +10,7 @@ const outputPath = outIndex >= 0 && args[outIndex + 1]
   : 'public/cim-library.manifest.json';
 
 const taxonomyPath = path.join(root, 'src/data/taxonomy.json');
+const clustersPath = path.join(root, 'src/data/clusters.json');
 const papersDir = path.join(root, 'src/content/papers');
 const outputAbs = path.resolve(root, outputPath);
 
@@ -232,6 +233,9 @@ if (!fs.existsSync(taxonomyPath)) fail(`missing ${path.relative(root, taxonomyPa
 if (!fs.existsSync(papersDir)) fail(`missing ${path.relative(root, papersDir)}`);
 
 const taxonomy = JSON.parse(fs.readFileSync(taxonomyPath, 'utf8'));
+const clustersData = fs.existsSync(clustersPath)
+  ? JSON.parse(fs.readFileSync(clustersPath, 'utf8'))
+  : null;
 const objectAllowed = new Set([...(taxonomy.objects_vocab || []), FALLBACK_OBJECT]);
 const rewriteLabels = taxonomy.rewrite_types || {};
 const rewriteAllowed = new Set([...Object.keys(rewriteLabels), FALLBACK_REWRITE]);
@@ -314,8 +318,38 @@ for (const file of files) {
   });
 }
 
+const clusterPapers = new Set();
+const clusterLayer = clustersData ? {
+  route: clustersData.route || '/clusters/',
+  source_path: 'src/data/clusters.json',
+  methodology: clustersData.methodology || [],
+  stats: {
+    cluster_count: clustersData.clusters.length,
+    linked_paper_count: 0,
+    working_group_count: clustersData.clusters.reduce((sum, cluster) => sum + (cluster.working_groups?.length || 0), 0),
+    investigation_count: clustersData.clusters.reduce((sum, cluster) => sum + (cluster.working_group_investigations?.length || 0), 0)
+  },
+  clusters: clustersData.clusters.map((cluster) => {
+    [...cluster.representative_papers, ...cluster.supporting_papers].forEach((slug) => clusterPapers.add(slug));
+    return {
+      id: cluster.id,
+      label: cluster.label,
+      short_label: cluster.short_label,
+      status: cluster.status,
+      route: `${clustersData.route || '/clusters/'}#${cluster.id}`,
+      representative_papers: cluster.representative_papers,
+      supporting_papers: cluster.supporting_papers,
+      working_group_count: cluster.working_groups?.length || 0,
+      investigation_count: cluster.working_group_investigations?.length || 0,
+      atlas_query: cluster.atlas_query
+    };
+  })
+} : null;
+
+if (clusterLayer) clusterLayer.stats.linked_paper_count = clusterPapers.size;
+
 const manifest = {
-  schema_version: '0.1.0',
+  schema_version: '0.2.0',
   id: 'cim-library',
   title: 'CIM Compiler/IR Paper Library',
   kind: 'research-atlas',
@@ -324,8 +358,37 @@ const manifest = {
   source: {
     content_root: 'src/content/papers',
     taxonomy_path: 'src/data/taxonomy.json',
+    clusters_path: clustersData ? 'src/data/clusters.json' : null,
     paper_count: files.length
   },
+  routes: {
+    home: '/',
+    project_index: '/projects/',
+    project: '/projects/cim-library/',
+    atlas: '/library/',
+    clusters: clustersData?.route || '/clusters/',
+    paper_detail_pattern: '/papers/[slug]/'
+  },
+  views: [
+    {
+      id: 'axis-ab-atlas',
+      route: '/library/',
+      label: 'Axis A x Axis B atlas',
+      description: 'Interactive stack-role by middle-layer atlas over all paper entries.'
+    },
+    {
+      id: 'axis-cd-atlas',
+      route: '/library/?layout=cd',
+      label: 'Axis C x Axis D atlas',
+      description: 'Normalized first-class object by rewrite-object atlas view.'
+    },
+    {
+      id: 'cluster-notes',
+      route: clustersData?.route || '/clusters/',
+      label: 'Cluster and working-group notes',
+      description: 'Hand-authored cluster hypotheses and coarse investigation notes over the corpus.'
+    }
+  ],
   taxonomy: {
     schema_version: taxonomy.schema_version || null,
     axis_A: taxonomy.families || {},
@@ -345,6 +408,7 @@ const manifest = {
     top_workloads: topEntries(workloadCounts),
     top_tags: topEntries(tagCounts)
   },
+  cluster_layer: clusterLayer,
   papers: papers.sort((a, b) => a.title.localeCompare(b.title))
 };
 

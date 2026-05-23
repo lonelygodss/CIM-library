@@ -19,6 +19,7 @@ Refine the public manifest and visualization layer before doing more cluster inv
 - Cluster route: `src/pages/clusters/index.astro`.
 - Cluster source: `src/data/clusters.json`.
 - Website project page using manifest data: `src/pages/projects/cim-library/index.astro`.
+- CIM Library lower-hierarchy navigator across `/projects/cim-library/`, `/library/`, `/clusters/`, and `/papers/[slug]/`.
 
 ## Initial Questions
 
@@ -27,6 +28,18 @@ Refine the public manifest and visualization layer before doing more cluster inv
 - Which visualization refinements should happen in `/library/`, `/clusters/`, or both?
 - Can the manifest encode route-level summaries and available views without adding scores or changing paper frontmatter?
 - What shape would make future cluster pages or project cards easier to build while keeping the site static and inspectable?
+- How should the CIM Library's local navigator behave like the global navigator while remaining clearly lower in hierarchy?
+
+## Current Decision
+
+- Extend `public/cim-library.manifest.json` rather than creating a separate cluster manifest for now.
+- Export compact route inventory, public view descriptors, and cluster-layer stats/summaries.
+- Keep full cluster prose, evidence, uncertainty, and investigation-card text in `src/data/clusters.json`.
+- Use the manifest for website-facing project summaries and view cards.
+- Treat CIM Library navigation as a local project navigator, not ad hoc inline links: it should behave like the global navigator but sit one hierarchy lower and route among project overview, atlas, cluster notes, and paper details.
+- Implemented `src/components/CimLibraryNav.astro` as the shared lower-hierarchy navigator for overview, atlas, clusters, and notes.
+- Route-level links inside the CIM Library are centralized: project overview uses the local navigator rather than duplicate route cards or inline route links, while cluster-specific atlas filters are gathered into one structured Atlas Slices panel.
+- Keep cluster content out of paper frontmatter.
 
 ## Guardrails
 
@@ -35,15 +48,28 @@ Refine the public manifest and visualization layer before doing more cluster inv
 - Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
 - Do not move cluster conclusions into paper frontmatter unless the public metadata contract intentionally changes.
 - Use generated manifest data for website summaries where practical; avoid hand-copying counts across pages.
+- Keep the local navigator simple, stable, and route-based; avoid duplicating the full atlas UI or turning page headers into unrelated link piles.
 - Keep cluster and working-group labels coarse, tentative where evidence is weak, and traceable to papers/artifacts/authors/repositories.
 
 ## Likely Work Batches
 
-1. Audit the current manifest schema and route consumers, then decide whether to extend `cim-library.manifest.json` or create a separate cluster/visualization manifest.
-2. Add manifest fields that are stable, static, and useful for website/project summaries, such as route inventory, corpus stats, cluster counts, and view descriptors.
-3. Refine `/clusters/` and/or `/library/` visualization affordances to use the manifest or data source more clearly.
-4. Update website contract checks and docs so generated data stays in sync.
+1. Refine `/clusters/` and/or `/library/` visualization affordances to make the manifest-backed public surfaces clearer.
+2. Check whether `docs/website-integration/schemas/atlas-manifest.schema.json` should become an enforced validation step rather than a documented schema only.
+3. Consider whether the project registry should display manifest-derived route/view metadata in `/projects/`.
+4. Decide whether the local navigator should expose a paper index or search entry if `/papers/[slug]/` needs a clearer parent than the atlas.
 5. Run the full website loop after implementation.
+
+## Local Navigator Target
+
+- Scope: CIM Library project only.
+- Routes: `/projects/cim-library/`, `/library/`, `/clusters/`, and paper detail pages under `/papers/[slug]/`.
+- Behavior: same mental model as the global navigator, but visually and structurally subordinate to it.
+- Content: use short route labels such as Overview, Atlas, Clusters, and Papers/Notes; avoid long explanatory inline link strings.
+- Active state: show the current project sub-route where practical.
+- Data source: prefer manifest `routes` and `views` for stable route labels; keep page-specific anchors local to the page.
+- Current implementation: labels are Overview, Atlas, Clusters, and Notes; the Notes state is active on `/papers/[slug]/` and links back to `/library/` until there is a dedicated paper index.
+- Global navigation mapping: the whole CIM Library route family, including `/projects/cim-library/`, `/library/`, `/clusters/`, and `/papers/[slug]/`, should keep the top-level `CIM Library` item active. The generic `Projects` top-level item should not take over for the CIM Library overview page.
+- Link structure: keep route-level navigation in `CimLibraryNav`; collect repeated scoped atlas links in a single structured section; keep paper, source, and in-page anchor links contextual.
 
 ## Verification
 

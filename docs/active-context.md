@@ -39,10 +39,13 @@ Main implementation surfaces:
 - `src/pages/clusters/index.astro`
 - `src/data/clusters.json`
 - `src/pages/projects/cim-library/index.astro`
+- CIM Library local navigator across project overview, atlas, clusters, and paper notes.
 
 Current manifest/visualization question:
 
-- Decide how the generated manifest and visual routes should represent the library, cluster layer, route inventory, and project summaries before adding more cluster investigation content.
+- The generated manifest now represents the library, route inventory, public views, and compact cluster-layer stats before further cluster investigation content is added.
+- `public/cim-library.manifest.json` is schema version `0.2.0` and includes `routes`, `views`, and `cluster_layer`.
+- The CIM Library local navigator is implemented in `src/components/CimLibraryNav.astro` and appears on project overview, atlas, cluster, and paper-note routes.
 - Preserve the descriptive paper metadata contract and keep clusters separate from paper frontmatter unless the contract is intentionally changed.
 - Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
 
@@ -87,4 +90,7 @@ Known baseline:
 - Website contract OK.
 - `astro check`: 0 errors, 0 warnings, 0 hints.
 - Static build: 67 pages.
+- Navigation smoke check: global nav active state is stable; `/`, `/projects/`, and the CIM Library route family map to Home, Projects, and CIM Library respectively. CIM Library local nav active states are Overview, Atlas, Clusters, and Notes; no horizontal overflow on desktop or mobile.
+- Link-structure smoke check: `/projects/cim-library/` has no duplicate route cards or inline route links; `/clusters/` has one structured atlas-slice panel with 7 slice links and no per-cluster atlas buttons.
+- `/projects/cim-library/` smoke check: manifest-backed stats show 62 papers, 7 clusters, 13 investigation notes, 3 public views; no horizontal overflow on desktop or mobile.
 - `/clusters/` smoke check: 7 clusters, 13 investigation cards, no horizontal overflow on desktop or mobile.

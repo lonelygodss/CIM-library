@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../components/CimLibraryNav.astro';
 import taxonomy from '../../data/taxonomy.json';
 import { normalizePaperAxes } from '../../lib/axisNormalization';
 
@@ -68,7 +69,7 @@ if (data.artifact?.url && !linkEntries.some((entry) => entry.url === data.artifa
 const normalizedAxes = normalizePaperAxes(data, taxonomy);
 const atlasFacetHref = (params: Record<string, string>) => {
   const search = new URLSearchParams({ paper: data.slug, ...params });
-  return `/?${search.toString()}#atlas-section`;
+  return `/library/?${search.toString()}#atlas-section`;
 };
 const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 type NoteHeading = typeof noteOutline[number];
@@ -93,16 +94,18 @@ const provenanceSummary = [
 ];
 ---
 <BaseLayout title={`${data.title} — Paper Library`} description={data.summary}>
+  <CimLibraryNav />
   <header class="paper-hero wrap">
     <div class="paper-hero-inner">
       <div class="eyebrow"><span class="dot"></span> Corpus note</div>
       <h1>{data.title}</h1>
       {paperMeta && <p class="paper-meta-line">{paperMeta}</p>}
       <p class="paper-hero-summary">{data.summary}</p>
-      <div class="paper-hero-actions">
-        <a class="chip dark" href="/" data-atlas-back>Back to atlas</a>
-        {linkEntries.map((entry) => <a class="chip dark" href={entry.url}>{entry.label}</a>)}
-      </div>
+      {linkEntries.length > 0 && (
+        <div class="paper-hero-actions">
+          {linkEntries.map((entry) => <a class="chip dark" href={entry.url}>{entry.label}</a>)}
+        </div>
+      )}
     </div>
   </header>
   <main class="wrap paper-detail">
@@ -268,15 +271,6 @@ const provenanceSummary = [
     </div>
   </main>
   <footer class="wrap footer">Static corpus note. Frontmatter is the source for atlas metadata; the note body preserves the public long-form reading.</footer>
-  <script is:inline>
-    (() => {
-      const from = new URLSearchParams(window.location.search).get('from');
-      if (!from || !from.startsWith('/') || from.startsWith('//')) return;
-      document.querySelectorAll('[data-atlas-back]').forEach((link) => {
-        link.setAttribute('href', from);
-      });
-    })();
-  </script>
   <script is:inline>
     (() => {
       document.querySelectorAll('.outline-summary-link').forEach((link) => {

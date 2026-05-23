@@ -122,6 +122,29 @@ if (exists(manifestPath)) {
     if (!manifest.stats?.axis_A_counts || !manifest.stats?.axis_B_counts) {
       fail(`${manifestPath} missing axis count summaries`);
     }
+    if (!manifest.routes?.atlas || !manifest.routes?.project || !manifest.routes?.clusters) {
+      fail(`${manifestPath} missing route inventory`);
+    }
+    if (!Array.isArray(manifest.views) || manifest.views.length < 3) {
+      fail(`${manifestPath} missing public view descriptors`);
+    }
+    if (!manifest.cluster_layer?.stats) {
+      fail(`${manifestPath} missing cluster_layer stats`);
+    } else {
+      const clusterSource = readJson('src/data/clusters.json');
+      const expectedClusterCount = clusterSource?.clusters?.length ?? 0;
+      const expectedWorkingGroups = clusterSource?.clusters?.reduce((sum, cluster) => sum + (cluster.working_groups?.length || 0), 0) ?? 0;
+      const expectedInvestigations = clusterSource?.clusters?.reduce((sum, cluster) => sum + (cluster.working_group_investigations?.length || 0), 0) ?? 0;
+      if (manifest.cluster_layer.stats.cluster_count !== expectedClusterCount) {
+        fail(`${manifestPath} cluster_layer.stats.cluster_count (${manifest.cluster_layer.stats.cluster_count}) does not match src/data/clusters.json (${expectedClusterCount})`);
+      }
+      if (manifest.cluster_layer.stats.working_group_count !== expectedWorkingGroups) {
+        fail(`${manifestPath} cluster_layer.stats.working_group_count (${manifest.cluster_layer.stats.working_group_count}) does not match src/data/clusters.json (${expectedWorkingGroups})`);
+      }
+      if (manifest.cluster_layer.stats.investigation_count !== expectedInvestigations) {
+        fail(`${manifestPath} cluster_layer.stats.investigation_count (${manifest.cluster_layer.stats.investigation_count}) does not match src/data/clusters.json (${expectedInvestigations})`);
+      }
+    }
   }
 } else {
   fail(`${manifestPath} not found. Run npm run export:atlas first.`);

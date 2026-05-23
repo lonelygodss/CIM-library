@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CimLibraryNav from '../components/CimLibraryNav.astro';
 import TaxonomyAtlas from '../components/TaxonomyAtlas.astro';
 import taxonomy from '../data/taxonomy.json';
 
@@ -10,6 +11,7 @@ const papers = entries
   .sort((a, b) => a.title.localeCompare(b.title));
 ---
 <BaseLayout title="CIM Compiler/IR Paper Library">
+  <CimLibraryNav />
   <header class="wrap page-header">
     <p class="eyebrow eyebrow--dark">CIM compiler/IR corpus</p>
     <h1>Paper Library Taxonomy Atlas</h1>
@@ -17,7 +19,6 @@ const papers = entries
   </header>
   <nav class="toc wrap" aria-label="Page sections">
     <a href="#atlas-section">Interactive atlas</a>
-    <a href="/clusters/">Cluster notes</a>
     <a href="#taxonomy">Taxonomy axes</a>
   </nav>
   <main class="wrap atlas-wrap">

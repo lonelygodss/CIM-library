@@ -1,15 +1,44 @@
 {
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
   "id": "cim-library",
   "title": "CIM Compiler/IR Paper Library",
   "kind": "research-atlas",
   "route": "/library/",
-  "generated_at": "2026-05-23T18:01:28.650Z",
+  "generated_at": "2026-05-23T19:28:25.886Z",
   "source": {
     "content_root": "src/content/papers",
     "taxonomy_path": "src/data/taxonomy.json",
+    "clusters_path": "src/data/clusters.json",
     "paper_count": 62
   },
+  "routes": {
+    "home": "/",
+    "project_index": "/projects/",
+    "project": "/projects/cim-library/",
+    "atlas": "/library/",
+    "clusters": "/clusters/",
+    "paper_detail_pattern": "/papers/[slug]/"
+  },
+  "views": [
+    {
+      "id": "axis-ab-atlas",
+      "route": "/library/",
+      "label": "Axis A x Axis B atlas",
+      "description": "Interactive stack-role by middle-layer atlas over all paper entries."
+    },
+    {
+      "id": "axis-cd-atlas",
+      "route": "/library/?layout=cd",
+      "label": "Axis C x Axis D atlas",
+      "description": "Normalized first-class object by rewrite-object atlas view."
+    },
+    {
+      "id": "cluster-notes",
+      "route": "/clusters/",
+      "label": "Cluster and working-group notes",
+      "description": "Hand-authored cluster hypotheses and coarse investigation notes over the corpus."
+    }
+  ],
   "taxonomy": {
     "schema_version": "0.1",
     "axis_A": {
@@ -313,6 +342,180 @@
       {
         "label": "LoopTree",
         "count": 1
+      }
+    ]
+  },
+  "cluster_layer": {
+    "route": "/clusters/",
+    "source_path": "src/data/clusters.json",
+    "methodology": [
+      "Use existing paper metadata first: Axis A/B placement, technologies, workloads, first-class objects, rewrite objects, artifact status, author/group fields, and public note summaries.",
+      "Prefer coarse families with repeated stack objects or visible tool lineage over fine-grained author-network claims.",
+      "Keep narrow clusters narrow when the binding object changes, even if the papers share a repository family or technology label.",
+      "Mark uncertain boundaries directly and link back to scoped atlas views for inspection."
+    ],
+    "stats": {
+      "cluster_count": 7,
+      "linked_paper_count": 31,
+      "working_group_count": 13,
+      "investigation_count": 13
+    },
+    "clusters": [
+      {
+        "id": "crossbar-dnn-compiler-simulator-line",
+        "label": "Crossbar DNN compiler and simulator toolchain line",
+        "short_label": "Crossbar DNN toolchains",
+        "status": "high-confidence descriptive cluster",
+        "route": "/clusters/#crossbar-dnn-compiler-simulator-line",
+        "representative_papers": [
+          "pimcomp",
+          "pimsim-nn",
+          "pimsyn-nn"
+        ],
+        "supporting_papers": [
+          "pim-eda",
+          "pimacc"
+        ],
+        "working_group_count": 1,
+        "investigation_count": 1,
+        "atlas_query": {
+          "a": "A3",
+          "b": "B5",
+          "tech": "crossbar-PIM"
+        }
+      },
+      {
+        "id": "digital-sram-macro-generation",
+        "label": "Digital SRAM-CIM macro generation and precision specialization",
+        "short_label": "SRAM macro generation",
+        "status": "high-confidence descriptive cluster",
+        "route": "/clusters/#digital-sram-macro-generation",
+        "representative_papers": [
+          "autodcim",
+          "arctic",
+          "syndcim"
+        ],
+        "supporting_papers": [
+          "openc2",
+          "openacmv2"
+        ],
+        "working_group_count": 2,
+        "investigation_count": 2,
+        "atlas_query": {
+          "a": "A1",
+          "b": "B1",
+          "tech": "SRAM-CIM"
+        }
+      },
+      {
+        "id": "analog-nonideality-modeling",
+        "label": "Analog CIM modeling, nonideality, and calibrated cost baselines",
+        "short_label": "Analog modeling baselines",
+        "status": "high-confidence descriptive cluster",
+        "route": "/clusters/#analog-nonideality-modeling",
+        "representative_papers": [
+          "neurosim",
+          "cimloop",
+          "geniex"
+        ],
+        "supporting_papers": [
+          "nax",
+          "ns-cache"
+        ],
+        "working_group_count": 3,
+        "investigation_count": 3,
+        "atlas_query": {
+          "a": "A2",
+          "b": "B6",
+          "tech": "analog-CIM"
+        }
+      },
+      {
+        "id": "upmem-real-hardware-runtime",
+        "label": "UPMEM real-hardware runtime and benchmark layer",
+        "short_label": "UPMEM runtime layer",
+        "status": "high-confidence descriptive cluster",
+        "route": "/clusters/#upmem-real-hardware-runtime",
+        "representative_papers": [
+          "prim",
+          "simplepim",
+          "pim-opt"
+        ],
+        "supporting_papers": [
+          "pim-tc"
+        ],
+        "working_group_count": 1,
+        "investigation_count": 1,
+        "atlas_query": {
+          "a": "A6",
+          "b": "B7",
+          "tech": "UPMEM"
+        }
+      },
+      {
+        "id": "dram-pim-api-bitserial",
+        "label": "PIMeval/PIMsynth DRAM-PIM API and bit-serial compiler line",
+        "short_label": "DRAM-PIM API/compiler",
+        "status": "medium-high-confidence descriptive cluster",
+        "route": "/clusters/#dram-pim-api-bitserial",
+        "representative_papers": [
+          "pimeval",
+          "pimsynth"
+        ],
+        "supporting_papers": [],
+        "working_group_count": 1,
+        "investigation_count": 1,
+        "atlas_query": {
+          "a": "A4",
+          "b": "B5",
+          "tech": "DRAM-PIM"
+        }
+      },
+      {
+        "id": "llm-memory-hierarchy-mapping",
+        "label": "LLM-oriented PIM memory-hierarchy mapping and runtime-state modeling",
+        "short_label": "LLM memory hierarchy",
+        "status": "medium-confidence descriptive cluster",
+        "route": "/clusters/#llm-memory-hierarchy-mapping",
+        "representative_papers": [
+          "harmoni",
+          "papi",
+          "hermes"
+        ],
+        "supporting_papers": [
+          "unindp",
+          "ouroboros",
+          "cim-mxu"
+        ],
+        "working_group_count": 2,
+        "investigation_count": 2,
+        "atlas_query": {
+          "a": "A5",
+          "b": "B7",
+          "q": "LLM"
+        }
+      },
+      {
+        "id": "full-stack-ir-isa-boundaries",
+        "label": "Full-stack IR, ISA, and serialized backend boundaries",
+        "short_label": "IR/ISA boundaries",
+        "status": "medium-confidence descriptive cluster",
+        "route": "/clusters/#full-stack-ir-isa-boundaries",
+        "representative_papers": [
+          "cimflow",
+          "puma",
+          "opencimtc"
+        ],
+        "supporting_papers": [
+          "cim-mlc",
+          "pimcomp"
+        ],
+        "working_group_count": 3,
+        "investigation_count": 3,
+        "atlas_query": {
+          "a": "A4",
+          "b": "B5"
+        }
       }
     ]
   },

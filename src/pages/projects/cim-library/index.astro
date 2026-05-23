@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../../components/CimLibraryNav.astro';
 import projects from '../../../data/project-registry.json';
 import profile from '../../../data/profile.json';
 import cimManifest from '../../../../public/cim-library.manifest.json';
@@ -15,18 +16,19 @@ const representativePapers = representativeSlugs
   });
 const topTechnologies = cimManifest.stats.top_technologies.slice(0, 6);
 const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
+const clusterStats = cimManifest.cluster_layer?.stats;
 ---
 
 <BaseLayout
   title={`${project.title} | ${profile.name}`}
   description={project.summary}
 >
+  <CimLibraryNav />
   <main class="wrap page-shell project-landing">
     <header class="page-header project-hero">
       <p class="eyebrow eyebrow--dark">{project.kind} / {project.status}</p>
       <h1>{project.title}</h1>
       <p>{project.summary}</p>
-      <p class="entry-links"><a href="/library/">Open full atlas</a> / <a href="/clusters/">Cluster notes</a> / <a href="/library/?layout=cd">Axis C/D view</a> / <a href={project.repo}>Repository</a></p>
     </header>
 
     <section class="landing-grid" aria-label="CIM Library overview">
@@ -34,7 +36,6 @@ const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
         <p class="eyebrow eyebrow--dark">Purpose</p>
         <h2>A paper corpus for asking what CIM stacks make first-class</h2>
         <p>The library tracks what each stack names, types, rewrites, verifies, serializes, and eventually hands to the backend. It is built as Markdown content plus a static Astro atlas, so the corpus can be inspected, versioned, and hosted without a database.</p>
-        <p><a class="inline-link" href="/clusters/">Open the first-pass cluster and working-group layer</a></p>
       </article>
       <aside class="stat-board stat-board--landing">
         <div>
@@ -42,16 +43,16 @@ const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
           <span>papers</span>
         </div>
         <div>
+          <strong>{clusterStats?.cluster_count ?? 0}</strong>
+          <span>clusters</span>
+        </div>
+        <div>
+          <strong>{clusterStats?.investigation_count ?? 0}</strong>
+          <span>investigation notes</span>
+        </div>
+        <div>
           <strong>{cimManifest.stats.year_min}-{cimManifest.stats.year_max}</strong>
           <span>year range</span>
-        </div>
-        <div>
-          <strong>{Object.keys(cimManifest.stats.axis_C_object_vocab_counts).length}</strong>
-          <span>object families</span>
-        </div>
-        <div>
-          <strong>{Object.keys(cimManifest.stats.axis_D_rewrite_type_counts).length}</strong>
-          <span>rewrite families</span>
         </div>
       </aside>
     </section>
@@ -74,7 +75,6 @@ const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
     <section class="home-section" aria-labelledby="representative-papers">
       <div class="section-title">
         <h2 id="representative-papers">Representative notes</h2>
-        <a class="inline-link" href="/library/">Open atlas</a>
       </div>
       <div class="paper-link-grid">
         {representativePapers.map((paper) => (

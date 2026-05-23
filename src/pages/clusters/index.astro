@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../components/CimLibraryNav.astro';
 import clustersData from '../../data/clusters.json';
 import profile from '../../data/profile.json';
 import taxonomy from '../../data/taxonomy.json';
@@ -59,6 +60,7 @@ const uniqueClusterPapers = new Set(
   clustersData.clusters.flatMap((cluster) => [...cluster.representative_papers, ...cluster.supporting_papers])
 );
 const workingGroupCount = clustersData.clusters.reduce((sum, cluster) => sum + cluster.working_groups.length, 0);
+const investigationCount = clustersData.clusters.reduce((sum, cluster) => sum + investigationNotes(cluster).length, 0);
 const clusterById = new Map(clustersData.clusters.map((cluster) => [cluster.id, cluster]));
 
 function paper(slug: string) {
@@ -104,12 +106,12 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
   title={`CIM Library Clusters | ${profile.name}`}
   description="A cautious static cluster and working-group layer over the CIM compiler/IR paper corpus."
 >
+  <CimLibraryNav />
   <main class="wrap page-shell cluster-route">
     <header class="page-header">
       <p class="eyebrow eyebrow--dark">CIM compiler/IR corpus</p>
       <h1>Cluster and Working-Group Notes</h1>
       <p>{clustersData.scope_note}</p>
-      <p class="entry-links"><a href="/library/">Open full atlas</a> / <a href="/projects/cim-library/">Project page</a></p>
     </header>
 
     <section class="cluster-overview" aria-label="Cluster layer overview">
@@ -135,6 +137,10 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
           <span>coarse group notes</span>
         </div>
         <div>
+          <strong>{investigationCount}</strong>
+          <span>investigation notes</span>
+        </div>
+        <div>
           <strong>0</strong>
           <span>scores added</span>
         </div>
@@ -144,6 +150,21 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
     <nav class="toc cluster-toc" aria-label="Cluster list">
       {clustersData.clusters.map((cluster) => <a href={`#${cluster.id}`}>{cluster.short_label}</a>)}
     </nav>
+
+    <section class="landing-panel atlas-slice-panel" aria-label="Cluster atlas slices">
+      <div class="section-title">
+        <h2>Atlas Slices</h2>
+        <span class="subtle">Scoped atlas filters for each cluster, gathered in one place.</span>
+      </div>
+      <div class="atlas-slice-list">
+        {clustersData.clusters.map((cluster) => (
+          <a href={libraryHref(cluster.atlas_query)}>
+            <span>{cluster.short_label}</span>
+            <b>Open slice</b>
+          </a>
+        ))}
+      </div>
+    </section>
 
     <section class="cluster-list" aria-label="CIM Library clusters">
       {clustersData.clusters.map((cluster) => {
@@ -156,7 +177,6 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
                 <h2>{cluster.label}</h2>
                 <p>{cluster.summary}</p>
               </div>
-              <a class="cluster-atlas-link" href={libraryHref(cluster.atlas_query)}>Open atlas slice</a>
             </div>
 
             <div class="cluster-detail-grid">
