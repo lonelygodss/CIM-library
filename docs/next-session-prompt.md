@@ -10,6 +10,7 @@ This is a static Astro CIM compiler/IR paper library being initialized as a proj
 Current state:
 - src/content/papers contains 62 schema-valid Markdown paper entries; no raw corpus notes remain.
 - / is now a personal research homepage for Zijian Xiong, using src/data/profile.json plus project/manifest data.
+- The active visual direction is a quiet academic personal site: serif type, plain page rules, restrained green/blue links, and a single DAG-like homepage index. Avoid returning to large hero cards, dashboard cards, or multiple competing navigation clusters.
 - /about/ is the profile page for research focus, education, selected publications, and public contact.
 - /projects/ is the project index sourced from src/data/project-registry.json.
 - /projects/cim-library/ is the narrative landing page for the CIM Library project.
@@ -29,6 +30,7 @@ Current goal:
 - Polish and verify the personal website shell around the CIM Library using the website dev kit.
 - Keep the CIM atlas as a first-class project module, not a small embedded widget.
 - Preserve /library/ and /papers/[slug]/ routes.
+- Keep navigation close to a single top nav plus a main index graph. Internal links are fine, but avoid repeated CTA button groups or multiple local nav systems on the same page.
 
 Good next steps:
 1. Run npm run smoke:website -- --fast to confirm the installed dev kit baseline.

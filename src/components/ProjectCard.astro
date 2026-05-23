@@ -21,9 +21,9 @@ const { project } = Astro.props;
 const landingHref = project.landing_route || project.route;
 ---
 
-<article class="project-card">
-  <p class="project-card__eyebrow">{project.kind}{project.status ? ` / ${project.status}` : ''}</p>
+<article class="project-card project-entry">
   <h2><a href={landingHref}>{project.title}</a></h2>
+  <p class="project-card__eyebrow">{project.kind}{project.status ? ` / ${project.status}` : ''}</p>
   <p>{project.summary}</p>
   {project.tags?.length ? (
     <ul class="project-card__tags" aria-label={`${project.title} tags`}>

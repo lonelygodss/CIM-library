@@ -6,7 +6,6 @@ import projects from '../data/project-registry.json';
 import cimManifest from '../../public/cim-library.manifest.json';
 
 const featuredProjects = projects.filter((project) => project.featured);
-const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
 ---
 
 <BaseLayout
@@ -14,38 +13,60 @@ const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
   description={`${profile.name} is a Ph.D. student at ${profile.institution} working on Compute-in-Memory architecture, memristor devices, and research tooling.`}
 >
   <main class="site-home">
-    <section class="home-hero">
-      <div class="home-hero__visual" aria-hidden="true">
-        <span class="home-hero__node node-a">CIM</span>
-        <span class="home-hero__node node-b">IR</span>
-        <span class="home-hero__node node-c">Device</span>
-        <span class="home-hero__node node-d">Compiler</span>
-      </div>
-      <div class="wrap home-hero__inner">
-        <p class="eyebrow"><span class="dot"></span>{profile.current_role}</p>
-        <h1>{profile.name}</h1>
-        <p class="home-hero__native">{profile.native_name}</p>
-        <p class="home-hero__lead">{profile.profile_summary}</p>
-        <div class="home-hero__actions" aria-label="Primary links">
-          <a class="action-link action-link--primary" href="/projects/">Projects</a>
-          <a class="action-link" href="/library/">CIM Library</a>
-          <a class="action-link" href="/about/">About</a>
-          <a class="action-link" href={`mailto:${profile.email}`}>Email</a>
-        </div>
-      </div>
-    </section>
+    <header class="wrap page-header home-intro">
+      <p class="eyebrow eyebrow--dark">{profile.current_role}</p>
+      <h1>{profile.name}</h1>
+      <p class="home-hero__native">{profile.native_name}</p>
+      <p>{profile.profile_summary}</p>
+    </header>
 
-    <section class="wrap home-grid" aria-label="Research profile">
+    <nav class="wrap dag-index" aria-labelledby="site-index">
+      <h2 id="site-index">Index</h2>
+      <ol>
+        <li>
+          <a href="/about/">Profile</a>
+          <span>research focus, education, publications, contact</span>
+        </li>
+        <li>
+          <a href="/projects/">Projects</a>
+          <span>static research systems and development tools</span>
+        </li>
+        <li>
+          <a href="/projects/cim-library/">CIM Library project</a>
+          <span>why the paper atlas exists and how it is maintained</span>
+        </li>
+        <li>
+          <a href="/library/">CIM atlas</a>
+          <span>{cimManifest.stats.paper_count} papers classified across Axis A/B/C/D</span>
+        </li>
+        <li>
+          <a href="/papers/cimflow/">Representative paper notes</a>
+          <span>individual Markdown corpus notes under stable slugs</span>
+        </li>
+      </ol>
+    </nav>
+
+    <section class="wrap home-grid" aria-label="Research map">
       <div class="profile-panel">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow eyebrow--dark">Research Focus</p>
-            <h2>Computing systems from devices to compiler abstractions</h2>
-          </div>
-          <a class="inline-link" href="/about/">Profile</a>
-        </div>
-        <ul class="focus-list">
-          {profile.research_focus.map((item) => <li>{item}</li>)}
+        <p class="eyebrow eyebrow--dark">Research Map</p>
+        <h2>Computing systems from devices to compiler abstractions</h2>
+        <ul class="thread-list">
+          <li>
+            <span>Device behavior</span>
+            <a href="/about/">memristor and 2D-material computing</a>
+          </li>
+          <li>
+            <span>Architecture</span>
+            <a href="/projects/cim-library/">Compute-in-Memory stacks</a>
+          </li>
+          <li>
+            <span>Compiler objects</span>
+            <a href="/library/?layout=cd">first-class objects and rewrites</a>
+          </li>
+          <li>
+            <span>Corpus tooling</span>
+            <a href="/projects/">static atlases and registries</a>
+          </li>
         </ul>
       </div>
 
@@ -53,27 +74,16 @@ const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
         <p class="eyebrow eyebrow--dark">Current Base</p>
         <h2>{profile.institution}</h2>
         <p>{profile.location}</p>
-        <dl class="compact-facts">
-          {profile.education.slice(0, 1).map((item) => (
-            <div>
-              <dt>{item.period}</dt>
-              <dd>{item.degree}<span>{item.school}</span></dd>
-            </div>
-          ))}
-          <div>
-            <dt>Publications</dt>
-            <dd>{profile.publications.length} selected works<span>Energy harvesting, memristor devices, and accelerator systems.</span></dd>
-          </div>
-        </dl>
+        <div class="mini-index">
+          <a href="/about/">About</a>
+          <a href={`mailto:${profile.email}`}>Email</a>
+        </div>
       </aside>
     </section>
 
     <section class="wrap home-section" aria-labelledby="featured-projects">
       <div class="section-title">
-        <div>
-          <p class="eyebrow eyebrow--dark">Featured Project</p>
-          <h2 id="featured-projects">Static research systems</h2>
-        </div>
+        <h2 id="featured-projects">Featured project</h2>
         <a class="inline-link" href="/projects/">All projects</a>
       </div>
       <div class="project-grid">
@@ -85,11 +95,7 @@ const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
       <div>
         <p class="eyebrow eyebrow--dark">CIM Library Snapshot</p>
         <h2 id="atlas-summary-heading">{cimManifest.stats.paper_count} papers across {cimManifest.stats.year_min}-{cimManifest.stats.year_max}</h2>
-        <p>The atlas organizes Compute-in-Memory compiler and IR work by stack role, middle-layer representation, first-class objects, and rewrite objects.</p>
-        <div class="home-hero__actions">
-          <a class="action-link action-link--primary" href="/projects/cim-library/">Project page</a>
-          <a class="action-link" href="/library/?layout=cd">Axis C/D atlas</a>
-        </div>
+        <p>The atlas organizes Compute-in-Memory compiler and IR work by stack role, middle-layer representation, first-class objects, and rewrite objects. Start from the <a href="/projects/cim-library/">project page</a>, open the <a href="/library/">full atlas</a>, or go directly to the <a href="/library/?layout=cd">Axis C/D view</a>.</p>
       </div>
       <div class="stat-board" aria-label="CIM Library statistics">
         <div>
@@ -109,9 +115,6 @@ const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
           <span>Rewrite families</span>
         </div>
       </div>
-      <ul class="technology-strip" aria-label="Top CIM technologies">
-        {topTechnologies.map((item) => <li><span>{item.label}</span><b>{item.count}</b></li>)}
-      </ul>
     </section>
 
   </main>

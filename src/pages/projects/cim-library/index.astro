@@ -21,19 +21,15 @@ const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
   title={`${project.title} | ${profile.name}`}
   description={project.summary}
 >
-  <main class="project-landing">
-    <header class="project-hero wrap">
-      <p class="eyebrow"><span class="dot"></span>{project.kind} / {project.status}</p>
+  <main class="wrap page-shell project-landing">
+    <header class="page-header project-hero">
+      <p class="eyebrow eyebrow--dark">{project.kind} / {project.status}</p>
       <h1>{project.title}</h1>
       <p>{project.summary}</p>
-      <div class="home-hero__actions">
-        <a class="action-link action-link--primary" href="/library/">Open full atlas</a>
-        <a class="action-link" href="/library/?layout=cd">Browse objects and rewrites</a>
-        <a class="action-link" href={project.repo}>Repository</a>
-      </div>
+      <p class="entry-links"><a href="/library/">Open full atlas</a> / <a href="/library/?layout=cd">Axis C/D view</a> / <a href={project.repo}>Repository</a></p>
     </header>
 
-    <section class="wrap landing-grid" aria-label="CIM Library overview">
+    <section class="landing-grid" aria-label="CIM Library overview">
       <article class="landing-panel landing-panel--wide">
         <p class="eyebrow eyebrow--dark">Purpose</p>
         <h2>A paper corpus for asking what CIM stacks make first-class</h2>
@@ -59,7 +55,7 @@ const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
       </aside>
     </section>
 
-    <section class="wrap landing-grid" aria-label="Atlas facets">
+    <section class="landing-grid" aria-label="Atlas facets">
       <article class="landing-panel">
         <p class="eyebrow eyebrow--dark">Top Technologies</p>
         <ul class="rank-list">
@@ -74,12 +70,9 @@ const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
       </article>
     </section>
 
-    <section class="wrap home-section" aria-labelledby="representative-papers">
+    <section class="home-section" aria-labelledby="representative-papers">
       <div class="section-title">
-        <div>
-          <p class="eyebrow eyebrow--dark">Representative Notes</p>
-          <h2 id="representative-papers">Entry points into the corpus</h2>
-        </div>
+        <h2 id="representative-papers">Representative notes</h2>
         <a class="inline-link" href="/library/">Open atlas</a>
       </div>
       <div class="paper-link-grid">
