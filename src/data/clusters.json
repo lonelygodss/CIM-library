@@ -95,6 +95,13 @@
           "representative_papers": ["autodcim", "openc2", "arctic", "syndcim"],
           "evidence": "The current author/group fields mention HKUST or overlapping Cheng/Tsui digital-CIM macro compiler contributors across several entries.",
           "uncertainty": "Tentative coarse label; use the paper pages for exact author lists and institutional context."
+        },
+        {
+          "label": "OpenACM / approximate-DCIM optimization thread",
+          "relationship": "accuracy-constrained approximate arithmetic and macro co-optimization",
+          "representative_papers": ["openacmv2"],
+          "evidence": "OpenACMv2 makes approximate compressor choices, SRAM macro parameters, PEA-GNN prediction, accuracy budgets, and circuit-level sizing explicit optimization objects.",
+          "uncertainty": "Single-entry thread in the current corpus. It is supporting evidence for this cluster, not part of the core HKUST macro compiler lineage."
         }
       ],
       "working_group_investigations": [
@@ -121,6 +128,33 @@
             {
               "label": "OpenACM repository",
               "url": "https://github.com/ShenShan123/OpenACM"
+            }
+          ]
+        },
+        {
+          "label": "OpenACM / approximate-DCIM optimization boundary",
+          "status": "started",
+          "scope": "Treat as a single-artifact approximate-DCIM DSE thread where approximate arithmetic, macro configuration, and transistor-level validity become optimization state. Do not merge it into the core spec-to-layout macro-generator lineage.",
+          "why_coherent": "The common object is accuracy-constrained hardware search state: approximate compressor type, compressor slot, partial-product column approximation region, bit significance, SRAM rows/columns/mux/array count, transistor sizing vector, PVT or Monte Carlo condition, and MRED/NMED accuracy budget.",
+          "continuity_evidence": [
+            "OpenACMv2's Level-I optimization searches multiplier compressor assignments, lower-significance partial-product approximation regions, and SRAM macro configurations under error and PPA objectives.",
+            "PEA-GNN turns a multiplier compressor assignment into a graph for predicting MRED, NMED, delay, area, and power, making approximate arithmetic structure a model-facing object rather than only a generated netlist.",
+            "Level-II refines selected compressor cells and SRAM bitcells with SPICE/PVT/Monte Carlo-style sizing while preserving the selected approximate truth-table semantics."
+          ],
+          "boundary": "Keep OpenACMv2 as supporting evidence for the digital macro cluster because it shares SRAM/DCIM backend objects, but distinguish it from AutoDCIM/OpenC2/SynDCIM-style macro materialization flows. Its central object is an accuracy/PPA search trajectory, not a workload compiler or full-stack IR.",
+          "next_checks": [
+            "Inspect the OpenACM repository's documented optimization outputs before claiming stable generated-file schemas.",
+            "Compare OpenACMv2's compressor-assignment state with SynDCIM's subcircuit synthesis state to see whether both can share one detail-page table.",
+            "Check whether paper-level image/CIFAR-10 accuracy budgets have machine-readable configs in the artifact."
+          ],
+          "source_links": [
+            {
+              "label": "OpenACM repository",
+              "url": "https://github.com/ShenShan123/OpenACM"
+            },
+            {
+              "label": "OpenACMv2 paper",
+              "url": "https://arxiv.org/pdf/2603.13042"
             }
           ]
         }
@@ -163,6 +197,13 @@
           "representative_papers": ["cimloop"],
           "evidence": "CiMLoop is described as a Timeloop+Accelergy based CIM modeling extension with public MIT artifact metadata.",
           "uncertainty": "Single-entry group in the current corpus, listed because it is a strong modeling baseline rather than a broad author family."
+        },
+        {
+          "label": "GENIEx/NAX nonideality-aware co-design thread",
+          "relationship": "learned nonideality model feeding crossbar-aware search",
+          "representative_papers": ["geniex", "nax"],
+          "evidence": "GENIEx provides a learned analog crossbar nonideality model and PyTorch functional simulator; NAX uses GENIEx-style nonideality feedback in a hardware-aware neural architecture and crossbar-size search loop.",
+          "uncertainty": "Method-continuity label only. GENIEx is a simulator/modeling paper and NAX is a NAS/DSE paper, so keep exact claims tied to their paper notes."
         }
       ],
       "working_group_investigations": [
@@ -224,6 +265,37 @@
             {
               "label": "CiMLoop paper",
               "url": "https://arxiv.org/abs/2405.07259"
+            }
+          ]
+        },
+        {
+          "label": "GENIEx/NAX nonideality-to-search thread",
+          "status": "started",
+          "scope": "Treat as a methodological thread where analog crossbar nonideality becomes a simulator-visible feedback signal for model or hardware search. This is not a full compiler stack and not a broad author-network claim.",
+          "why_coherent": "The common object is nonideal MVM behavior made reusable enough to affect higher-level decisions: voltage vectors, conductance matrices, crossbar size, bit streams and slices, ADC precision, shift-add reconstruction, per-layer operation-to-crossbar binding, and accuracy/cost feedback.",
+          "continuity_evidence": [
+            "GENIEx models data-dependent memristive-crossbar nonidealities as a learned current-ratio surrogate over input-voltage and conductance tensors, then injects that behavior into PyTorch convolution and linear MVM layers.",
+            "GENIEx's simulator path names the relevant backend objects for accuracy studies: tiled crossbar MVM, positive/negative weight paths, bit slicing, bit streaming, ADC quantization, accumulator width, and shift-add reconstruction.",
+            "NAX takes the next step at the search layer by coupling CNN operation choices with crossbar-size choices, using hardware-efficiency lookup tables and GENIEx-style nonideality-aware inference during architecture-parameter updates."
+          ],
+          "boundary": "Keep this narrower than the analog modeling cluster as a whole. It does not include CiMLoop's Timeloop/Accelergy config surface or NeuroSim's device/circuit/architecture reporting lineage, and NAX lacks a public artifact in the checked corpus.",
+          "next_checks": [
+            "Inspect the GENIEx functional-model repository before claiming stable simulator APIs or model-weight availability.",
+            "Check whether NAX exposes any supplementary search tables or configs; current evidence is paper-level only.",
+            "Compare GENIEx/NAX against NeuroSim and CiMLoop in a future detail table by asking which object is mutable: nonideality surrogate, mapping config, or architecture/search candidate."
+          ],
+          "source_links": [
+            {
+              "label": "GENIEx / PUMA functional model repository",
+              "url": "https://github.com/Aayush-Ankit/puma-functional-model"
+            },
+            {
+              "label": "GENIEx paper",
+              "url": "https://arxiv.org/pdf/2003.06902"
+            },
+            {
+              "label": "NAX paper",
+              "url": "https://arxiv.org/pdf/2106.12125"
             }
           ]
         }
