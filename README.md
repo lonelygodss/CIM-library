@@ -8,7 +8,8 @@ Static Astro scaffold for a CIM compiler/IR paper corpus.
 Paper library
 ├── taxonomy vocabulary in src/data/taxonomy.json
 ├── one Markdown file per paper in src/content/papers/
-├── public atlas pages at / and /library/
+├── personal homepage and project shell under src/pages/
+├── public atlas app at /library/
 ├── project registry in src/data/project-registry.json
 ├── website integration docs in docs/website-integration/
 └── static hosting on a personal website
@@ -21,8 +22,10 @@ Paper metadata lives in each Markdown file's YAML frontmatter. The Markdown body
 ```text
 src/content/papers/          paper notes with structured frontmatter
 src/data/taxonomy.json       Axis A/B plus object/rewrite vocabulary
-src/pages/index.astro        primary atlas route
-src/pages/library.astro      compatibility atlas route
+src/pages/index.astro        personal homepage
+src/pages/about.astro        profile page
+src/pages/projects/          project index and CIM Library landing page
+src/pages/library.astro      stable atlas route
 src/pages/papers/[slug].astro dynamic paper route
 src/components/TaxonomyAtlas.astro interactive atlas + selected-paper panel
 src/lib/axisNormalization.ts render-time Axis C/D normalization
@@ -85,3 +88,5 @@ npm run smoke:website -- --fast
 ```
 
 The archived cluster-analysis roadmap is in `docs/archive/cluster-analysis-working-groups.md` and should not guide current work unless reactivated.
+
+The active visual direction is a quiet academic homepage with one top nav and one main DAG-like index. Project modules can use their own visual surfaces; the CIM atlas intentionally keeps its card/control/graph-heavy interface inside `/library/`.

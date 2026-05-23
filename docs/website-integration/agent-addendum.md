@@ -6,6 +6,8 @@ Read this after `AGENTS.md` and `docs/future-development-plan.md`.
 
 This repository should become a personal static website that contains the CIM Library as a first-class project module. The atlas should remain useful on its own, but the website shell should make it discoverable from a homepage, project index, and project landing page.
 
+The shell direction is quiet academic: serif type, plain rules, restrained green/blue links, and a single DAG-like homepage index. The atlas and future project routes can keep distinct project-specific UI styles when that improves reader expectations, as long as they remain integrated through the shared route and registry structure.
+
 ## Constraints
 
 - Keep the site static.

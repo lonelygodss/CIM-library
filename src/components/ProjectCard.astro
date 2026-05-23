@@ -19,6 +19,8 @@ interface Props {
 
 const { project } = Astro.props;
 const landingHref = project.landing_route || project.route;
+const routeLabel = project.id === 'cim-library' ? 'Open atlas' : 'Open project';
+const hasSeparateRoute = project.route && project.route !== landingHref;
 ---
 
 <article class="project-card project-entry">
@@ -32,6 +34,6 @@ const landingHref = project.landing_route || project.route;
   ) : null}
   <div class="project-card__actions">
     <a href={landingHref}>Project page</a>
-    <a href={project.route}>Open atlas</a>
+    {hasSeparateRoute ? <a href={project.route}>{routeLabel}</a> : null}
   </div>
 </article>

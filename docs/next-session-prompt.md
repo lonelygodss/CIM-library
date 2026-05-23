@@ -10,7 +10,9 @@ This is a static Astro CIM compiler/IR paper library being initialized as a proj
 Current state:
 - src/content/papers contains 62 schema-valid Markdown paper entries; no raw corpus notes remain.
 - / is now a personal research homepage for Zijian Xiong, using src/data/profile.json plus project/manifest data.
-- The active visual direction is a quiet academic personal site: serif type, plain page rules, restrained green/blue links, and a single DAG-like homepage index. Avoid returning to large hero cards, dashboard cards, or multiple competing navigation clusters.
+- The active visual direction for the website shell is a quiet academic personal site: serif type, plain page rules, restrained green/blue links, and a single DAG-like homepage index.
+- Keep navigation close to the David Tong pattern: one simple top nav plus one main index graph. Internal links are fine, but avoid repeated CTA groups or multiple competing local navigation systems on the same shell page.
+- Project modules may use distinct UI surfaces. The CIM atlas can keep its richer card/control/graph style, and future project pages may use different visual systems when that helps readers know what type of project they are entering.
 - /about/ is the profile page for research focus, education, selected publications, and public contact.
 - /projects/ is the project index sourced from src/data/project-registry.json.
 - /projects/cim-library/ is the narrative landing page for the CIM Library project.
@@ -30,7 +32,7 @@ Current goal:
 - Polish and verify the personal website shell around the CIM Library using the website dev kit.
 - Keep the CIM atlas as a first-class project module, not a small embedded widget.
 - Preserve /library/ and /papers/[slug]/ routes.
-- Keep navigation close to a single top nav plus a main index graph. Internal links are fine, but avoid repeated CTA button groups or multiple local nav systems on the same page.
+- Keep the academic shell and project-module visual systems coherent but not identical.
 
 Good next steps:
 1. Run npm run smoke:website -- --fast to confirm the installed dev kit baseline.

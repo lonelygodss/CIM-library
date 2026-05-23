@@ -11,7 +11,7 @@ import profile from '../data/profile.json';
     <header class="page-header about-header">
       <p class="eyebrow eyebrow--dark">About</p>
       <h1>{profile.name}</h1>
-      <p class="home-hero__native">{profile.native_name}</p>
+      <p class="native-name">{profile.native_name}</p>
       <p>{profile.profile_summary}</p>
       <div class="profile-contact">
         <a href={`mailto:${profile.email}`}>{profile.email}</a>

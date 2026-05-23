@@ -4,6 +4,8 @@
 
 Make the CIM atlas feel like a polished project inside your personal website while preserving it as a reusable, static, research-facing module.
 
+The website shell should feel like a quiet academic personal site: serif typography, plain rules, restrained links, and one primary DAG-like index from the homepage. The CIM atlas and future project routes may use distinct UI styles, including card-heavy project surfaces, when that makes the project type clearer.
+
 ## Phase 0: protect the current atlas baseline
 
 - Keep `npm run qa`, `npm run validate`, `npm run check`, and `npm run build` green.
@@ -15,7 +17,7 @@ Make the CIM atlas feel like a polished project inside your personal website whi
 
 Target routes:
 
-- `/`: personal homepage with name, research focus, featured projects, and selected writing.
+- `/`: personal homepage with name, research focus, a DAG-like index, featured projects, and selected writing.
 - `/projects/`: grid/list of project cards read from `src/data/project-registry.json`.
 - `/projects/cim-library/`: project landing page explaining why the atlas exists, what it covers, how to use it, and how it is maintained.
 - `/library/`: full atlas app.

@@ -25,8 +25,11 @@ Do not treat generated legacy notes as ground truth. Use them as hypotheses to c
 - `src/content/papers/*.md` is the paper database. Each file has YAML frontmatter plus a Markdown corpus note.
 - `src/content.config.ts` is the strict Astro schema.
 - `src/data/taxonomy.json` is the Axis A/B vocabulary plus supporting object/rewrite vocabulary.
-- `src/pages/index.astro` is the primary public atlas route at `/`.
-- `src/pages/library.astro` renders the same atlas route at `/library/` for compatibility.
+- `src/pages/index.astro` is the personal homepage at `/`.
+- `src/pages/about.astro` is the profile page.
+- `src/pages/projects/index.astro` is the project index sourced from `src/data/project-registry.json`.
+- `src/pages/projects/cim-library/index.astro` is the narrative CIM Library project page.
+- `src/pages/library.astro` is the stable full atlas route at `/library/`.
 - `src/pages/papers/[slug].astro` renders individual paper notes.
 - `src/components/TaxonomyAtlas.astro` owns filtering, the Axis A x Axis B and normalized Axis C x Axis D atlas layouts, URL-scoped selections, dense-cell summaries, and the selected-paper panel.
 - `src/lib/axisNormalization.ts` normalizes Axis C/D labels at render time from `src/data/taxonomy.json`; do not add required frontmatter fields for those normalized categories unless the public metadata contract changes.
@@ -53,6 +56,12 @@ Target routes:
 - `/projects/cim-library/` narrative landing page for this atlas.
 - `/library/` stable full atlas app.
 - `/papers/[slug]/` stable paper notes.
+
+Visual direction:
+
+- Keep the website shell close to a quiet academic personal site: serif typography, plain rules, sparse blue/green links, and restrained page furniture.
+- Keep global navigation simple: one top nav plus the homepage's main DAG-like index. Internal links are fine, but do not add multiple competing local navigation clusters on shell pages.
+- Project modules may own a distinct visual surface. The CIM atlas can keep its richer card/control/graph styling, and future projects may use different UI styles when that helps readers understand what kind of project they are opening.
 
 Run the website integration loop when touching website shell, project registry, manifest, or atlas routing:
 

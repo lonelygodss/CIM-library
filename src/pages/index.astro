@@ -16,32 +16,40 @@ const featuredProjects = projects.filter((project) => project.featured);
     <header class="wrap page-header home-intro">
       <p class="eyebrow eyebrow--dark">{profile.current_role}</p>
       <h1>{profile.name}</h1>
-      <p class="home-hero__native">{profile.native_name}</p>
+      <p class="native-name">{profile.native_name}</p>
       <p>{profile.profile_summary}</p>
     </header>
 
     <nav class="wrap dag-index" aria-labelledby="site-index">
-      <h2 id="site-index">Index</h2>
-      <ol>
-        <li>
+      <div class="dag-index__head">
+        <h2 id="site-index">Index</h2>
+        <p>Read the site as a small dependency graph: profile context leads into projects, and projects lead into their own tools and notes.</p>
+      </div>
+      <ol class="dag-index__graph">
+        <li class="dag-node dag-node--profile">
+          <span>01 / person</span>
           <a href="/about/">Profile</a>
-          <span>research focus, education, publications, contact</span>
+          <p>research focus, education, publications, contact</p>
         </li>
-        <li>
+        <li class="dag-node dag-node--projects">
+          <span>02 / project registry</span>
           <a href="/projects/">Projects</a>
-          <span>static research systems and development tools</span>
+          <p>static research systems and development tools</p>
         </li>
-        <li>
+        <li class="dag-node dag-node--cim">
+          <span>03 / project module</span>
           <a href="/projects/cim-library/">CIM Library project</a>
-          <span>why the paper atlas exists and how it is maintained</span>
+          <p>why the atlas exists and how it is maintained</p>
         </li>
-        <li>
+        <li class="dag-node dag-node--atlas">
+          <span>04 / application</span>
           <a href="/library/">CIM atlas</a>
-          <span>{cimManifest.stats.paper_count} papers classified across Axis A/B/C/D</span>
+          <p>{cimManifest.stats.paper_count} papers classified across Axis A/B/C/D</p>
         </li>
-        <li>
+        <li class="dag-node dag-node--notes">
+          <span>05 / corpus notes</span>
           <a href="/papers/cimflow/">Representative paper notes</a>
-          <span>individual Markdown corpus notes under stable slugs</span>
+          <p>individual Markdown entries under stable slugs</p>
         </li>
       </ol>
     </nav>
@@ -74,10 +82,6 @@ const featuredProjects = projects.filter((project) => project.featured);
         <p class="eyebrow eyebrow--dark">Current Base</p>
         <h2>{profile.institution}</h2>
         <p>{profile.location}</p>
-        <div class="mini-index">
-          <a href="/about/">About</a>
-          <a href={`mailto:${profile.email}`}>Email</a>
-        </div>
       </aside>
     </section>
 

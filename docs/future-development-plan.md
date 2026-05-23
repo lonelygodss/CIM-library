@@ -7,11 +7,13 @@ This is a static Astro paper library for CIM compiler/IR-stack research.
 - `src/content/papers/` contains 62 schema-valid Markdown paper entries.
 - The raw-note migration milestone is complete; no raw long-form notes remain.
 - The active metadata contract is descriptive. It does not include coverage scores, ranking scores, or `trajectory_IR_relevance`.
-- `/` is the primary public atlas route; `/library/` renders the same atlas for compatibility.
+- `/` is the personal homepage; `/library/` is the stable full atlas route.
+- `/about/`, `/projects/`, and `/projects/cim-library/` form the current website shell around the atlas.
 - `/papers/[slug]/` renders individual long-form corpus notes.
 - Axis C first-class objects and Axis D rewrite objects are normalized at render time from `src/data/taxonomy.json` vocabulary, without adding new required frontmatter fields.
 - The atlas supports both Axis A x Axis B and normalized Axis C x Axis D layouts.
 - The personal website dev kit is installed as the active next development context. The CIM Library should become a first-class static project module inside a personal website shell.
+- The active visual direction is a quiet academic personal site inspired by older physics faculty pages: serif type, plain rules, sparse blue/green links, and one main DAG-like homepage index. Project modules may use distinct UI surfaces, including the CIM atlas card/control style, as long as they remain integrated through the shell routes.
 - Keep the site static and suitable for personal hosting. Do not add PDF hosting, backend services, or a database unless the project direction changes.
 
 Keep these checks green while changing UI or content:
@@ -121,9 +123,9 @@ The previous cluster-analysis and academic-working-group roadmap is archived at 
 
 It is intentionally inactive for the current website-integration iteration. Reinitialize it later only if the project direction returns to cluster visualization after the personal website shell stabilizes.
 
-## Next Focus -- Personal Website Integration
+## Next Focus -- Personal Website Shell Stabilization
 
-The next product milestone is to initialize the static website shell around the CIM atlas using the installed dev kit in `docs/website-integration/`.
+The next product milestone is to stabilize the static website shell around the CIM atlas using the installed dev kit in `docs/website-integration/`.
 
 Target architecture:
 
@@ -148,11 +150,13 @@ Installed integration surface:
 Remaining priority work:
 
 1. Run and keep green the website loop: `npm run qa`, `npm run validate`, `npm run export:atlas`, `npm run contract:website`, `npm run check`, and `npm run build`.
-2. Add or polish `/` as a personal homepage. The homepage should introduce the person/research focus and route visitors to projects; it should not embed the whole atlas UI.
-3. Add `/projects/` as a project index sourced from `src/data/project-registry.json`.
-4. Add `/projects/cim-library/` as the narrative project landing page that explains the atlas, links to `/library/`, and highlights representative paper notes.
+2. Keep polishing `/`, `/about/`, `/projects/`, and `/projects/cim-library/` as the personal website shell. The homepage should introduce the person/research focus and route visitors through a single DAG-like index; it should not embed the whole atlas UI.
+3. Keep `/projects/` sourced from `src/data/project-registry.json`.
+4. Keep `/projects/cim-library/` as the narrative project landing page that explains the atlas, links to `/library/`, and highlights representative paper notes.
 5. Keep `/library/` and `/papers/[slug]/` stable.
 6. Use `public/cim-library.manifest.json` for project stats and summaries rather than copying counts by hand.
+
+The homepage and profile shell should stay visually quiet. The atlas and future project routes can use different UI systems when the project itself needs cards, controls, visualizations, or dense interaction.
 
 The atlas should remain descriptive. Do not introduce coverage, quality, ranking, or relevance scores.
 
