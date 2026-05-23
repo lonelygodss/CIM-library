@@ -5,6 +5,7 @@
 | Route | Purpose | Notes |
 | --- | --- | --- |
 | `/` | Personal homepage | Should introduce you, your research interests, and featured projects. |
+| `/about/` | Profile page | Research focus, education, selected publications, and public contact. |
 | `/projects/` | Project index | Generated from `src/data/project-registry.json`. |
 | `/projects/cim-library/` | CIM Library landing page | Narrative project page; link to `/library/` and representative papers. |
 | `/library/` | Full CIM atlas | Keep this route stable for bookmarks and citations. |
@@ -14,7 +15,6 @@
 
 | Route | Purpose |
 | --- | --- |
-| `/about/` | Bio, research direction, contact, CV links. |
 | `/writing/` | Essays, research notes, or project logs. |
 | `/projects/<future-id>/` | Landing page for another project. |
 | `/tags/<tag>/` | Cross-project tag index once there is enough material. |

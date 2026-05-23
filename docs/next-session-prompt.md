@@ -10,6 +10,7 @@ This is a static Astro CIM compiler/IR paper library being initialized as a proj
 Current state:
 - src/content/papers contains 62 schema-valid Markdown paper entries; no raw corpus notes remain.
 - / is now a personal research homepage for Zijian Xiong, using src/data/profile.json plus project/manifest data.
+- /about/ is the profile page for research focus, education, selected publications, and public contact.
 - /projects/ is the project index sourced from src/data/project-registry.json.
 - /projects/cim-library/ is the narrative landing page for the CIM Library project.
 - /library/ is the stable full atlas route and must remain available.
@@ -31,8 +32,8 @@ Current goal:
 
 Good next steps:
 1. Run npm run smoke:website -- --fast to confirm the installed dev kit baseline.
-2. Review /, /projects/, and /projects/cim-library/ in browser viewports and tighten layout/content where needed.
-3. Decide whether to add an /about/ page or keep the homepage as the profile surface.
+2. Review /, /about/, /projects/, and /projects/cim-library/ in browser viewports and tighten layout/content where needed.
+3. Decide whether to add publication links or a public CV download later; do not expose phone/address details by default.
 4. Add more project-registry entries only when real future projects have a stable route and manifest/story.
 5. Use public/cim-library.manifest.json for atlas stats instead of copying paper counts by hand.
 6. Keep existing atlas/detail-page maintenance incremental and secondary.

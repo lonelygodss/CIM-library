@@ -977,6 +977,49 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   color: var(--muted);
   font-size: 18px;
 }
+.about-header {
+  max-width: 980px;
+}
+.about-header .home-hero__native {
+  color: #2f8f83;
+}
+.profile-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.profile-contact a,
+.profile-contact span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: #314158;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.profile-contact a:hover,
+.profile-contact a:focus-visible {
+  outline: none;
+  border-color: #8aa7ff;
+  box-shadow: 0 0 0 3px rgba(51, 92, 255, .12);
+}
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 480px);
+  gap: 18px;
+}
+.about-panel {
+  min-width: 0;
+}
+.focus-list--single {
+  grid-template-columns: 1fr;
+}
+.publication-list--about {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 .project-hero {
   color: #fff;
 }
@@ -1084,7 +1127,8 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   }
   .home-grid,
   .atlas-summary,
-  .landing-grid {
+  .landing-grid,
+  .about-grid {
     grid-template-columns: 1fr;
   }
   .publication-list,
@@ -1153,6 +1197,14 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   .project-hero p {
     font-size: 16px;
   }
+  .profile-contact {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .profile-contact a,
+  .profile-contact span {
+    overflow-wrap: anywhere;
+  }
   .paper-hero { padding-top: 18px; }
   .paper-hero-inner { padding: 20px; border-radius: 18px; }
   .paper-hero-summary {
@@ -1184,6 +1236,14 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   .prose table { font-size: 13px; }
   .prose th, .prose td { min-width: 112px; }
   .sidebar .work-title { display: block; }
+}
+@media (max-width: 520px) {
+  .site-nav-inner {
+    justify-content: center;
+  }
+  .site-brand {
+    display: none;
+  }
 }
 @media print {
   body { background: #fff; }

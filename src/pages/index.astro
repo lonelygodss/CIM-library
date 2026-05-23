@@ -7,7 +7,6 @@ import cimManifest from '../../public/cim-library.manifest.json';
 
 const featuredProjects = projects.filter((project) => project.featured);
 const topTechnologies = cimManifest.stats.top_technologies.slice(0, 4);
-const selectedPublications = profile.publications.slice(0, 3);
 ---
 
 <BaseLayout
@@ -30,6 +29,7 @@ const selectedPublications = profile.publications.slice(0, 3);
         <div class="home-hero__actions" aria-label="Primary links">
           <a class="action-link action-link--primary" href="/projects/">Projects</a>
           <a class="action-link" href="/library/">CIM Library</a>
+          <a class="action-link" href="/about/">About</a>
           <a class="action-link" href={`mailto:${profile.email}`}>Email</a>
         </div>
       </div>
@@ -42,6 +42,7 @@ const selectedPublications = profile.publications.slice(0, 3);
             <p class="eyebrow eyebrow--dark">Research Focus</p>
             <h2>Computing systems from devices to compiler abstractions</h2>
           </div>
+          <a class="inline-link" href="/about/">Profile</a>
         </div>
         <ul class="focus-list">
           {profile.research_focus.map((item) => <li>{item}</li>)}
@@ -53,12 +54,16 @@ const selectedPublications = profile.publications.slice(0, 3);
         <h2>{profile.institution}</h2>
         <p>{profile.location}</p>
         <dl class="compact-facts">
-          {profile.education.map((item) => (
+          {profile.education.slice(0, 1).map((item) => (
             <div>
               <dt>{item.period}</dt>
               <dd>{item.degree}<span>{item.school}</span></dd>
             </div>
           ))}
+          <div>
+            <dt>Publications</dt>
+            <dd>{profile.publications.length} selected works<span>Energy harvesting, memristor devices, and accelerator systems.</span></dd>
+          </div>
         </dl>
       </aside>
     </section>
@@ -109,21 +114,5 @@ const selectedPublications = profile.publications.slice(0, 3);
       </ul>
     </section>
 
-    <section class="wrap home-section" aria-labelledby="selected-publications">
-      <div class="section-title">
-        <div>
-          <p class="eyebrow eyebrow--dark">Selected Publications</p>
-          <h2 id="selected-publications">Research record</h2>
-        </div>
-      </div>
-      <div class="publication-list">
-        {selectedPublications.map((publication) => (
-          <article>
-            <h3>{publication.title}</h3>
-            <p>{publication.venue} · {publication.year}{publication.role ? ` · ${publication.role}` : ''}</p>
-          </article>
-        ))}
-      </div>
-    </section>
   </main>
 </BaseLayout>
