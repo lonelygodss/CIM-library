@@ -12,7 +12,7 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 - Route: `src/pages/clusters/index.astro` at `/clusters/`.
 - Current shape: 7 cluster hypotheses and 13 deeper investigation entries.
 - Method direction: start from metadata to find candidate neighborhoods, then perform real cluster analysis by reading notes, papers, and official artifacts. A cluster is not ready because metadata fields line up; it is ready only when an analytical paragraph can explain what object the stack makes first-class and why the evidence supports that boundary.
-- Display direction: prioritize analytical paragraphs and prose graphs that explain object flow, lineage or boundary, and artifact relationships. Treat each cluster as a small blog/article with a readable argument, not a card stack or dashboard entry. Avoid making the cluster layer feel like a deck of metadata cards with prose labels.
+- Display direction: prioritize analytical paragraphs and prose graphs that explain object flow, lineage or boundary, and artifact relationships. Treat each cluster as a small blog/article with a readable argument, and treat each working-group analysis as a separate blog/article with its own lineage or artifact-continuity question. Avoid making either layer feel like a deck of metadata cards with prose labels.
 - Current display scaffold: each cluster has a draft `object_flow` field rendered on `/clusters/` with four consistent labels: Entry object, Binding/rewrite, Backend handoff, and Boundary. The `analysis` field is now the preferred public paragraph surface, and checked analysis paragraphs exist for the crossbar DNN toolchain, DRAM-PIM API/compiler, LLM memory-hierarchy, and full-stack IR/ISA boundary clusters. Treat the remaining object-flow text as a temporary scaffold for analysis, not as completion of the display direction.
 - `/library/` and `/projects/cim-library/` link to `/clusters/`.
 - Cluster data is separate from paper frontmatter so the public paper metadata contract stays descriptive.
@@ -22,9 +22,11 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 1. Use metadata as a seed: Axis A/B placement, technologies, workloads, first-class objects, rewrite objects, artifact status, author/group fields, and note summaries suggest possible neighborhoods.
 2. Read the substance before strengthening a cluster: inspect the corpus notes first, then the paper and official artifact/docs/code when the note does not establish the stack object, rewrite path, backend handoff, or lineage boundary.
 3. Write an analysis paragraph, not a metadata digest: the public cluster text should state the shared first-class object, explain the transformation or handoff path, name the evidence base, and mark the boundary of the claim.
-4. Keep subagent investigations scoped by cluster or cluster boundary: a subagent may be assigned one cluster, one comparison boundary, or one artifact lineage and should return checked claims, source paths/links, uncertainty, and candidate paragraph text.
+4. Keep subagent investigations scoped by the lens being studied: a subagent may be assigned one cluster, one working group, one comparison boundary, or one artifact lineage and should return checked claims, source paths/links, uncertainty, and candidate paragraph text.
 5. Promote only evidence-backed conclusions into `src/data/clusters.json`; keep speculative links as next checks or uncertainty, not as cluster facts.
-6. Render each cluster as an article: analysis first, object flow as a prose structure, object vocabularies as explanatory sentences rather than non-link tags, and working-group notes as coherent article subsections rather than collapsible data blocks.
+6. Render clusters and working groups as parallel article lenses. Cluster articles ask what stack object becomes first-class. Working-group articles ask about artifact lineage, authorship context, repositories, institutional practice, or continuity across papers. Their relationship is similar to Axis A/B versus Axis C/D: related and cross-referenceable, but not hierarchical.
+7. Render each cluster as an article: analysis first, object flow as a prose structure, and object vocabularies as explanatory sentences rather than non-link tags.
+8. Render each working-group analysis as its own article: state the group question, identify the evidence, link representative papers and source artifacts inline, and keep the relation to cluster seeds as navigation/context rather than containment.
 
 ## Current Cluster Hypotheses
 
@@ -55,13 +57,13 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 ## Resume Guidance
 
 - Continue evidence checking and add/update investigation notes in `src/data/clusters.json`.
-- Preserve the cluster-as-article style: avoid reintroducing card-heavy layouts inside individual clusters unless a repeated reference list genuinely needs compact rows. Non-link object vocabularies should read as prose, not tag clouds; working-group analysis should appear inside the article body when it belongs to that cluster.
+- Preserve the article style: avoid reintroducing card-heavy layouts inside individual clusters or working-group analyses unless a repeated reference list genuinely needs compact rows. Non-link object vocabularies should read as prose, not tag clouds; working-group analysis should be independent from cluster articles even when it uses a cluster as a seed.
 - Keep the display direction and the investigation work together: prose graphs and public paragraphs should improve only as the evidence for object flow, lineage or boundary, and artifact relationships improves.
 - `object_flow` is currently structured public data exported through `scripts/export-atlas-manifest.mjs`, rendered on `/clusters/`, and validated by `docs/website-integration/schemas/atlas-manifest.schema.json`; keep those surfaces aligned if the field changes.
 - `analysis` is also structured public data exported through the manifest and rendered before supporting metadata on `/clusters/`; add it only after note/paper/artifact analysis supports the paragraph.
 - When revising each draft prose graph, preserve the four-step reading shape unless there is a deliberate style decision to replace it: entry object, binding/rewrite, backend handoff, and boundary.
 - For each cluster batch, aim to replace metadata-shaped summaries with one or more analysis paragraphs grounded in notes/papers/artifacts. If the evidence is not yet checked, leave the paragraph as an investigation target rather than public polish.
-- A reasonable session batch can cover 2-4 related investigation updates plus source checks, docs count/status updates, and route smoke checks.
+- A reasonable session batch can cover 2-4 related cluster or working-group investigation updates plus source checks, docs count/status updates, and route smoke checks.
 - Keep group labels coarse and evidence-based.
 - Mark comparison sets explicitly where evidence does not support lineage.
 - Do not introduce coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.

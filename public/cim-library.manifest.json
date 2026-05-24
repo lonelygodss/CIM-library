@@ -4,7 +4,7 @@
   "title": "CIM Compiler/IR Paper Library",
   "kind": "research-atlas",
   "route": "/library/",
-  "generated_at": "2026-05-24T14:25:06.846Z",
+  "generated_at": "2026-05-24T14:54:27.949Z",
   "source": {
     "content_root": "src/content/papers",
     "taxonomy_path": "src/data/taxonomy.json",
@@ -359,6 +359,7 @@
       "Use existing paper metadata only as a seed for candidate neighborhoods: Axis A/B placement, technologies, workloads, first-class objects, rewrite objects, artifact status, author/group fields, and public note summaries.",
       "Before strengthening a cluster, inspect the actual corpus notes, paper claims, and official artifacts for the stack object, transformation path, backend handoff, and boundary of the claim.",
       "Write cluster content as analysis paragraphs or prose graphs, not as prose descriptions of metadata clustering.",
+      "Treat working-group analysis as an independent lens over artifact lineage, authorship context, repositories, and institutional practice. It may intersect clusters, but it is not subordinate to cluster analysis.",
       "Prefer coarse families with repeated stack objects or visible tool lineage over fine-grained author-network claims, and keep narrow clusters narrow when the binding object changes.",
       "Mark uncertain boundaries directly and link back to scoped atlas views for inspection."
     ],

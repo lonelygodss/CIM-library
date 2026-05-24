@@ -20,7 +20,7 @@ This is the compact default context for current project state. Keep it short; mo
 
 ## Active Focus
 
-The active focus is cluster analysis and working-group content for the CIM Library. Metadata should seed candidate clusters, but cluster claims must come from actual paper-note, paper, and artifact analysis. The long-term display direction is analytical paragraphs and prose graphs that explain object flow, lineage or boundary, and artifact relationships; each cluster should read like a small blog/article, not a cluster of cards, non-link tags, or folded data blocks. The manifest/visualization refinement focus is completed and archived.
+The active focus is cluster analysis and working-group content for the CIM Library. Metadata should seed candidate clusters, but cluster claims must come from actual paper-note, paper, and artifact analysis. Working-group analysis is a parallel lens, not a subsection of cluster analysis; its investigations can focus on artifact lineage, authorship context, repositories, institutional practice, or continuity across papers. The long-term display direction is analytical paragraphs and prose graphs that explain object flow, lineage or boundary, and artifact relationships; each cluster and each working-group analysis should read like a small blog/article, not a cluster of cards, non-link tags, or folded data blocks. The manifest/visualization refinement focus is completed and archived.
 
 Current focus doc:
 
@@ -44,7 +44,7 @@ Main implementation surfaces:
 Current cluster/content question:
 
 - The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation entries.
-- The cluster methodology and display direction are not complete. Cluster work should improve evidence/investigation content, replace metadata-shaped summaries with analysis paragraphs, use that evidence to refine the draft object-flow prose graphs, and keep supporting metadata visually secondary inside each article. Object vocabularies should be prose when they are not links; working-group notes should be coherent article subsections when they belong to the cluster.
+- The cluster methodology and display direction are not complete. Cluster work should improve evidence/investigation content, replace metadata-shaped summaries with analysis paragraphs, use that evidence to refine the draft object-flow prose graphs, and keep supporting metadata visually secondary inside each article. Object vocabularies should be prose when they are not links; working-group notes should be independent article-style analyses that cross-reference cluster seeds without being nested inside cluster analysis.
 - Subagents may be scoped by cluster, boundary question, or artifact lineage when focused investigation would help; their outputs should be checked claims, source links/paths, uncertainty, and candidate analytical prose.
 - Working-group labels must remain coarse and evidence-based.
 - LLM-serving and full-stack-boundary groupings are comparison sets, not lineage claims unless source evidence supports lineage.

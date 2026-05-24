@@ -62,6 +62,12 @@ const uniqueClusterPapers = new Set(
 const workingGroupCount = clustersData.clusters.reduce((sum, cluster) => sum + cluster.working_groups.length, 0);
 const investigationCount = clustersData.clusters.reduce((sum, cluster) => sum + investigationNotes(cluster).length, 0);
 const clusterById = new Map(clustersData.clusters.map((cluster) => [cluster.id, cluster]));
+const workingGroupArticles = clustersData.clusters.flatMap((cluster) =>
+  cluster.working_groups.map((group) => ({ cluster, group }))
+);
+const workingGroupInvestigationArticles = clustersData.clusters.flatMap((cluster) =>
+  investigationNotes(cluster).map((note) => ({ cluster, note }))
+);
 
 function paper(slug: string) {
   const found = papersBySlug.get(slug);
@@ -129,6 +135,7 @@ function proseList(items: string[]) {
         <p class="eyebrow eyebrow--dark">Analysis method</p>
         <h2>Metadata suggests candidates; paper content has to carry the claim</h2>
         <p>The cluster layer lives at <code>{clustersData.route}</code> and is sourced from <code>src/data/clusters.json</code>. It starts from the paper database, but a cluster should read as research synthesis: what object becomes first-class, how it is transformed or handed off, which notes/papers/artifacts support the claim, and where the boundary remains uncertain.</p>
+        <p>Working-group analysis is a second lens, not a subsection of cluster analysis. A group article can intersect one or more clusters, but its own question is lineage, artifact continuity, authorship context, or institutional boundary.</p>
         <div class="method-prose">
           {clustersData.methodology.map((item) => <p>{item}</p>)}
         </div>
@@ -264,62 +271,76 @@ function proseList(items: string[]) {
               </div>
             </section>
 
-            <section class="cluster-article-section" aria-label={`Evidence and working-group analysis for ${cluster.label}`}>
-              <h3>Evidence and working-group analysis</h3>
+            <section class="cluster-article-section cluster-evidence-section" aria-label={`Evidence for ${cluster.label}`}>
+              <h3>Evidence in the current corpus</h3>
               <div class="cluster-prose-block">
-                <h4>Evidence in the current corpus</h4>
                 {cluster.evidence.map((item) => <p>{item}</p>)}
               </div>
-
-              {cluster.working_groups.map((group) => (
-                <article class="cluster-prose-block working-group-article">
-                  <h4>{group.label}</h4>
-                  <p><b>{group.relationship}.</b> {group.evidence}</p>
-                  <p>{group.uncertainty}</p>
-                  <p class="inline-source-list">
-                    Representative papers:{' '}
-                    {group.representative_papers.map((slug, index) => (
-                      <>
-                        {index > 0 ? ', ' : ''}
-                        <a href={paper(slug).route}>{paper(slug).title}</a>
-                      </>
-                    ))}
-                    .
-                  </p>
-                </article>
-              ))}
-
-              {investigationNotes(cluster).map((note) => (
-                <article class="cluster-prose-block investigation-article">
-                  <h4>{note.label}</h4>
-                  <p class="subtle">Investigation status: {note.status}.</p>
-                  <p><b>Scope.</b> {note.scope}</p>
-                  <p><b>Why coherent.</b> {note.why_coherent}</p>
-                  <p><b>Boundary.</b> {note.boundary}</p>
-                  <div class="cluster-prose-subsection">
-                    <h5>Continuity evidence</h5>
-                    {note.continuity_evidence.map((item) => <p>{item}</p>)}
-                  </div>
-                  <div class="cluster-prose-subsection">
-                    <h5>Next checks</h5>
-                    {note.next_checks.map((item) => <p>{item}</p>)}
-                  </div>
-                  <p class="inline-source-list">
-                    Sources:{' '}
-                    {note.source_links.map((source, index) => (
-                      <>
-                        {index > 0 ? ', ' : ''}
-                        <a href={source.url}>{source.label}</a>
-                      </>
-                    ))}
-                    .
-                  </p>
-                </article>
-              ))}
             </section>
           </article>
         );
       })}
+    </section>
+
+    <section class="working-group-article-list" aria-label="Independent working-group articles">
+      <div class="working-group-intro">
+        <p class="eyebrow eyebrow--dark">Working-group lens</p>
+        <h2>Working-group articles are independent from cluster articles</h2>
+        <p>Clusters ask what stack object becomes first-class. Working-group analysis asks a different question: where artifact continuity, authorship context, repository lineage, or institutional practice appears in the corpus. The relationship is deliberately parallel, like the relationship between Axis A/B and Axis C/D in the atlas: a working group can cross a cluster boundary, and a cluster can contain papers from multiple groups.</p>
+      </div>
+
+      {workingGroupArticles.map(({ cluster, group }) => (
+        <article class="working-group-panel working-group-article" id={`group-${group.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
+          <p class="eyebrow eyebrow--dark">Working-group article</p>
+          <h3>{group.label}</h3>
+          <p class="working-group-context">
+            Related cluster seed: <a href={`#${cluster.id}`}>{cluster.short_label}</a>. This relation is a navigation aid, not a claim that the group is subordinate to the cluster.
+          </p>
+          <p><b>{group.relationship}.</b> {group.evidence}</p>
+          <p>{group.uncertainty}</p>
+          <p class="inline-source-list">
+            Representative papers:{' '}
+            {group.representative_papers.map((slug, index) => (
+              <>
+                {index > 0 ? ', ' : ''}
+                <a href={paper(slug).route}>{paper(slug).title}</a>
+              </>
+            ))}
+            .
+          </p>
+        </article>
+      ))}
+
+      {workingGroupInvestigationArticles.map(({ cluster, note }) => (
+        <article class="working-group-panel investigation-article" id={`investigation-${note.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
+          <p class="eyebrow eyebrow--dark">Working-group investigation</p>
+          <h3>{note.label}</h3>
+          <p class="working-group-context">
+            Status: {note.status}. Related cluster seed: <a href={`#${cluster.id}`}>{cluster.short_label}</a>.
+          </p>
+          <p><b>Scope.</b> {note.scope}</p>
+          <p><b>Why coherent.</b> {note.why_coherent}</p>
+          <p><b>Boundary.</b> {note.boundary}</p>
+          <div class="cluster-prose-subsection">
+            <h4>Continuity evidence</h4>
+            {note.continuity_evidence.map((item) => <p>{item}</p>)}
+          </div>
+          <div class="cluster-prose-subsection">
+            <h4>Next checks</h4>
+            {note.next_checks.map((item) => <p>{item}</p>)}
+          </div>
+          <p class="inline-source-list">
+            Sources:{' '}
+            {note.source_links.map((source, index) => (
+              <>
+                {index > 0 ? ', ' : ''}
+                <a href={source.url}>{source.label}</a>
+              </>
+            ))}
+            .
+          </p>
+        </article>
+      ))}
     </section>
   </main>
 </BaseLayout>
