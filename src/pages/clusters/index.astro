@@ -62,11 +62,18 @@ const uniqueClusterPapers = new Set(
 const workingGroupCount = clustersData.clusters.reduce((sum, cluster) => sum + cluster.working_groups.length, 0);
 const investigationCount = clustersData.clusters.reduce((sum, cluster) => sum + investigationNotes(cluster).length, 0);
 const clusterById = new Map(clustersData.clusters.map((cluster) => [cluster.id, cluster]));
-const workingGroupArticles = clustersData.clusters.flatMap((cluster) =>
-  cluster.working_groups.map((group) => ({ cluster, group }))
-);
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 const workingGroupInvestigationArticles = clustersData.clusters.flatMap((cluster) =>
-  investigationNotes(cluster).map((note) => ({ cluster, note }))
+  cluster.working_groups.map((group, index) => ({
+    cluster,
+    group,
+    note: investigationNotes(cluster)[index],
+    id: `working-group-${slugify(group.label)}`
+  }))
 );
 
 function paper(slug: string) {
@@ -164,35 +171,66 @@ function proseList(items: string[]) {
       </aside>
     </section>
 
-    <section class="landing-panel cluster-focus-map" aria-label="Cluster focus map">
-      <div class="section-title">
-        <h2>Cluster Focus Map</h2>
-        <span class="subtle">Start here: each row names the binding object before evidence detail.</span>
-      </div>
-      <div class="cluster-focus-list">
-        {clustersData.clusters.map((cluster) => (
-          <article>
-            <div>
-              <p class="eyebrow eyebrow--dark">{cluster.status}</p>
-              <h3><a href={`#${cluster.id}`}>{cluster.short_label}</a></h3>
-              <p>{cluster.binding_theme}</p>
-            </div>
-            <div class="cluster-focus-meta" aria-label={`Summary counts for ${cluster.short_label}`}>
-              <span>{cluster.representative_papers.length} representative</span>
-              <span>{cluster.supporting_papers.length} supporting</span>
-              <span>{cluster.working_groups.length} group notes</span>
-            </div>
-            <a class="cluster-slice-link" href={libraryHref(cluster.atlas_query)}>Atlas slice</a>
-          </article>
-        ))}
-      </div>
-    </section>
+    <div class="cluster-page-layout">
+      <nav class="note-outline section-nav cluster-shared-nav" aria-label="Cluster and working-group navigator">
+        <div class="section-nav-title">Research lenses</div>
+        <div class="outline-stack">
+          <div class="outline-section outline-leaf">
+            <a href="#cluster-focus-map">Focus map</a>
+          </div>
+          <details class="outline-section" open>
+            <summary>
+              <a class="outline-summary-link" href="#cluster-articles">Cluster articles</a>
+            </summary>
+            <ol>
+              {clustersData.clusters.map((cluster) => (
+                <li><a href={`#${cluster.id}`}>{cluster.short_label}</a></li>
+              ))}
+            </ol>
+          </details>
+          <details class="outline-section" open>
+            <summary>
+              <a class="outline-summary-link" href="#working-group-investigations">Working-group investigations</a>
+            </summary>
+            <ol>
+              {workingGroupInvestigationArticles.map(({ group, id }) => (
+                <li><a href={`#${id}`}>{group.label}</a></li>
+              ))}
+            </ol>
+          </details>
+        </div>
+      </nav>
 
-    <section class="cluster-list" aria-label="CIM Library clusters">
-      {clustersData.clusters.map((cluster) => {
-        const papers = allClusterPapers(cluster);
-        return (
-          <article class="cluster-panel" id={cluster.id}>
+      <div class="cluster-page-content">
+        <section class="landing-panel cluster-focus-map" id="cluster-focus-map" aria-label="Cluster focus map">
+          <div class="section-title">
+            <h2>Cluster Focus Map</h2>
+            <span class="subtle">Start here: each row names the binding object before evidence detail.</span>
+          </div>
+          <div class="cluster-focus-list">
+            {clustersData.clusters.map((cluster) => (
+              <article>
+                <div>
+                  <p class="eyebrow eyebrow--dark">{cluster.status}</p>
+                  <h3><a href={`#${cluster.id}`}>{cluster.short_label}</a></h3>
+                  <p>{cluster.binding_theme}</p>
+                </div>
+                <div class="cluster-focus-meta" aria-label={`Summary counts for ${cluster.short_label}`}>
+                  <span>{cluster.representative_papers.length} representative</span>
+                  <span>{cluster.supporting_papers.length} supporting</span>
+                  <span>{cluster.working_groups.length} group notes</span>
+                </div>
+                <a class="cluster-slice-link" href={libraryHref(cluster.atlas_query)}>Atlas slice</a>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="cluster-list" id="cluster-articles" aria-label="CIM Library clusters">
+          {clustersData.clusters.map((cluster) => {
+            const papers = allClusterPapers(cluster);
+            return (
+              <article class="cluster-panel" id={cluster.id}>
             <div class="cluster-panel__header">
               <div>
                 <p class="eyebrow eyebrow--dark">{cluster.status}</p>
@@ -277,70 +315,70 @@ function proseList(items: string[]) {
                 {cluster.evidence.map((item) => <p>{item}</p>)}
               </div>
             </section>
-          </article>
-        );
-      })}
-    </section>
+              </article>
+            );
+          })}
+        </section>
 
-    <section class="working-group-article-list" aria-label="Independent working-group articles">
-      <div class="working-group-intro">
-        <p class="eyebrow eyebrow--dark">Working-group lens</p>
-        <h2>Working-group articles are independent from cluster articles</h2>
-        <p>Clusters ask what stack object becomes first-class. Working-group analysis asks a different question: where artifact continuity, authorship context, repository lineage, or institutional practice appears in the corpus. The relationship is deliberately parallel, like the relationship between Axis A/B and Axis C/D in the atlas: a working group can cross a cluster boundary, and a cluster can contain papers from multiple groups.</p>
+        <section class="working-group-article-list" id="working-group-investigations" aria-label="Independent working-group investigation articles">
+          <div class="working-group-intro">
+            <p class="eyebrow eyebrow--dark">Working-group lens</p>
+            <h2>Working-group investigations are independent from cluster articles</h2>
+            <p>Clusters ask what stack object becomes first-class. Each working-group investigation asks a different question: where artifact continuity, authorship context, repository lineage, or institutional practice appears in the corpus. The relationship is deliberately parallel, like the relationship between Axis A/B and Axis C/D in the atlas: a working group can cross a cluster boundary, and a cluster can contain papers from multiple groups.</p>
+          </div>
+
+          {workingGroupInvestigationArticles.map(({ cluster, group, note, id }) => (
+            <article class="working-group-panel working-group-investigation-article" id={id}>
+              <p class="eyebrow eyebrow--dark">Working-group investigation</p>
+              <h3>{group.label}</h3>
+              <p class="working-group-context">
+                {note ? <>Status: {note.status}. </> : null}
+                Related cluster seed: <a href={`#${cluster.id}`}>{cluster.short_label}</a>. This relation is a navigation aid, not a claim that the group is subordinate to the cluster.
+              </p>
+              <p><b>{group.relationship}.</b> {group.evidence}</p>
+              <p>{group.uncertainty}</p>
+              {note && note.label !== group.label ? <p><b>Investigation focus.</b> {note.label}.</p> : null}
+              {note ? (
+                <>
+                  <p><b>Scope.</b> {note.scope}</p>
+                  <p><b>Why coherent.</b> {note.why_coherent}</p>
+                  <p><b>Boundary.</b> {note.boundary}</p>
+                  <div class="cluster-prose-subsection">
+                    <h4>Continuity evidence</h4>
+                    {note.continuity_evidence.map((item) => <p>{item}</p>)}
+                  </div>
+                  <div class="cluster-prose-subsection">
+                    <h4>Next checks</h4>
+                    {note.next_checks.map((item) => <p>{item}</p>)}
+                  </div>
+                </>
+              ) : null}
+              <p class="inline-source-list">
+                Representative papers:{' '}
+                {group.representative_papers.map((slug, index) => (
+                  <>
+                    {index > 0 ? ', ' : ''}
+                    <a href={paper(slug).route}>{paper(slug).title}</a>
+                  </>
+                ))}
+                .
+              </p>
+              {note && note.source_links.length ? (
+                <p class="inline-source-list">
+                  Sources:{' '}
+                  {note.source_links.map((source, index) => (
+                    <>
+                      {index > 0 ? ', ' : ''}
+                      <a href={source.url}>{source.label}</a>
+                    </>
+                  ))}
+                  .
+                </p>
+              ) : null}
+            </article>
+          ))}
+        </section>
       </div>
-
-      {workingGroupArticles.map(({ cluster, group }) => (
-        <article class="working-group-panel working-group-article" id={`group-${group.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
-          <p class="eyebrow eyebrow--dark">Working-group article</p>
-          <h3>{group.label}</h3>
-          <p class="working-group-context">
-            Related cluster seed: <a href={`#${cluster.id}`}>{cluster.short_label}</a>. This relation is a navigation aid, not a claim that the group is subordinate to the cluster.
-          </p>
-          <p><b>{group.relationship}.</b> {group.evidence}</p>
-          <p>{group.uncertainty}</p>
-          <p class="inline-source-list">
-            Representative papers:{' '}
-            {group.representative_papers.map((slug, index) => (
-              <>
-                {index > 0 ? ', ' : ''}
-                <a href={paper(slug).route}>{paper(slug).title}</a>
-              </>
-            ))}
-            .
-          </p>
-        </article>
-      ))}
-
-      {workingGroupInvestigationArticles.map(({ cluster, note }) => (
-        <article class="working-group-panel investigation-article" id={`investigation-${note.label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}>
-          <p class="eyebrow eyebrow--dark">Working-group investigation</p>
-          <h3>{note.label}</h3>
-          <p class="working-group-context">
-            Status: {note.status}. Related cluster seed: <a href={`#${cluster.id}`}>{cluster.short_label}</a>.
-          </p>
-          <p><b>Scope.</b> {note.scope}</p>
-          <p><b>Why coherent.</b> {note.why_coherent}</p>
-          <p><b>Boundary.</b> {note.boundary}</p>
-          <div class="cluster-prose-subsection">
-            <h4>Continuity evidence</h4>
-            {note.continuity_evidence.map((item) => <p>{item}</p>)}
-          </div>
-          <div class="cluster-prose-subsection">
-            <h4>Next checks</h4>
-            {note.next_checks.map((item) => <p>{item}</p>)}
-          </div>
-          <p class="inline-source-list">
-            Sources:{' '}
-            {note.source_links.map((source, index) => (
-              <>
-                {index > 0 ? ', ' : ''}
-                <a href={source.url}>{source.label}</a>
-              </>
-            ))}
-            .
-          </p>
-        </article>
-      ))}
-    </section>
+    </div>
   </main>
 </BaseLayout>

@@ -1370,6 +1370,25 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 .cluster-focus-map {
   margin-top: 0;
 }
+.cluster-page-layout {
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 980px);
+  gap: 22px;
+  align-items: start;
+  justify-content: center;
+}
+.cluster-page-layout > * {
+  min-width: 0;
+}
+.cluster-shared-nav {
+  scroll-margin-top: 18px;
+}
+.cluster-shared-nav .outline-section summary {
+  grid-template-columns: 13px minmax(0, 1fr);
+}
+.cluster-page-content {
+  min-width: 0;
+}
 .cluster-focus-list {
   display: grid;
   gap: 10px;
@@ -1734,7 +1753,8 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 }
 @media (max-width: 1180px) {
   .atlas-page-layout,
-  .paper-layout { grid-template-columns: 1fr; }
+  .paper-layout,
+  .cluster-page-layout { grid-template-columns: 1fr; }
   .detail-overview { grid-template-columns: 1fr; }
   .provenance-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .grid-cards, .axis-explainer { grid-template-columns: repeat(2, minmax(0, 1fr)); }
