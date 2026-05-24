@@ -39,7 +39,7 @@ Main implementation surfaces:
 - `src/data/clusters.json`
 - `src/pages/clusters/index.astro`
 - Representative paper notes and official paper/artifact sources for the cluster being revised.
-- Current `object_flow` fields are a draft four-step display scaffold, structured in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned if the field changes.
+- Current `object_flow` fields are a draft four-step display scaffold, structured in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned if the field changes. The `analysis` field is the preferred public paragraph surface and currently exists for the DRAM-PIM API/compiler and LLM memory-hierarchy clusters.
 
 Current cluster/content question:
 

@@ -337,6 +337,7 @@ const clusterLayer = clustersData ? {
       short_label: cluster.short_label,
       status: cluster.status,
       route: `${clustersData.route || '/clusters/'}#${cluster.id}`,
+      analysis: cluster.analysis || null,
       representative_papers: cluster.representative_papers,
       supporting_papers: cluster.supporting_papers,
       object_flow: cluster.object_flow || [],

@@ -1215,6 +1215,18 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   color: #22324a;
   font-weight: 700;
 }
+.cluster-analysis {
+  margin: 18px 0 0;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.cluster-analysis p:not(.eyebrow) {
+  max-width: 980px;
+  margin: 0;
+  color: #26364f;
+  font-size: 16px;
+  line-height: 1.65;
+}
 .cluster-flow {
   margin: 18px 0 0;
   border-top: 1px solid var(--line);

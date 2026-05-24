@@ -4,7 +4,7 @@
   "title": "CIM Compiler/IR Paper Library",
   "kind": "research-atlas",
   "route": "/library/",
-  "generated_at": "2026-05-24T09:50:37.305Z",
+  "generated_at": "2026-05-24T12:40:16.363Z",
   "source": {
     "content_root": "src/content/papers",
     "taxonomy_path": "src/data/taxonomy.json",
@@ -375,6 +375,7 @@
         "short_label": "Crossbar DNN toolchains",
         "status": "high-confidence descriptive cluster",
         "route": "/clusters/#crossbar-dnn-compiler-simulator-line",
+        "analysis": null,
         "representative_papers": [
           "pimcomp",
           "pimsim-nn",
@@ -404,6 +405,7 @@
         "short_label": "SRAM macro generation",
         "status": "high-confidence descriptive cluster",
         "route": "/clusters/#digital-sram-macro-generation",
+        "analysis": null,
         "representative_papers": [
           "autodcim",
           "arctic",
@@ -433,6 +435,7 @@
         "short_label": "Analog modeling baselines",
         "status": "high-confidence descriptive cluster",
         "route": "/clusters/#analog-nonideality-modeling",
+        "analysis": null,
         "representative_papers": [
           "neurosim",
           "cimloop",
@@ -462,6 +465,7 @@
         "short_label": "UPMEM runtime layer",
         "status": "high-confidence descriptive cluster",
         "route": "/clusters/#upmem-real-hardware-runtime",
+        "analysis": null,
         "representative_papers": [
           "prim",
           "simplepim",
@@ -490,6 +494,7 @@
         "short_label": "DRAM-PIM API/compiler",
         "status": "medium-high-confidence descriptive cluster",
         "route": "/clusters/#dram-pim-api-bitserial",
+        "analysis": "This cluster is best read as a narrow DRAM-PIM API-to-compiler boundary rather than as a general PIM lineage. PIMeval supplies the backend-facing abstraction: C++ API calls over persistent PIM object IDs, allocation/layout state, hardware configs, and command-level timing/energy statistics. PIMsynth then occupies the compiler side of that boundary, lowering bit-parallel combinational Verilog through GenLib/BLIF, a serialized PIM IR-1 dependency graph, LLVM-mediated scheduling and register allocation, and backend code generation into PIMeval API microprograms and tests. The shared object is therefore not a tensor graph or a full memory-hierarchy placement plan, but a simulator-executable command/program boundary where bit-serial operation graphs become auditable row/register/API events.",
         "representative_papers": [
           "pimeval",
           "pimsynth"
@@ -515,6 +520,7 @@
         "short_label": "LLM memory hierarchy",
         "status": "medium-confidence descriptive cluster",
         "route": "/clusters/#llm-memory-hierarchy-mapping",
+        "analysis": "This cluster is about LLM execution becoming a memory-hierarchy object before it becomes a conventional compiler IR. HARMONI is the strongest public anchor: it turns Transformer execution into a DFG whose tensors carry address, rank/chip location, row/column access, phase/layer/head, communication, and logic-unit binding metadata, then rewrites mapped work into subtasks plus synchronization and aggregation nodes before simulation. PAPI and Hermes show a different middle object: runtime serving state, where request/token parallelism or hot/cold neuron activity chooses GPU/PIM/NDP placement rather than rewriting a static graph. Ouroboros makes the same pressure visible at wafer scale through token pipeline stages, H-tree placement, KV page tables, bitmaps, row/column-valid registers, and fault-remap state. UniNDP and CIM-MXU are useful boundary cases: they share hierarchy-aware mapping and backend handoff concerns, but their durable objects are DRAM-NDP instruction/layout state and TPU-level CIM-MXU tiling/configuration state, not the same LLM-serving runtime object. The cluster is therefore a workload/state comparison set around placement, hierarchy binding, and runtime memory state, with HARMONI as the artifact anchor and the rest as paper-level or partial-artifact contrasts.",
         "representative_papers": [
           "harmoni",
           "papi",
@@ -545,6 +551,7 @@
         "short_label": "IR/ISA boundaries",
         "status": "medium-confidence descriptive cluster",
         "route": "/clusters/#full-stack-ir-isa-boundaries",
+        "analysis": null,
         "representative_papers": [
           "cimflow",
           "puma",

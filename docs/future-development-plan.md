@@ -68,6 +68,7 @@ Implemented first pass:
 - route: `/clusters/`, as a sibling research view to `/library/`;
 - data: `src/data/clusters.json`, hand-authored and inspectable;
 - UI: static cluster panels with binding theme, representative/supporting papers, shared objects, rewrite objects, evidence, uncertainty, coarse working-group notes, and scoped atlas links;
+- analysis paragraphs: `analysis` is the preferred public synthesis field and currently exists for the DRAM-PIM API/compiler and LLM memory-hierarchy clusters after focused note-level investigation;
 - deeper group investigations: selected clusters now carry working-group investigation notes with scope, coherence rationale, continuity evidence, boundaries, next checks, and source links;
 - draft display scaffold: each cluster has an `object_flow` field rendered on `/clusters/`, exported in the atlas manifest, and validated by the manifest schema;
 - links: `/projects/cim-library/` and `/library/` now point to the cluster route.

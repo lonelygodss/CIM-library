@@ -188,6 +188,13 @@ function splitFlowStep(step: string) {
               </div>
             </div>
 
+            {cluster.analysis ? (
+              <section class="cluster-analysis" aria-label={`Analysis for ${cluster.label}`}>
+                <p class="eyebrow eyebrow--dark">Analysis</p>
+                <p>{cluster.analysis}</p>
+              </section>
+            ) : null}
+
             <div class="cluster-detail-grid">
               <section class="cluster-detail-block cluster-focus-block">
                 <h3>Binding theme</h3>

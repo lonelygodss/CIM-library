@@ -102,6 +102,9 @@
               "short_label": { "type": "string" },
               "status": { "type": "string" },
               "route": { "type": "string", "pattern": "^/" },
+              "analysis": {
+                "type": ["string", "null"]
+              },
               "representative_papers": {
                 "type": "array",
                 "items": { "type": "string" }
