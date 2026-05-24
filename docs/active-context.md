@@ -20,7 +20,7 @@ This is the compact default context for current project state. Keep it short; mo
 
 ## Active Focus
 
-The active focus is cluster analysis and working-group content for the CIM Library. This includes the long-term display direction for the cluster area: evidence-grounded text/prose graphs that explain object flow, lineage or boundary, and artifact relationships. The manifest/visualization refinement focus is completed and archived.
+The active focus is cluster analysis and working-group content for the CIM Library. Metadata should seed candidate clusters, but cluster claims must come from actual paper-note, paper, and artifact analysis. The long-term display direction is analytical paragraphs and prose graphs that explain object flow, lineage or boundary, and artifact relationships. The manifest/visualization refinement focus is completed and archived.
 
 Current focus doc:
 
@@ -39,14 +39,15 @@ Main implementation surfaces:
 - `src/data/clusters.json`
 - `src/pages/clusters/index.astro`
 - Representative paper notes and official paper/artifact sources for the cluster being revised.
-- Current `object_flow` fields are a draft display scaffold, structured in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned if the field changes.
+- Current `object_flow` fields are a draft four-step display scaffold, structured in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned if the field changes.
 
 Current cluster/content question:
 
-- The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation cards.
-- The cluster display direction is not complete. Cluster work should improve evidence/investigation content and use that evidence to refine the draft object-flow prose graphs.
+- The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation entries.
+- The cluster methodology and display direction are not complete. Cluster work should improve evidence/investigation content, replace metadata-shaped summaries with analysis paragraphs, and use that evidence to refine the draft object-flow prose graphs.
+- Subagents may be scoped by cluster, boundary question, or artifact lineage when focused investigation would help; their outputs should be checked claims, source links/paths, uncertainty, and candidate analytical prose.
 - Working-group labels must remain coarse and evidence-based.
-- LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims unless source evidence supports lineage.
+- LLM-serving and full-stack-boundary groupings are comparison sets, not lineage claims unless source evidence supports lineage.
 - Preserve the descriptive paper metadata contract and keep clusters separate from paper frontmatter unless the contract is intentionally changed.
 - Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
 

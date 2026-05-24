@@ -6,15 +6,24 @@ Default-context policy: Do not read by default. Read when resuming cluster inves
 
 ## Saved State
 
-The cluster-analysis layer is a static, hand-authored research view over the existing corpus.
+The cluster-analysis layer is a static, hand-authored research view over the existing corpus. Metadata is only a discovery seed; cluster claims must be argued from the actual paper notes, paper text when needed, official artifacts, and source-visible execution or file boundaries.
 
 - Source data: `src/data/clusters.json`.
 - Route: `src/pages/clusters/index.astro` at `/clusters/`.
-- Current shape: 7 cluster hypotheses and 13 deeper investigation cards.
-- Display direction: develop evidence-grounded text/prose graphs that explain object flow, lineage or boundary, and artifact relationships. This is a long-term design goal that accompanies the cluster investigation and determines the overall style of this part of the library.
-- Current display scaffold: each cluster has a draft `object_flow` field rendered on `/clusters/`. Treat it as a first-pass scaffold, not as completion of the display direction.
+- Current shape: 7 cluster hypotheses and 13 deeper investigation entries.
+- Method direction: start from metadata to find candidate neighborhoods, then perform real cluster analysis by reading notes, papers, and official artifacts. A cluster is not ready because metadata fields line up; it is ready only when an analytical paragraph can explain what object the stack makes first-class and why the evidence supports that boundary.
+- Display direction: prioritize analytical paragraphs and prose graphs that explain object flow, lineage or boundary, and artifact relationships. Avoid making the cluster layer feel like a deck of metadata cards with prose labels.
+- Current display scaffold: each cluster has a draft `object_flow` field rendered on `/clusters/` with four consistent labels: Entry object, Binding/rewrite, Backend handoff, and Boundary. Treat this as a temporary scaffold for analysis, not as completion of the display direction.
 - `/library/` and `/projects/cim-library/` link to `/clusters/`.
 - Cluster data is separate from paper frontmatter so the public paper metadata contract stays descriptive.
+
+## Methodology
+
+1. Use metadata as a seed: Axis A/B placement, technologies, workloads, first-class objects, rewrite objects, artifact status, author/group fields, and note summaries suggest possible neighborhoods.
+2. Read the substance before strengthening a cluster: inspect the corpus notes first, then the paper and official artifact/docs/code when the note does not establish the stack object, rewrite path, backend handoff, or lineage boundary.
+3. Write an analysis paragraph, not a metadata digest: the public cluster text should state the shared first-class object, explain the transformation or handoff path, name the evidence base, and mark the boundary of the claim.
+4. Keep subagent investigations scoped by cluster or cluster boundary: a subagent may be assigned one cluster, one comparison boundary, or one artifact lineage and should return checked claims, source paths/links, uncertainty, and candidate paragraph text.
+5. Promote only evidence-backed conclusions into `src/data/clusters.json`; keep speculative links as next checks or uncertainty, not as cluster facts.
 
 ## Current Cluster Hypotheses
 
@@ -45,9 +54,10 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 ## Resume Guidance
 
 - Continue evidence checking and add/update investigation notes in `src/data/clusters.json`.
-- Keep the display direction and the investigation work together: prose graphs should improve only as the evidence for object flow, lineage or boundary, and artifact relationships improves.
+- Keep the display direction and the investigation work together: prose graphs and public paragraphs should improve only as the evidence for object flow, lineage or boundary, and artifact relationships improves.
 - `object_flow` is currently structured public data exported through `scripts/export-atlas-manifest.mjs`, rendered on `/clusters/`, and validated by `docs/website-integration/schemas/atlas-manifest.schema.json`; keep those surfaces aligned if the field changes.
-- When revising each draft prose graph, keep it focused on stack object, transformations or handoff path, evidence papers/artifacts, and uncertainty boundary.
+- When revising each draft prose graph, preserve the four-step reading shape unless there is a deliberate style decision to replace it: entry object, binding/rewrite, backend handoff, and boundary.
+- For each cluster batch, aim to replace metadata-shaped summaries with one or more analysis paragraphs grounded in notes/papers/artifacts. If the evidence is not yet checked, leave the paragraph as an investigation target rather than public polish.
 - A reasonable session batch can cover 2-4 related investigation updates plus source checks, docs count/status updates, and route smoke checks.
 - Keep group labels coarse and evidence-based.
 - Mark comparison sets explicitly where evidence does not support lineage.
@@ -63,4 +73,4 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 - `npm run contract:website`
 - `npm run check`
 - `npm run build`
-- Browser smoke check for `/clusters/`: 7 clusters, 13 investigation cards, no horizontal overflow on desktop or mobile.
+- Browser smoke check for `/clusters/`: 7 clusters, 13 investigation entries, no horizontal overflow on desktop or mobile.

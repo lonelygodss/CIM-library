@@ -95,6 +95,15 @@ function relatedClusters(cluster: typeof clustersData.clusters[number]) {
 function investigationNotes(cluster: typeof clustersData.clusters[number]) {
   return ('working_group_investigations' in cluster ? cluster.working_group_investigations : []) ?? [];
 }
+
+function splitFlowStep(step: string) {
+  const separator = step.indexOf(':');
+  if (separator <= 0) return { label: '', text: step };
+  return {
+    label: step.slice(0, separator),
+    text: step.slice(separator + 1).trim()
+  };
+}
 ---
 
 <BaseLayout
@@ -111,12 +120,12 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
 
     <section class="cluster-overview" aria-label="Cluster layer overview">
       <article class="landing-panel cluster-method">
-        <p class="eyebrow eyebrow--dark">Model decision</p>
-        <h2>Hand-authored clusters, paper metadata left unchanged</h2>
-        <p>The cluster layer lives at <code>{clustersData.route}</code> and is sourced from <code>src/data/clusters.json</code>. It uses the current paper database as evidence and links back into scoped atlas filters for inspection.</p>
-        <ul class="plain-list">
-          {clustersData.methodology.map((item) => <li>{item}</li>)}
-        </ul>
+        <p class="eyebrow eyebrow--dark">Analysis method</p>
+        <h2>Metadata suggests candidates; paper content has to carry the claim</h2>
+        <p>The cluster layer lives at <code>{clustersData.route}</code> and is sourced from <code>src/data/clusters.json</code>. It starts from the paper database, but a cluster should read as research synthesis: what object becomes first-class, how it is transformed or handed off, which notes/papers/artifacts support the claim, and where the boundary remains uncertain.</p>
+        <div class="method-prose">
+          {clustersData.methodology.map((item) => <p>{item}</p>)}
+        </div>
       </article>
       <aside class="stat-board stat-board--landing">
         <div>
@@ -193,7 +202,15 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
             <section class="cluster-flow" aria-label={`Object flow for ${cluster.label}`}>
               <h3>Object flow</h3>
               <ol>
-                {cluster.object_flow.map((step) => <li>{step}</li>)}
+                {cluster.object_flow.map((step) => {
+                  const flowStep = splitFlowStep(step);
+                  return (
+                    <li>
+                      {flowStep.label ? <b>{flowStep.label}</b> : null}
+                      <span>{flowStep.text}</span>
+                    </li>
+                  );
+                })}
               </ol>
             </section>
 

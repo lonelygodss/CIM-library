@@ -21,9 +21,10 @@ Current default state:
 - CIM Library local navigator is implemented in src/components/CimLibraryNav.astro and stays aligned with the global navigator while remaining lower hierarchy. Its Notes item points to /papers/ and is active for both /papers/ and /papers/[slug]/.
 - /projects/cim-library/ now explains the central corpus question, static public surfaces, and corpus-shape summaries.
 - /library/ uses the same top spacing as the other CIM Library pages, a left in-page section sidebar, and a compact selected-paper reading bridge; detailed source/frontmatter metadata stays on /papers/[slug]/.
-- /clusters/ is focus-first: the top cluster map names each binding object and links to detail/atlas slices; long evidence, working-group, and investigation material is grouped inside each cluster card.
-- Cluster display direction is the active long-term focus: develop evidence-grounded text/prose graphs that explain object flow, lineage or boundary, and artifact relationships. Current object_flow fields are a draft scaffold in src/data/clusters.json, rendered on /clusters/, exported in public/cim-library.manifest.json, and validated by the manifest schema; keep those surfaces aligned when revising them.
-- Working-group labels must remain coarse and evidence-based; LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims.
+- /clusters/ is focus-first: the top cluster map names each binding object and links to detail/atlas slices; long evidence, working-group, and investigation material is grouped inside each cluster section.
+- Cluster methodology/display direction is the active long-term focus: metadata seeds candidate clusters, but real cluster claims must come from paper-note, paper, and artifact analysis. Public cluster content should become analytical paragraphs and prose graphs explaining object flow, lineage or boundary, and artifact relationships, not prose descriptions of metadata clustering. Current object_flow fields are a draft four-step scaffold in src/data/clusters.json, rendered on /clusters/, exported in public/cim-library.manifest.json, and validated by the manifest schema; keep those surfaces aligned when revising them.
+- Subagents may be scoped by cluster, boundary question, or artifact lineage for focused investigation; expected output is checked claims, source links/paths, uncertainty, and candidate analytical prose.
+- Working-group labels must remain coarse and evidence-based; LLM-serving and full-stack-boundary groupings are comparison sets, not lineage claims.
 - Do not add coverage scores, ranking scores, quality scores, or trajectory_IR_relevance.
 
 Session scope:
@@ -33,7 +34,7 @@ Session scope:
 - Stop early only when evidence is missing, a claim would become too speculative, or the next step needs a new product/research decision.
 
 Good next steps depend on the requested focus:
-- Cluster work: resume from docs/focus/cluster-analysis-working-groups.md before editing src/data/clusters.json; keep display-style changes tied to evidence improvements.
+- Cluster work: resume from docs/focus/cluster-analysis-working-groups.md before editing src/data/clusters.json; keep display-style changes tied to evidence improvements and prefer analysis paragraphs over metadata-card polish.
 - Paper work: read docs/corpus-note-harness.md and docs/metadata-template.md only then.
 - Website work: read docs/website-integration/README.md only then.
 - Docs work: read docs/iteration-docs-playbook.md and docs/focus/README.md.

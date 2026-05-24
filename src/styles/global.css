@@ -1135,6 +1135,15 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 .cluster-method .plain-list {
   margin-top: 12px;
 }
+.method-prose {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.method-prose p {
+  margin: 0;
+  color: var(--muted);
+}
 .cluster-list {
   display: grid;
   gap: 22px;
@@ -1244,6 +1253,17 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   color: #26364f;
   font-size: 12px;
   font-weight: 850;
+}
+.cluster-flow li b {
+  display: block;
+  margin: 0 0 5px;
+  color: #26364f;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.cluster-flow li span {
+  display: block;
 }
 .cluster-related {
   margin: 16px 0 0;

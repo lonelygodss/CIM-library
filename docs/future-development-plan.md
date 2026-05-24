@@ -72,6 +72,13 @@ Implemented first pass:
 - draft display scaffold: each cluster has an `object_flow` field rendered on `/clusters/`, exported in the atlas manifest, and validated by the manifest schema;
 - links: `/projects/cim-library/` and `/library/` now point to the cluster route.
 
+Current methodology direction:
+
+- Metadata is a seed for candidate neighborhoods, not the basis of the final claim.
+- Cluster conclusions should be argued from paper notes, paper text where needed, official artifacts, and source-visible file or execution boundaries.
+- Public cluster content should move toward analytical paragraphs and prose graphs rather than metadata-card summaries.
+- Subagent investigations can be scoped by cluster, boundary question, or artifact lineage; their useful output is checked claims, source links/paths, uncertainty, and candidate analytical prose.
+
 Current cluster hypotheses:
 
 1. Crossbar DNN compiler and simulator toolchain line.
@@ -106,7 +113,7 @@ Good next moves:
 
 1. Continue adding in-depth investigation notes cluster-by-cluster, prioritizing groups where official artifacts expose file formats or execution flows.
 2. Strengthen each investigation by checking representative paper notes against official artifacts where the current evidence is thin.
-3. Develop the long-term display direction alongside the evidence: evidence-grounded text/prose graphs should explain object flow, lineage or boundary, and artifact relationships without overclaiming.
+3. Develop the long-term display direction alongside the evidence: evidence-grounded analytical paragraphs and prose graphs should explain object flow, lineage or boundary, and artifact relationships without overclaiming.
 4. Refine the current `object_flow` scaffold only when the underlying evidence is strong enough, and keep `src/data/clusters.json`, `/clusters/`, the manifest exporter, and the manifest schema aligned.
 5. Keep the single `/clusters/` page unless a cluster accumulates enough checked evidence to justify a separate detail page.
 6. Keep using scoped `/library/` links rather than duplicating the atlas.

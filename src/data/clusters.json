@@ -1,11 +1,12 @@
 {
   "schema_version": "0.1",
   "route": "/clusters/",
-  "scope_note": "First-pass, hand-curated cluster layer over the existing CIM Library corpus. Clusters are descriptive working hypotheses backed by current paper metadata and notes; they are not rankings, coverage scores, or affiliation graphs.",
+  "scope_note": "Hand-curated cluster-analysis layer over the CIM Library corpus. Metadata is used to seed candidate neighborhoods, but public cluster claims should be argued from paper notes, papers, and official artifacts; they are not rankings, coverage scores, or affiliation graphs.",
   "methodology": [
-    "Use existing paper metadata first: Axis A/B placement, technologies, workloads, first-class objects, rewrite objects, artifact status, author/group fields, and public note summaries.",
-    "Prefer coarse families with repeated stack objects or visible tool lineage over fine-grained author-network claims.",
-    "Keep narrow clusters narrow when the binding object changes, even if the papers share a repository family or technology label.",
+    "Use existing paper metadata only as a seed for candidate neighborhoods: Axis A/B placement, technologies, workloads, first-class objects, rewrite objects, artifact status, author/group fields, and public note summaries.",
+    "Before strengthening a cluster, inspect the actual corpus notes, paper claims, and official artifacts for the stack object, transformation path, backend handoff, and boundary of the claim.",
+    "Write cluster content as analysis paragraphs or prose graphs, not as prose descriptions of metadata clustering.",
+    "Prefer coarse families with repeated stack objects or visible tool lineage over fine-grained author-network claims, and keep narrow clusters narrow when the binding object changes.",
     "Mark uncertain boundaries directly and link back to scoped atlas views for inspection."
   ],
   "clusters": [
@@ -17,10 +18,10 @@
       "summary": "A set of NVM/RRAM crossbar PIM stacks where ONNX-style DNN graphs, array groups, PIM functional units, pseudo-instructions, and simulator configurations become the reusable compiler/backend boundary.",
       "binding_theme": "Graph-to-array-group mapping plus instruction/configuration artifacts for crossbar PIM DNN inference.",
       "object_flow": [
-        "Model graph enters as ONNX, JSON, or an equivalent DNN graph representation.",
-        "Compiler state binds layers and weights onto crossbar arrays, array groups, PIMFUs, cores, and chip-level configuration.",
-        "The reusable backend object becomes an instruction, pseudo-instruction, or simulator configuration artifact for crossbar-PIM execution.",
-        "Uncertainty starts where repository-suite continuity is clearer than paper-by-paper schema compatibility."
+        "Entry object: a DNN model graph, usually ONNX, JSON, or an equivalent graph representation.",
+        "Binding/rewrite: layers and weights are placed onto crossbar arrays, array groups, PIMFUs, cores, and chip-level configuration state.",
+        "Backend handoff: the durable object is an instruction stream, pseudo-instruction set, hardware configuration, or simulator-facing execution artifact.",
+        "Boundary: the toolchain continuity is visible, but paper-by-paper schema compatibility still needs artifact-level checking."
       ],
       "representative_papers": ["pimcomp", "pimsim-nn", "pimsyn-nn"],
       "supporting_papers": ["pim-eda", "pimacc"],
@@ -80,10 +81,10 @@
       "summary": "A lower-stack family centered on DCIM macro templates, precision fields, subcircuit choices, BIST or EDA flows, and physical or macro-level backend artifacts rather than whole-model compiler IR.",
       "binding_theme": "Config-as-IR for macro templates, numeric formats, and backend generation constraints.",
       "object_flow": [
-        "A macro specification names rows, columns, precision, cells, subcircuits, and peripheral choices before workload mapping matters.",
-        "Generation or search rewrites that specification through template selection, numeric specialization, BIST, approximate arithmetic, or EDA constraints.",
-        "The backend handoff is RTL, SPICE, DEF, GDSII, layout, or a validated macro-level report rather than a full model compiler dialect.",
-        "The boundary is lower-stack macro materialization; OpenACM-style approximate search remains related but not the same lineage."
+        "Entry object: a macro specification names rows, columns, precision, cells, subcircuits, and peripheral choices before workload mapping dominates the stack.",
+        "Binding/rewrite: generation or search specializes the macro through template selection, numeric format choices, BIST, approximate arithmetic, or EDA constraints.",
+        "Backend handoff: the durable object is RTL, SPICE, DEF, GDSII, layout, or a validated macro-level report rather than a full model compiler dialect.",
+        "Boundary: the cluster is about lower-stack macro materialization; OpenACM-style approximate search is related but not the same lineage."
       ],
       "representative_papers": ["autodcim", "arctic", "syndcim"],
       "supporting_papers": ["openc2", "openacmv2"],
@@ -181,10 +182,10 @@
       "summary": "A simulator and modeling cluster where the first-class objects are device/circuit/array hierarchies, ADC/sensing precision, operand distributions, nonidealities, calibration state, and mapping-aware cost estimates.",
       "binding_theme": "Backend contracts and cost models for analog or hybrid CIM evaluation.",
       "object_flow": [
-        "A model or workload is projected onto device, circuit, array, tile, chip, or Timeloop-style hierarchy descriptions.",
-        "The modeling layer names ADC/DAC precision, sensing, bit slicing, operand distributions, nonidealities, and calibration as reusable state.",
-        "The output is a cost, accuracy, or mapping report that can feed architecture search or compare backend assumptions.",
-        "The cluster is methodological: NeuroSim, CiMLoop, GENIEx, and NAX share modeling objects, not one compiler stack."
+        "Entry object: a model, workload, or mapping problem is projected onto device, circuit, array, tile, chip, or Timeloop-style hierarchy descriptions.",
+        "Binding/rewrite: the modeling layer makes ADC/DAC precision, sensing, bit slicing, operand distributions, nonidealities, and calibration reusable state.",
+        "Backend handoff: the durable object is a cost, accuracy, mapping, or calibration report that feeds architecture search or backend comparison.",
+        "Boundary: the cluster is methodological; NeuroSim, CiMLoop, GENIEx, and NAX share modeling objects, not one compiler stack."
       ],
       "representative_papers": ["neurosim", "cimloop", "geniex"],
       "supporting_papers": ["nax", "ns-cache"],
@@ -328,10 +329,10 @@
       "summary": "A real-system PIM cluster where the central objects are DPUs, MRAM/WRAM state, host-device batches, runtime array metadata, tasklets, graph partitions, and benchmark harnesses.",
       "binding_theme": "Runtime-state and memory-layout abstractions for commercial UPMEM DRAM-PIM execution.",
       "object_flow": [
-        "A benchmark, array program, graph kernel, or optimization workload is split across host and UPMEM DPU execution.",
-        "Runtime state names DPU sets, tasklets, MRAM/WRAM placement, host-DPU transfers, partitions, collectives, and merge points.",
-        "The visible handoff is runnable host code, DPU kernels, Makefile or CLI parameters, datasets, and profiling output.",
-        "The binding object is real-hardware execution state, not an explicit compiler IR or simulator-only API."
+        "Entry object: a benchmark, array program, graph kernel, or optimization workload is divided between host code and UPMEM DPU execution.",
+        "Binding/rewrite: runtime state names DPU sets, tasklets, MRAM/WRAM placement, host-DPU transfers, partitions, collectives, and merge points.",
+        "Backend handoff: the durable object is runnable host code, DPU kernels, Makefile or CLI parameters, datasets, and profiling output.",
+        "Boundary: the binding object is real-hardware execution state, not an explicit compiler IR or simulator-only API."
       ],
       "representative_papers": ["prim", "simplepim", "pim-opt"],
       "supporting_papers": ["pim-tc"],
@@ -403,10 +404,10 @@
       "summary": "A narrow digital DRAM-PIM cluster in which PIM data-object APIs, benchmark kernels, simulator commands, and bit-serial operation DAGs define the backend-facing programming boundary.",
       "binding_theme": "PIM API objects and bit-serial instruction generation for digital or mixed DRAM-PIM targets, with PIMeval acting as a benchmark/simulator boundary and PIMsynth compiling into that boundary.",
       "object_flow": [
-        "A benchmark kernel or Verilog/GenLib operation enters as a PIM API object or bit-serial logic graph.",
-        "Compilation rewrites the operation through IR, scheduling, assembly, test generation, and microprogram-like command sequences.",
-        "The backend handoff targets PIMeval-style simulation, command statistics, and validation harnesses.",
-        "The boundary is intentionally narrow: HARMONI is adjacent but centered on hierarchy mapping rather than PIMeval API command compilation."
+        "Entry object: a benchmark kernel, PIM data object, or Verilog/GenLib operation enters as a PIM API object or bit-serial logic graph.",
+        "Binding/rewrite: compilation lowers the operation through IR, scheduling, assembly, test generation, and microprogram-like command sequences.",
+        "Backend handoff: the durable object targets PIMeval-style simulation, command statistics, and validation harnesses.",
+        "Boundary: the cluster stays narrow; HARMONI is adjacent but centered on hierarchy mapping rather than PIMeval API command compilation."
       ],
       "representative_papers": ["pimeval", "pimsynth"],
       "supporting_papers": [],
@@ -470,10 +471,10 @@
       "summary": "A broad LLM/Transformer PIM cluster where the binding object is not a single ISA or API, but model-phase metadata, tensor placement, KV/runtime state, hierarchy binding, and host/PIM or near-memory data movement.",
       "binding_theme": "Mapping Transformer/LLM execution onto memory hierarchies by naming tensor locations, phases, hierarchy resources, runtime state, and communication or batching decisions.",
       "object_flow": [
-        "Transformer or LLM execution is decomposed into phase, layer, tensor, request, token, neuron, or KV/cache state.",
-        "Mapping binds those objects onto memory hierarchy resources: DRAM, NDP units, PIM logic, GPU/NDP placement, wafer/core coordinates, or SRAM-CIM structures.",
-        "Runtime or modeling rewrites insert movement, batching, synchronization, placement, or remapping decisions before reporting latency, energy, or serving behavior.",
-        "This is a comparison set around runtime and hierarchy state, not one artifact lineage."
+        "Entry object: Transformer or LLM execution is decomposed into phase, layer, tensor, request, token, neuron, or KV/cache state.",
+        "Binding/rewrite: mapping binds those objects onto DRAM, NDP units, PIM logic, GPU/NDP placement, wafer/core coordinates, or SRAM-CIM structures.",
+        "Backend handoff: the durable object is a placement, movement, batching, synchronization, or remapping plan with latency, energy, or serving-behavior reports.",
+        "Boundary: this is a comparison set around runtime and hierarchy state, not one artifact lineage."
       ],
       "representative_papers": ["harmoni", "papi", "hermes"],
       "supporting_papers": ["unindp", "ouroboros", "cim-mxu"],
@@ -575,10 +576,10 @@
       "summary": "A cross-cutting cluster for public or near-public stacks that make the compiler/backend boundary visible through graph IRs, MLIR/DSL fragments, instruction streams, JSON/YAML contracts, ISA-like commands, or chip/emulator addresses.",
       "binding_theme": "The stack object becomes explicit enough to inspect as a serialized compiler, simulator, or chip-facing contract.",
       "object_flow": [
-        "A source graph, mapped layer set, model object, or CIM-IR enters a compiler path that keeps intermediate state inspectable.",
-        "Lowering binds operators to hardware hierarchy, addresses, instruction fields, calculation parameters, or simulator/chip targets.",
-        "The durable object is serialized as JSON, YAML, assembly, meta-operators, generated scripts, or simulator inputs.",
-        "The cluster is an inspection path across stacks; shared visibility does not imply shared schema, compatibility, or lineage."
+        "Entry object: a source graph, mapped layer set, model object, or CIM-IR enters a compiler path that keeps intermediate state inspectable.",
+        "Binding/rewrite: lowering binds operators to hardware hierarchy, addresses, instruction fields, calculation parameters, or simulator/chip targets.",
+        "Backend handoff: the durable object is serialized as JSON, YAML, assembly, meta-operators, generated scripts, or simulator inputs.",
+        "Boundary: the cluster is an inspection path across stacks; shared visibility does not imply shared schema, compatibility, or lineage."
       ],
       "representative_papers": ["cimflow", "puma", "opencimtc"],
       "supporting_papers": ["cim-mlc", "pimcomp"],
