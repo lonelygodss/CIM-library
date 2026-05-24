@@ -339,6 +339,7 @@ const clusterLayer = clustersData ? {
       route: `${clustersData.route || '/clusters/'}#${cluster.id}`,
       representative_papers: cluster.representative_papers,
       supporting_papers: cluster.supporting_papers,
+      object_flow: cluster.object_flow || [],
       working_group_count: cluster.working_groups?.length || 0,
       investigation_count: cluster.working_group_investigations?.length || 0,
       atlas_query: cluster.atlas_query

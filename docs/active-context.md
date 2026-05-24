@@ -39,12 +39,12 @@ Main implementation surfaces:
 - `src/data/clusters.json`
 - `src/pages/clusters/index.astro`
 - Representative paper notes and official paper/artifact sources for the cluster being revised.
-- If cluster text/prose graphs become structured data: `scripts/export-atlas-manifest.mjs`, `docs/website-integration/schemas/atlas-manifest.schema.json`, `public/cim-library.manifest.json`, and `/clusters/` should evolve together.
+- Cluster `object_flow` is structured data in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned.
 
 Current cluster/content question:
 
 - The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation cards.
-- The next useful content shape is per-cluster text/prose graphs that explain object flow, lineage or boundary, and evidence relationships.
+- Each cluster has a compact `object_flow` prose graph. Next cluster work should refine evidence/investigation content against sources and keep object-flow text aligned.
 - Working-group labels must remain coarse and evidence-based.
 - LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims unless source evidence supports lineage.
 - Preserve the descriptive paper metadata contract and keep clusters separate from paper frontmatter unless the contract is intentionally changed.
@@ -93,7 +93,7 @@ Known baseline:
 - Static build: 68 pages.
 - Navigation smoke check: global nav active state is stable; `/`, `/projects/`, and the CIM Library route family map to Home, Projects, and CIM Library respectively. CIM Library local nav active states are Overview, Atlas, Clusters, and Notes; no horizontal overflow on desktop or mobile.
 - Link-structure smoke check: `/projects/cim-library/` has no duplicate route cards or inline route links; `/clusters/` has one structured atlas-slice panel with 7 slice links and no per-cluster atlas buttons.
-- `/projects/cim-library/` smoke check: overview explains the central corpus question, public static surfaces, corpus-shape summaries, and representative paper-note reasons; no horizontal overflow on desktop or mobile.
+- `/projects/cim-library/` smoke check: overview explains the central corpus question, public static surfaces, and corpus-shape summaries; no horizontal overflow on desktop or mobile.
 - `/library/` smoke check: in-page atlas sections use a left sidebar, not top card buttons; selected-paper details render as a compact reading bridge; no horizontal overflow on desktop or mobile.
 - `/papers/` smoke check: plain note index renders 62 paper links, keeps the local Notes nav active, and has no horizontal overflow on desktop or mobile. Paper detail pages render a plain note header, corpus note first, a retained right panel, and bottom scan metadata.
-- `/clusters/` smoke check: 7 focus rows, 7 cluster panels, 21 grouped detail sections, no horizontal overflow on desktop or mobile.
+- `/clusters/` smoke check: 7 focus rows, 7 cluster panels, 7 object-flow sections, 21 grouped detail sections, no horizontal overflow on desktop or mobile.

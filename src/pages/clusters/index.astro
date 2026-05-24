@@ -190,6 +190,13 @@ function investigationNotes(cluster: typeof clustersData.clusters[number]) {
               </section>
             </div>
 
+            <section class="cluster-flow" aria-label={`Object flow for ${cluster.label}`}>
+              <h3>Object flow</h3>
+              <ol>
+                {cluster.object_flow.map((step) => <li>{step}</li>)}
+              </ol>
+            </section>
+
             <div class="cluster-cloud-grid">
               <section>
                 <h3>Shared first-class objects</h3>

@@ -19,10 +19,10 @@ Current default state:
 - Manifest schema is currently 0.2.0 with route inventory, public view descriptors, and compact cluster-layer stats, including the /papers/ note-index route.
 - npm run contract:website validates public/cim-library.manifest.json against docs/website-integration/schemas/atlas-manifest.schema.json before bespoke route/count checks.
 - CIM Library local navigator is implemented in src/components/CimLibraryNav.astro and stays aligned with the global navigator while remaining lower hierarchy. Its Notes item points to /papers/ and is active for both /papers/ and /papers/[slug]/.
-- /projects/cim-library/ now explains the central corpus question, static public surfaces, corpus-shape summaries, and representative paper-note reasons.
-- /library/ uses a left in-page section sidebar and the selected-paper panel uses a compact reading bridge; detailed source/frontmatter metadata stays on /papers/[slug]/.
+- /projects/cim-library/ now explains the central corpus question, static public surfaces, and corpus-shape summaries.
+- /library/ uses the same top spacing as the other CIM Library pages, a left in-page section sidebar, and a compact selected-paper reading bridge; detailed source/frontmatter metadata stays on /papers/[slug]/.
 - /clusters/ is focus-first: the top cluster map names each binding object and links to detail/atlas slices; long evidence, working-group, and investigation material is grouped inside each cluster card.
-- Next cluster-content work: prefer per-cluster text/prose graphs that explain object flow, lineage/boundary, and evidence relationships; update src/data/clusters.json, manifest export/schema, and /clusters/ together if this becomes structured data.
+- Cluster object-flow prose graphs are structured as object_flow in src/data/clusters.json, rendered on /clusters/, exported in public/cim-library.manifest.json, and validated by the manifest schema. Keep those surfaces aligned when revising them.
 - Working-group labels must remain coarse and evidence-based; LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims.
 - Do not add coverage scores, ranking scores, quality scores, or trajectory_IR_relevance.
 

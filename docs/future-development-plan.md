@@ -134,7 +134,7 @@ Status: active. Use `docs/focus/cluster-analysis-working-groups.md` as the focus
 The manifest and visualization refinement iteration is complete and archived at `docs/archive/2026-05-manifest-visualization-refinement-iteration.md`. Cluster work can now resume:
 
 - improve evidence-grounded cluster and working-group content in `src/data/clusters.json`;
-- prefer per-cluster text/prose graphs that explain object flow, lineage or boundary, and evidence relationships;
+- refine per-cluster `object_flow` prose graphs and evidence notes so they explain object flow, lineage or boundary, and artifact relationships without overclaiming;
 - keep cluster conclusions separate from paper frontmatter unless the public metadata contract is intentionally changed;
 - update the manifest exporter, manifest schema, generated manifest, and `/clusters/` together if cluster prose graphs become structured public data;
 - keep all changes static, inspectable, and compatible with the descriptive paper metadata contract.

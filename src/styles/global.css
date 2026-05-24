@@ -997,6 +997,9 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   padding: 30px 0 22px;
   border-bottom: 1px solid var(--line);
 }
+.library-page-header {
+  margin-top: 28px;
+}
 .page-header p,
 .project-hero p {
   max-width: 780px;
@@ -1202,6 +1205,45 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 .cluster-focus-block p {
   color: #22324a;
   font-weight: 700;
+}
+.cluster-flow {
+  margin: 18px 0 0;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.cluster-flow ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: cluster-flow;
+}
+.cluster-flow li {
+  min-width: 0;
+  border: 1px solid #d7ded8;
+  border-radius: 8px;
+  background: #fbfcff;
+  color: #40506a;
+  counter-increment: cluster-flow;
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 12px;
+}
+.cluster-flow li::before {
+  content: counter(cluster-flow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: 0 7px 6px 0;
+  border: 1px solid #b7c7bd;
+  border-radius: 999px;
+  color: #26364f;
+  font-size: 12px;
+  font-weight: 850;
 }
 .cluster-related {
   margin: 16px 0 0;
@@ -1446,13 +1488,6 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
 .landing-panel p {
   color: var(--muted);
 }
-.representative-note {
-  margin-top: 10px !important;
-  color: #34425c !important;
-  font-size: 13px !important;
-  font-weight: 400 !important;
-  line-height: 1.45;
-}
 .stat-board--landing div {
   border: 1px solid #cfd8d2;
   border-radius: 8px;
@@ -1641,6 +1676,7 @@ button.secondary { background: #fff; color: #22304a; border-color: var(--line); 
   .cluster-panel__header,
   .cluster-detail-grid,
   .cluster-cloud-grid,
+  .cluster-flow ol,
   .cluster-paper-list article,
   .investigation-columns {
     grid-template-columns: 1fr;

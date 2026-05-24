@@ -109,6 +109,10 @@
               "supporting_papers": {
                 "type": "array",
                 "items": { "type": "string" }
+              },
+              "object_flow": {
+                "type": "array",
+                "items": { "type": "string" }
               }
             }
           }
