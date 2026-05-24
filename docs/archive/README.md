@@ -22,4 +22,5 @@ Kinds:
 | File | Status | Read When |
 |---|---|---|
 | `2026-05-cluster-analysis-working-groups-seed.md` | Reactivated seed; now partly implemented in `/clusters/` and `src/data/clusters.json`. | Recovering the original cluster-analysis idea or checking guardrails. |
+| `2026-05-manifest-visualization-refinement-iteration.md` | Completed iteration. | Changing the manifest contract, CIM Library route/navigation presentation, atlas selected-paper panel, or project overview rationale. |
 | `2026-05-personal-website-integration-iteration.md` | Completed iteration. | Changing website shell, project routes, registry/manifest contract, or homepage/project-page structure. |

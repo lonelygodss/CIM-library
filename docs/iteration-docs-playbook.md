@@ -15,7 +15,7 @@ These files must stay concise and stable. They should tell a future agent what t
 
 Task-specific docs live outside the default context:
 
-- Current focus work: `docs/focus/manifest-visualization-refinement.md` while that focus is active.
+- Current focus work: the active file named in `docs/active-context.md`.
 - Focus switching or resuming a paused focus: `docs/focus/README.md`, then the target file under `docs/focus/`.
 - Paper-note work: `docs/corpus-note-harness.md`, `docs/metadata-template.md`, `docs/legacy-source-map.md`.
 - Cluster work: `docs/focus/cluster-analysis-working-groups.md`, `docs/future-development-plan.md`, `src/data/clusters.json`, relevant paper notes, and archived cluster seed if needed.

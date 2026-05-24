@@ -133,13 +133,66 @@ const provenanceSummary = [
       <article class="prose paper-prose">
         <Content />
       </article>
+      <aside class="sidebar paper-sidebar">
+        <div class="panel pad metadata-panel">
+          <h2>Scan metadata</h2>
+          <dl class="metadata-list">
+            <div><dt>Year</dt><dd>{data.year ?? emptyLabel}</dd></div>
+            <div><dt>Venue</dt><dd>{data.venue ?? emptyLabel}</dd></div>
+            <div><dt>Reproducibility</dt><dd>{data.reproducibility_level}</dd></div>
+            <div><dt>Artifact status</dt><dd>{data.artifact.status}</dd></div>
+            <div><dt>Last checked</dt><dd>{data.artifact.last_checked ?? emptyLabel}</dd></div>
+            <div><dt>License</dt><dd>{data.artifact.license || emptyLabel}</dd></div>
+          </dl>
+        </div>
+        <div class="panel pad">
+          <h2>Sources</h2>
+          <div class="source-list">
+            {linkEntries.length
+              ? linkEntries.map((entry) => (
+                <a class="source-link" href={entry.url}>
+                  <span>
+                    <b>{entry.label}</b>
+                    <small>{entry.description}</small>
+                  </span>
+                  <em>{entry.host}</em>
+                </a>
+              ))
+              : <span class="subtle">No external links recorded in frontmatter.</span>}
+          </div>
+          <p class="source-note">
+            Source links are descriptive frontmatter metadata. Artifact status and last-checked date reflect the latest recorded corpus pass, not a live availability monitor.
+          </p>
+        </div>
+        <div class="panel pad">
+          <h2>Context</h2>
+          <div class="cloud-nodes detail-cloud">
+            {data.technology.length || data.workloads.length
+              ? (
+                <>
+                  {data.technology.map((item) => <a class="cloud-node context facet-link" href={atlasFacetHref({ tech: item })}>{item}</a>)}
+                  {data.workloads.map((item) => <a class="cloud-node context facet-link" href={atlasFacetHref({ workload: item })}>{item}</a>)}
+                </>
+              )
+              : <span class="cloud-node more">{emptyLabel}</span>}
+          </div>
+        </div>
+        {data.integration_roles.length > 0 && (
+          <div class="panel pad">
+            <h2>Integration roles</h2>
+            <ul class="plain-list">
+              {data.integration_roles.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        )}
+      </aside>
     </div>
 
-    <section class="paper-metadata-bottom" aria-label="Paper metadata">
-      <div class="section-title">
-        <h2>Paper Metadata</h2>
-        <span class="subtle">Frontmatter metadata used by the atlas and source checks.</span>
-      </div>
+    <details class="paper-metadata-footnote" aria-label="Atlas metadata footnote">
+      <summary>
+        <span>Atlas metadata footnote</span>
+        <small>Frontmatter details used for atlas placement and source audits.</small>
+      </summary>
 
       <section class="provenance-strip" aria-label="Source provenance summary">
         {provenanceSummary.map((item) => (
@@ -216,61 +269,7 @@ const provenanceSummary = [
           </div>
         </div>
       </section>
-
-      <section class="paper-metadata-grid" aria-label="Additional paper metadata">
-        <div class="panel pad metadata-panel">
-          <h2>Scan metadata</h2>
-          <dl class="metadata-list">
-            <div><dt>Year</dt><dd>{data.year ?? emptyLabel}</dd></div>
-            <div><dt>Venue</dt><dd>{data.venue ?? emptyLabel}</dd></div>
-            <div><dt>Reproducibility</dt><dd>{data.reproducibility_level}</dd></div>
-            <div><dt>Artifact status</dt><dd>{data.artifact.status}</dd></div>
-            <div><dt>Last checked</dt><dd>{data.artifact.last_checked ?? emptyLabel}</dd></div>
-            <div><dt>License</dt><dd>{data.artifact.license || emptyLabel}</dd></div>
-          </dl>
-        </div>
-        <div class="panel pad">
-          <h2>Sources</h2>
-          <div class="source-list">
-            {linkEntries.length
-              ? linkEntries.map((entry) => (
-                <a class="source-link" href={entry.url}>
-                  <span>
-                    <b>{entry.label}</b>
-                    <small>{entry.description}</small>
-                  </span>
-                  <em>{entry.host}</em>
-                </a>
-              ))
-              : <span class="subtle">No external links recorded in frontmatter.</span>}
-          </div>
-          <p class="source-note">
-            Source links are descriptive frontmatter metadata. Artifact status and last-checked date reflect the latest recorded corpus pass, not a live availability monitor.
-          </p>
-        </div>
-        <div class="panel pad">
-          <h2>Context</h2>
-          <div class="cloud-nodes detail-cloud">
-            {data.technology.length || data.workloads.length
-              ? (
-                <>
-                  {data.technology.map((item) => <a class="cloud-node context facet-link" href={atlasFacetHref({ tech: item })}>{item}</a>)}
-                  {data.workloads.map((item) => <a class="cloud-node context facet-link" href={atlasFacetHref({ workload: item })}>{item}</a>)}
-                </>
-              )
-              : <span class="cloud-node more">{emptyLabel}</span>}
-          </div>
-        </div>
-        {data.integration_roles.length > 0 && (
-          <div class="panel pad">
-            <h2>Integration roles</h2>
-            <ul class="plain-list">
-              {data.integration_roles.map((item) => <li>{item}</li>)}
-            </ul>
-          </div>
-        )}
-      </section>
-    </section>
+    </details>
   </main>
   <footer class="wrap footer">Static corpus note. Frontmatter is the source for atlas metadata; the note body preserves the public long-form reading.</footer>
   <script is:inline>

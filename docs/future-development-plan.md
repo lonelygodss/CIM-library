@@ -127,14 +127,14 @@ Guardrails:
 - Do not automatically rewrite scholarly prose unless explicitly requested.
 - Keep legacy source files intact unless explicitly asked to archive or rewrite them.
 
-## Active Focus -- Manifest and Visualization Refinement
+## Active Focus -- Cluster Analysis and Working Groups
 
-Status: active. Use `docs/focus/manifest-visualization-refinement.md` as the focused working doc.
+Status: active. Use `docs/focus/cluster-analysis-working-groups.md` as the focused working doc.
 
-Before adding more cluster investigation content, refine how the library exports and presents static data:
+The manifest and visualization refinement iteration is complete and archived at `docs/archive/2026-05-manifest-visualization-refinement-iteration.md`. Cluster work can now resume:
 
-- audit `scripts/export-atlas-manifest.mjs` and `public/cim-library.manifest.json`;
-- decide whether cluster summaries belong in the existing atlas manifest, a separate cluster manifest, or only `src/data/clusters.json`;
-- refine `/library/`, `/clusters/`, and project-page visualization affordances where the manifest/data model makes that clearer;
-- update `scripts/check-website-contract.mjs` when the generated public contract changes;
+- improve evidence-grounded cluster and working-group content in `src/data/clusters.json`;
+- prefer per-cluster text/prose graphs that explain object flow, lineage or boundary, and evidence relationships;
+- keep cluster conclusions separate from paper frontmatter unless the public metadata contract is intentionally changed;
+- update the manifest exporter, manifest schema, generated manifest, and `/clusters/` together if cluster prose graphs become structured public data;
 - keep all changes static, inspectable, and compatible with the descriptive paper metadata contract.

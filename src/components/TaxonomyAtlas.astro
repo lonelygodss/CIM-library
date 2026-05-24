@@ -28,6 +28,9 @@ type Paper = {
   technology?: string[];
   workloads?: string[];
   baselines?: string[];
+  integration_roles?: string[];
+  notes?: string[];
+  takeaways?: string[];
   axis_A: {
     primary: AxisA;
     secondary?: AxisA[];
@@ -62,7 +65,7 @@ const axisCategories = axisCategorySets(taxonomy);
   <div class="section-title">
     <div>
       <h2>Interactive paper atlas</h2>
-      <div class="subtle">Each circle is a paper. Switch between the stack-role view and the normalized object/rewrite view; hover previews the paper footprint and controlled vocabulary cloud, while click keeps the paper details pinned.</div>
+      <div class="subtle">Each circle is a paper. Switch between the stack-role view and the normalized object/rewrite view; hover previews the paper footprint, while click pins the compact reading bridge.</div>
     </div>
     <div class="atlas-count" id="filteredStats" aria-live="polite"></div>
   </div>
@@ -284,22 +287,33 @@ const axisCategories = axisCategorySets(taxonomy);
     parent.append(el);
     return el;
   };
-  const category = (label, items, cls, limit = 8) => {
+  const listText = (items, fallback = 'Not specified') => {
     const values = (items ?? []).filter(Boolean);
-    const visible = values.slice(0, limit);
-    const hidden = values.slice(limit);
-    return `
-      <section class="cloud-group">
-        <h4>${esc(label)}</h4>
-        <div class="cloud-nodes">
-          ${values.length
-            ? visible.map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')
-            : '<span class="cloud-node more">Not specified</span>'}
-          ${hidden.map((item) => `<span class="cloud-node ${cls} is-hidden">${esc(item)}</span>`).join('')}
-          ${hidden.length ? `<button class="cloud-node more cloud-toggle" type="button" aria-expanded="false" data-more-count="${hidden.length}">+${hidden.length}</button>` : ''}
-        </div>
-      </section>
-    `;
+    return values.length ? values.join(', ') : fallback;
+  };
+  const clippedList = (items, limit = 3) => (items ?? []).filter(Boolean).slice(0, limit);
+  const axisLabel = (paper) => {
+    const family = families[paper.axis_A.primary];
+    const middle = middles[firstMiddle(paper)];
+    return `${paper.axis_A.primary} ${family?.short ?? ''} / ${firstMiddle(paper)} ${middle?.short ?? ''}`.trim();
+  };
+  const objectRewriteLabel = (paper) => {
+    const objects = clippedList(paper.axis_C_object_vocab, 2);
+    const rewrites = clippedList(paper.axis_D_rewrite_types, 2);
+    return `${listText(objects)} / ${listText(rewrites)}`;
+  };
+  const bridgeBullets = (paper) => {
+    const takeaways = clippedList(paper.takeaways, 3);
+    if (takeaways.length) return takeaways;
+    const roles = clippedList(paper.integration_roles, 3);
+    if (roles.length) return roles.map((role) => `Useful as ${role.replace(/_/g, ' ')}`);
+    return [paper.summary];
+  };
+  const chips = (items, cls, limit = 4) => {
+    const values = clippedList(items, limit);
+    return values.length
+      ? values.map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')
+      : '<span class="cloud-node more">Not specified</span>';
   };
 
   function cellKey(paper) {
@@ -353,18 +367,7 @@ const axisCategories = axisCategorySets(taxonomy);
     document.querySelectorAll('[data-layout]').forEach((button) => button.addEventListener('click', () => setLayout(button.dataset.layout)));
     $('paperPicker').addEventListener('change', (event) => selectPaper(event.target.value));
     $('resetFilters').addEventListener('click', resetFilters);
-    $('workMore').addEventListener('click', toggleCloudGroup);
     $('clusterSummary').addEventListener('click', scopeCluster);
-  }
-
-  function toggleCloudGroup(event) {
-    const button = event.target.closest('.cloud-toggle');
-    if (!button) return;
-    const group = button.closest('.cloud-group');
-    if (!group) return;
-    const isExpanded = group.classList.toggle('is-expanded');
-    button.setAttribute('aria-expanded', String(isExpanded));
-    button.textContent = isExpanded ? 'Show less' : `+${button.dataset.moreCount}`;
   }
 
   function hydrateFromUrl() {
@@ -856,14 +859,12 @@ const axisCategories = axisCategorySets(taxonomy);
     if (hoveredSlug === slug) return;
     hoveredSlug = slug;
     drawAtlas();
-    renderCoverageCloud();
   }
 
   function clearHoveredPaper(slug = null) {
     if (!hoveredSlug || (slug && hoveredSlug !== slug)) return;
     hoveredSlug = null;
     drawAtlas();
-    renderCoverageCloud();
   }
 
   function setLayout(layout) {
@@ -886,10 +887,6 @@ const axisCategories = axisCategorySets(taxonomy);
     return papers.find((p) => p.slug === hoveredSlug) ?? null;
   }
 
-  function coveragePaper() {
-    return hoveredPaper() ?? selectedPaper();
-  }
-
   function renderDetails() {
     const paper = selectedPaper();
     if (!paper) {
@@ -909,29 +906,42 @@ const axisCategories = axisCategorySets(taxonomy);
         </div>
       </div>
       <p class="subtle" style="margin:0">${esc(paper.summary)}</p>
-      <div class="badges">
-        ${(paper.tags ?? []).slice(0, 8).map((tag) => `<span class="badge">${esc(tag)}</span>`).join('')}
+      <div class="atlas-fact-list">
+        <div><span>Stack view</span><strong>${esc(axisLabel(paper))}</strong></div>
+        <div><span>Object view</span><strong>${esc(objectRewriteLabel(paper))}</strong></div>
       </div>
       <p style="margin:0"><a class="badge" href="${detailHref(paper)}">Open paper page</a></p>
     `;
-    renderCoverageCloud();
+    renderReadingBridge(paper);
   }
 
-  function renderCoverageCloud() {
-    const paper = coveragePaper();
+  function renderReadingBridge(paper) {
     if (!paper) {
       $('workMore').innerHTML = '';
       return;
     }
     $('workMore').innerHTML = `
-      <div class="coverage-cloud" aria-label="Active paper object and rewrite cloud">
-        ${category('Axis C first-class objects', paper.axis_C_first_class_objects ?? [], 'object', 6)}
-        ${category('Normalized Axis C categories', paper.axis_C_object_vocab ?? [], 'object', 6)}
-        ${category('Axis D rewrite objects', paper.axis_D_rewrite_objects ?? [], 'rewrite', 6)}
-        ${category('Normalized Axis D types', paper.axis_D_rewrite_types ?? [], 'rewrite', 6)}
-        ${category('Technology', paper.technology ?? [], 'context', 6)}
-        ${category('Workloads', paper.workloads ?? [], 'context', 6)}
-        <p class="cloud-note">Axis C/D categories are derived from the controlled vocabulary in taxonomy.json. This cloud is descriptive metadata only; it is not a score or ranking.</p>
+      <div class="reading-bridge" aria-label="Selected paper reading bridge">
+        <section class="bridge-section">
+          <h4>Read for</h4>
+          <ul>
+            ${bridgeBullets(paper).map((item) => `<li>${esc(item)}</li>`).join('')}
+          </ul>
+        </section>
+        <section class="bridge-section">
+          <h4>Objects the atlas can compare</h4>
+          <div class="cloud-nodes">
+            ${chips(paper.axis_C_object_vocab, 'object', 3)}
+            ${chips(paper.axis_D_rewrite_types, 'rewrite', 3)}
+          </div>
+        </section>
+        <section class="bridge-section">
+          <h4>Context filters</h4>
+          <div class="cloud-nodes">
+            ${chips([...(paper.technology ?? []), ...(paper.workloads ?? [])], 'context', 5)}
+          </div>
+        </section>
+        <p class="bridge-note">Full source, artifact, and frontmatter details stay on the paper page.</p>
       </div>
     `;
   }

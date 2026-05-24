@@ -17,7 +17,7 @@ Read only when the task calls for it:
 
 | Task | Read |
 |---|---|
-| Continue the current active focus | `docs/focus/manifest-visualization-refinement.md`, then the files it names as needed |
+| Continue the current active focus | `docs/focus/cluster-analysis-working-groups.md`, then the files it names as needed |
 | Switch or resume focus | `docs/focus/README.md`, then the target focus file |
 | Add or revise a paper note | `docs/corpus-note-harness.md`, `docs/metadata-template.md`, `docs/legacy-source-map.md` |
 | Work on cluster or working-group analysis | `docs/focus/cluster-analysis-working-groups.md`, then `src/data/clusters.json`, `docs/future-development-plan.md`, archive seed if needed |
@@ -31,8 +31,7 @@ A coherent batch may span several related files in the same task row. For exampl
 
 - `docs/active-context.md` — concise active project state and next focus.
 - `docs/focus/README.md` — focus-switch index and retrieval protocol.
-- `docs/focus/manifest-visualization-refinement.md` — active manifest/visualization focus.
-- `docs/focus/cluster-analysis-working-groups.md` — paused cluster-analysis focus state.
+- `docs/focus/cluster-analysis-working-groups.md` — active cluster-analysis focus state.
 - `docs/future-development-plan.md` — detailed roadmap and rationale; not default session context.
 - `docs/next-session-prompt.md` — short restart prompt for explicitly requested continuation.
 - `docs/iteration-docs-playbook.md` — how to maintain, slim, archive, and update docs across iterations.
@@ -72,6 +71,7 @@ YYYY-MM-short-topic-kind.md
 Examples:
 
 - `2026-05-cluster-analysis-working-groups-seed.md`
+- `2026-05-manifest-visualization-refinement-iteration.md`
 - `2026-05-personal-website-integration-iteration.md`
 
 Archives are not default context. Read an archive only when recovering rationale, restarting an old focus, or checking prior decisions.

@@ -1,6 +1,6 @@
 # Focus: Cluster Analysis and Working Groups
 
-Status: paused / retrievable
+Status: active
 
 Default-context policy: Do not read by default. Read when resuming cluster investigation, revising `src/data/clusters.json`, or changing the `/clusters/` route.
 
