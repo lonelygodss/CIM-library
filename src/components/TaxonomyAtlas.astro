@@ -28,6 +28,9 @@ type Paper = {
   technology?: string[];
   workloads?: string[];
   baselines?: string[];
+  integration_roles?: string[];
+  notes?: string[];
+  takeaways?: string[];
   axis_A: {
     primary: AxisA;
     secondary?: AxisA[];
@@ -62,7 +65,7 @@ const axisCategories = axisCategorySets(taxonomy);
   <div class="section-title">
     <div>
       <h2>Interactive paper atlas</h2>
-      <div class="subtle">Each circle is a paper. Switch between the stack-role view and the normalized object/rewrite view; hover previews the paper footprint and controlled vocabulary cloud, while click keeps the paper details pinned.</div>
+      <div class="subtle">Each circle is a paper. Switch between the stack-role view and the normalized object/rewrite view; hover previews the paper footprint, while click pins the compact reading bridge.</div>
     </div>
     <div class="atlas-count" id="filteredStats" aria-live="polite"></div>
   </div>
@@ -170,45 +173,45 @@ const axisCategories = axisCategorySets(taxonomy);
   const svgNS = 'http://www.w3.org/2000/svg';
   const atlasProfiles = {
     ab: {
-      width: 1180,
-      height: 660,
-      xLeft: 126,
-      xRight: 1110,
-      yTop: 105,
-      yBottom: 592,
-      xLabelY: 34,
-      xSubLabelY: 58,
-      yCodeX: 24,
-      yLabelX: 62,
-      gridTop: 76,
-      gridBottom: 615,
-      gridLeft: 100,
-      gridRight: 1136,
-      fontCode: 20,
-      fontLabel: 16,
-      nodeR: 12,
-      hoverR: 20,
-      nodeFont: 12,
+      width: 1320,
+      height: 720,
+      xLeft: 158,
+      xRight: 1248,
+      yTop: 126,
+      yBottom: 648,
+      xLabelY: 38,
+      xSubLabelY: 63,
+      yCodeX: 58,
+      yLabelX: 58,
+      gridTop: 86,
+      gridBottom: 680,
+      gridLeft: 120,
+      gridRight: 1278,
+      fontCode: 18,
+      fontLabel: 13,
+      nodeR: 10.5,
+      hoverR: 17,
+      nodeFont: 10.5,
       hoverFont: 13
     },
     cd: {
-      width: 1240,
-      height: 720,
-      xLeft: 190,
-      xRight: 1182,
-      yTop: 128,
-      yBottom: 646,
-      xLabelY: 92,
-      yLabelX: 18,
-      gridTop: 108,
-      gridBottom: 675,
-      gridLeft: 160,
-      gridRight: 1202,
-      fontCode: 15,
-      fontLabel: 15,
-      nodeR: 12,
-      hoverR: 20,
-      nodeFont: 12,
+      width: 1380,
+      height: 780,
+      xLeft: 226,
+      xRight: 1308,
+      yTop: 148,
+      yBottom: 704,
+      xLabelY: 54,
+      yLabelX: 24,
+      gridTop: 124,
+      gridBottom: 742,
+      gridLeft: 190,
+      gridRight: 1338,
+      fontCode: 13,
+      fontLabel: 13,
+      nodeR: 10.5,
+      hoverR: 17,
+      nodeFont: 10.5,
       hoverFont: 13
     }
   };
@@ -274,32 +277,43 @@ const axisCategories = axisCategorySets(taxonomy);
     if (current) lines.push(current);
     return lines.slice(0, 2);
   };
-  const appendText = (parent, attrs = {}, text = '', lines = null) => {
+  const appendText = (parent, attrs = {}, text = '', lines = null, lineDy = 15) => {
     const el = node('text', attrs);
     const textLines = lines ?? [text];
     textLines.forEach((line, index) => {
-      const tspan = node('tspan', { x: attrs.x, dy: index === 0 ? 0 : 15 }, line);
+      const tspan = node('tspan', { x: attrs.x, dy: index === 0 ? 0 : lineDy }, line);
       el.append(tspan);
     });
     parent.append(el);
     return el;
   };
-  const category = (label, items, cls, limit = 8) => {
+  const listText = (items, fallback = 'Not specified') => {
     const values = (items ?? []).filter(Boolean);
-    const visible = values.slice(0, limit);
-    const hidden = values.slice(limit);
-    return `
-      <section class="cloud-group">
-        <h4>${esc(label)}</h4>
-        <div class="cloud-nodes">
-          ${values.length
-            ? visible.map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')
-            : '<span class="cloud-node more">Not specified</span>'}
-          ${hidden.map((item) => `<span class="cloud-node ${cls} is-hidden">${esc(item)}</span>`).join('')}
-          ${hidden.length ? `<button class="cloud-node more cloud-toggle" type="button" aria-expanded="false" data-more-count="${hidden.length}">+${hidden.length}</button>` : ''}
-        </div>
-      </section>
-    `;
+    return values.length ? values.join(', ') : fallback;
+  };
+  const clippedList = (items, limit = 3) => (items ?? []).filter(Boolean).slice(0, limit);
+  const axisLabel = (paper) => {
+    const family = families[paper.axis_A.primary];
+    const middle = middles[firstMiddle(paper)];
+    return `${paper.axis_A.primary} ${family?.short ?? ''} / ${firstMiddle(paper)} ${middle?.short ?? ''}`.trim();
+  };
+  const objectRewriteLabel = (paper) => {
+    const objects = clippedList(paper.axis_C_object_vocab, 2);
+    const rewrites = clippedList(paper.axis_D_rewrite_types, 2);
+    return `${listText(objects)} / ${listText(rewrites)}`;
+  };
+  const bridgeBullets = (paper) => {
+    const takeaways = clippedList(paper.takeaways, 3);
+    if (takeaways.length) return takeaways;
+    const roles = clippedList(paper.integration_roles, 3);
+    if (roles.length) return roles.map((role) => `Useful as ${role.replace(/_/g, ' ')}`);
+    return [paper.summary];
+  };
+  const chips = (items, cls, limit = 4) => {
+    const values = clippedList(items, limit);
+    return values.length
+      ? values.map((item) => `<span class="cloud-node ${cls}">${esc(item)}</span>`).join('')
+      : '<span class="cloud-node more">Not specified</span>';
   };
 
   function cellKey(paper) {
@@ -322,7 +336,7 @@ const axisCategories = axisCategorySets(taxonomy);
       sorted.forEach((paper, index) => {
         const ring = Math.ceil(Math.sqrt(index + 1));
         const angle = (index * 2.399963229728653) % (Math.PI * 2);
-        const scale = n > 10 ? 10 : 13;
+        const scale = n > 14 ? 8.5 : n > 8 ? 10 : 11.5;
         positions.set(paper.slug, {
           dx: Math.cos(angle) * ring * scale,
           dy: Math.sin(angle) * ring * scale
@@ -353,18 +367,7 @@ const axisCategories = axisCategorySets(taxonomy);
     document.querySelectorAll('[data-layout]').forEach((button) => button.addEventListener('click', () => setLayout(button.dataset.layout)));
     $('paperPicker').addEventListener('change', (event) => selectPaper(event.target.value));
     $('resetFilters').addEventListener('click', resetFilters);
-    $('workMore').addEventListener('click', toggleCloudGroup);
     $('clusterSummary').addEventListener('click', scopeCluster);
-  }
-
-  function toggleCloudGroup(event) {
-    const button = event.target.closest('.cloud-toggle');
-    if (!button) return;
-    const group = button.closest('.cloud-group');
-    if (!group) return;
-    const isExpanded = group.classList.toggle('is-expanded');
-    button.setAttribute('aria-expanded', String(isExpanded));
-    button.textContent = isExpanded ? 'Show less' : `+${button.dataset.moreCount}`;
   }
 
   function hydrateFromUrl() {
@@ -586,11 +589,12 @@ const axisCategories = axisCategorySets(taxonomy);
     svg.setAttribute('viewBox', `0 0 ${profile.width} ${profile.height}`);
     svg.append(node('rect', { x: 0, y: 0, width: profile.width, height: profile.height, rx: 16, fill: '#fbfcff' }));
     if (atlasLayout === 'cd') {
-      objectCategories.forEach((category) => {
+      objectCategories.forEach((category, index) => {
         const x = xForObject(category);
         const label = shortCategory(category);
+        const labelY = profile.xLabelY + (index % 2) * 34;
         svg.append(node('line', { x1: x, y1: profile.gridTop, x2: x, y2: profile.gridBottom, stroke: '#dce4ef', 'stroke-width': 1 }));
-        appendText(svg, { x, y: profile.xLabelY, transform: `rotate(-28 ${x} ${profile.xLabelY})`, 'text-anchor': 'end', 'font-size': profile.fontLabel, 'font-weight': 900, fill: '#24364f' }, label, splitLabel(label, 11));
+        appendText(svg, { x, y: labelY, 'text-anchor': 'middle', 'font-size': profile.fontLabel, 'font-weight': 900, fill: '#24364f' }, label, splitLabel(label, 10), 12);
       });
       rewriteCategories.forEach((category) => {
         const y = yForRewrite(category);
@@ -607,8 +611,8 @@ const axisCategories = axisCategorySets(taxonomy);
       middleCodes.forEach((code) => {
         const y = yForMiddle(code);
         svg.append(node('line', { x1: profile.gridLeft, y1: y, x2: profile.gridRight, y2: y, stroke: '#dce4ef', 'stroke-width': 1 }));
-        appendText(svg, { x: profile.yCodeX, y: y + 5, 'font-size': profile.fontCode, 'font-weight': 900, fill: '#24364f' }, code);
-        appendText(svg, { x: profile.yLabelX, y: y + 5, 'font-size': profile.fontLabel, fill: '#607086' }, middles[code].short);
+        appendText(svg, { x: profile.yCodeX, y: y - 8, 'text-anchor': 'middle', 'font-size': profile.fontCode, 'font-weight': 900, fill: '#24364f' }, code);
+        appendText(svg, { x: profile.yLabelX, y: y + 11, 'text-anchor': 'middle', 'font-size': profile.fontLabel, fill: '#607086' }, middles[code].short, splitLabel(middles[code].short, 12), 12);
       });
     }
     if (!filtered.length) {
@@ -855,14 +859,12 @@ const axisCategories = axisCategorySets(taxonomy);
     if (hoveredSlug === slug) return;
     hoveredSlug = slug;
     drawAtlas();
-    renderCoverageCloud();
   }
 
   function clearHoveredPaper(slug = null) {
     if (!hoveredSlug || (slug && hoveredSlug !== slug)) return;
     hoveredSlug = null;
     drawAtlas();
-    renderCoverageCloud();
   }
 
   function setLayout(layout) {
@@ -885,10 +887,6 @@ const axisCategories = axisCategorySets(taxonomy);
     return papers.find((p) => p.slug === hoveredSlug) ?? null;
   }
 
-  function coveragePaper() {
-    return hoveredPaper() ?? selectedPaper();
-  }
-
   function renderDetails() {
     const paper = selectedPaper();
     if (!paper) {
@@ -908,29 +906,42 @@ const axisCategories = axisCategorySets(taxonomy);
         </div>
       </div>
       <p class="subtle" style="margin:0">${esc(paper.summary)}</p>
-      <div class="badges">
-        ${(paper.tags ?? []).slice(0, 8).map((tag) => `<span class="badge">${esc(tag)}</span>`).join('')}
+      <div class="atlas-fact-list">
+        <div><span>Stack view</span><strong>${esc(axisLabel(paper))}</strong></div>
+        <div><span>Object view</span><strong>${esc(objectRewriteLabel(paper))}</strong></div>
       </div>
       <p style="margin:0"><a class="badge" href="${detailHref(paper)}">Open paper page</a></p>
     `;
-    renderCoverageCloud();
+    renderReadingBridge(paper);
   }
 
-  function renderCoverageCloud() {
-    const paper = coveragePaper();
+  function renderReadingBridge(paper) {
     if (!paper) {
       $('workMore').innerHTML = '';
       return;
     }
     $('workMore').innerHTML = `
-      <div class="coverage-cloud" aria-label="Active paper object and rewrite cloud">
-        ${category('Axis C first-class objects', paper.axis_C_first_class_objects ?? [], 'object', 6)}
-        ${category('Normalized Axis C categories', paper.axis_C_object_vocab ?? [], 'object', 6)}
-        ${category('Axis D rewrite objects', paper.axis_D_rewrite_objects ?? [], 'rewrite', 6)}
-        ${category('Normalized Axis D types', paper.axis_D_rewrite_types ?? [], 'rewrite', 6)}
-        ${category('Technology', paper.technology ?? [], 'context', 6)}
-        ${category('Workloads', paper.workloads ?? [], 'context', 6)}
-        <p class="cloud-note">Axis C/D categories are derived from the controlled vocabulary in taxonomy.json. This cloud is descriptive metadata only; it is not a score or ranking.</p>
+      <div class="reading-bridge" aria-label="Selected paper reading bridge">
+        <section class="bridge-section">
+          <h4>Read for</h4>
+          <ul>
+            ${bridgeBullets(paper).map((item) => `<li>${esc(item)}</li>`).join('')}
+          </ul>
+        </section>
+        <section class="bridge-section">
+          <h4>Objects the atlas can compare</h4>
+          <div class="cloud-nodes">
+            ${chips(paper.axis_C_object_vocab, 'object', 3)}
+            ${chips(paper.axis_D_rewrite_types, 'rewrite', 3)}
+          </div>
+        </section>
+        <section class="bridge-section">
+          <h4>Context filters</h4>
+          <div class="cloud-nodes">
+            ${chips([...(paper.technology ?? []), ...(paper.workloads ?? [])], 'context', 5)}
+          </div>
+        </section>
+        <p class="bridge-note">Full source, artifact, and frontmatter details stay on the paper page.</p>
       </div>
     `;
   }

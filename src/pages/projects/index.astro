@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import projects from '../../data/project-registry.json';
+import profile from '../../data/profile.json';
+---
+
+<BaseLayout
+  title={`Projects | ${profile.name}`}
+  description={`Research and development projects by ${profile.name}.`}
+>
+  <main class="wrap page-shell">
+    <header class="page-header">
+      <p class="eyebrow eyebrow--dark">Projects</p>
+      <h1>Research atlases and development tools</h1>
+      <p>Static, inspectable projects that connect research questions to usable interfaces.</p>
+    </header>
+
+    <section class="project-grid project-grid--index" aria-label="Project list">
+      {projects.map((project) => <ProjectCard project={project} />)}
+    </section>
+  </main>
+</BaseLayout>

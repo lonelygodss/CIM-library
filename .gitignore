@@ -3,3 +3,5 @@ dist/
 .astro/
 .env
 .DS_Store
+cim-library-website-devkit/
+cv.pdf

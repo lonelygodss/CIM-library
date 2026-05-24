@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../components/CimLibraryNav.astro';
 import taxonomy from '../../data/taxonomy.json';
 import { normalizePaperAxes } from '../../lib/axisNormalization';
 
@@ -68,7 +69,7 @@ if (data.artifact?.url && !linkEntries.some((entry) => entry.url === data.artifa
 const normalizedAxes = normalizePaperAxes(data, taxonomy);
 const atlasFacetHref = (params: Record<string, string>) => {
   const search = new URLSearchParams({ paper: data.slug, ...params });
-  return `/?${search.toString()}#atlas-section`;
+  return `/library/?${search.toString()}#atlas-section`;
 };
 const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 type NoteHeading = typeof noteOutline[number];
@@ -93,93 +94,13 @@ const provenanceSummary = [
 ];
 ---
 <BaseLayout title={`${data.title} — Paper Library`} description={data.summary}>
-  <header class="paper-hero wrap">
-    <div class="paper-hero-inner">
-      <div class="eyebrow"><span class="dot"></span> Corpus note</div>
-      <h1>{data.title}</h1>
-      {paperMeta && <p class="paper-meta-line">{paperMeta}</p>}
-      <p class="paper-hero-summary">{data.summary}</p>
-      <div class="paper-hero-actions">
-        <a class="chip dark" href="/" data-atlas-back>Back to atlas</a>
-        {linkEntries.map((entry) => <a class="chip dark" href={entry.url}>{entry.label}</a>)}
-      </div>
-    </div>
-  </header>
+  <CimLibraryNav />
   <main class="wrap paper-detail">
-    <section class="provenance-strip" aria-label="Source provenance summary">
-      {provenanceSummary.map((item) => (
-        <div class="provenance-item">
-          <span>{item.label}</span>
-          <strong>{item.value}</strong>
-        </div>
-      ))}
-    </section>
-    <section class="detail-overview" aria-label="Paper metadata overview">
-      <div class="detail-panel">
-        <h2>Taxonomy placement</h2>
-        <div class="axis-stack">
-          <div>
-            <h3>Axis A: stack role</h3>
-            <div class="axis-list compact">
-              {axisAEntries.map((item, index) => (
-                <div class="axis-row">
-                  <code>{item.code}</code>
-                  <span><b>{index === 0 ? 'Primary' : 'Secondary'}: {item.short}</b>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h3>Axis B: middle layer</h3>
-            <div class="axis-list compact">
-              {axisBEntries.map((item) => (
-                <div class="axis-row">
-                  <code>{item.code}</code>
-                  <span><b>{item.short}</b>{item.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="detail-panel">
-        <h2>Compiler-facing objects</h2>
-        <div class="object-rewrite-grid">
-          <section>
-            <h3>Axis C: first-class objects</h3>
-            <div class="cloud-nodes detail-cloud">
-              {data.axis_C_first_class_objects.length
-                ? data.axis_C_first_class_objects.map((item) => <span class="cloud-node object">{item}</span>)
-                : <span class="cloud-node more">{emptyLabel}</span>}
-            </div>
-          </section>
-          <section>
-            <h3>Normalized Axis C categories</h3>
-            <div class="cloud-nodes detail-cloud">
-              {normalizedAxes.axis_C_object_vocab.length
-                ? normalizedAxes.axis_C_object_vocab.map((item) => <a class="cloud-node object facet-link" href={atlasFacetHref({ layout: 'cd', c: item })}>{item}</a>)
-                : <span class="cloud-node more">{emptyLabel}</span>}
-            </div>
-          </section>
-          <section>
-            <h3>Axis D: rewrite objects</h3>
-            <div class="cloud-nodes detail-cloud">
-              {data.axis_D_rewrite_objects.length
-                ? data.axis_D_rewrite_objects.map((item) => <span class="cloud-node rewrite">{item}</span>)
-                : <span class="cloud-node more">{emptyLabel}</span>}
-            </div>
-          </section>
-          <section>
-            <h3>Normalized Axis D types</h3>
-            <div class="cloud-nodes detail-cloud">
-              {normalizedAxes.axis_D_rewrite_types.length
-                ? normalizedAxes.axis_D_rewrite_types.map((item) => <a class="cloud-node rewrite facet-link" href={atlasFacetHref({ layout: 'cd', d: item })}>{item}</a>)
-                : <span class="cloud-node more">{emptyLabel}</span>}
-            </div>
-          </section>
-        </div>
-      </div>
-    </section>
+    <header class="paper-note-header">
+      <p class="eyebrow eyebrow--dark">Corpus note</p>
+      <h1>{data.title}</h1>
+      {paperMeta && <p>{paperMeta}</p>}
+    </header>
 
     <div class:list={['paper-layout', { 'without-outline': noteSections.length === 0 }]}>
       {noteSections.length > 0 && (
@@ -266,17 +187,91 @@ const provenanceSummary = [
         )}
       </aside>
     </div>
+
+    <details class="paper-metadata-footnote" aria-label="Atlas metadata footnote">
+      <summary>
+        <span>Atlas metadata footnote</span>
+        <small>Frontmatter details used for atlas placement and source audits.</small>
+      </summary>
+
+      <section class="provenance-strip" aria-label="Source provenance summary">
+        {provenanceSummary.map((item) => (
+          <div class="provenance-item">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </div>
+        ))}
+      </section>
+
+      <section class="detail-overview" aria-label="Paper metadata overview">
+        <div class="detail-panel">
+          <h2>Taxonomy placement</h2>
+          <div class="axis-stack">
+            <div>
+              <h3>Axis A: stack role</h3>
+              <div class="axis-list compact">
+                {axisAEntries.map((item, index) => (
+                  <div class="axis-row">
+                    <code>{item.code}</code>
+                    <span><b>{index === 0 ? 'Primary' : 'Secondary'}: {item.short}</b>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3>Axis B: middle layer</h3>
+              <div class="axis-list compact">
+                {axisBEntries.map((item) => (
+                  <div class="axis-row">
+                    <code>{item.code}</code>
+                    <span><b>{item.short}</b>{item.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-panel">
+          <h2>Compiler-facing objects</h2>
+          <div class="object-rewrite-grid">
+            <section>
+              <h3>Axis C: first-class objects</h3>
+              <div class="cloud-nodes detail-cloud">
+                {data.axis_C_first_class_objects.length
+                  ? data.axis_C_first_class_objects.map((item) => <span class="cloud-node object">{item}</span>)
+                  : <span class="cloud-node more">{emptyLabel}</span>}
+              </div>
+            </section>
+            <section>
+              <h3>Normalized Axis C categories</h3>
+              <div class="cloud-nodes detail-cloud">
+                {normalizedAxes.axis_C_object_vocab.length
+                  ? normalizedAxes.axis_C_object_vocab.map((item) => <a class="cloud-node object facet-link" href={atlasFacetHref({ layout: 'cd', c: item })}>{item}</a>)
+                  : <span class="cloud-node more">{emptyLabel}</span>}
+              </div>
+            </section>
+            <section>
+              <h3>Axis D: rewrite objects</h3>
+              <div class="cloud-nodes detail-cloud">
+                {data.axis_D_rewrite_objects.length
+                  ? data.axis_D_rewrite_objects.map((item) => <span class="cloud-node rewrite">{item}</span>)
+                  : <span class="cloud-node more">{emptyLabel}</span>}
+              </div>
+            </section>
+            <section>
+              <h3>Normalized Axis D types</h3>
+              <div class="cloud-nodes detail-cloud">
+                {normalizedAxes.axis_D_rewrite_types.length
+                  ? normalizedAxes.axis_D_rewrite_types.map((item) => <a class="cloud-node rewrite facet-link" href={atlasFacetHref({ layout: 'cd', d: item })}>{item}</a>)
+                  : <span class="cloud-node more">{emptyLabel}</span>}
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </details>
   </main>
   <footer class="wrap footer">Static corpus note. Frontmatter is the source for atlas metadata; the note body preserves the public long-form reading.</footer>
-  <script is:inline>
-    (() => {
-      const from = new URLSearchParams(window.location.search).get('from');
-      if (!from || !from.startsWith('/') || from.startsWith('//')) return;
-      document.querySelectorAll('[data-atlas-back]').forEach((link) => {
-        link.setAttribute('href', from);
-      });
-    })();
-  </script>
   <script is:inline>
     (() => {
       document.querySelectorAll('.outline-summary-link').forEach((link) => {

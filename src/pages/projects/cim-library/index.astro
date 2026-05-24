@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../../components/CimLibraryNav.astro';
+import projects from '../../../data/project-registry.json';
+import profile from '../../../data/profile.json';
+import cimManifest from '../../../../public/cim-library.manifest.json';
+
+const project = projects.find((entry) => entry.id === 'cim-library');
+if (!project) throw new Error('Missing cim-library project registry entry');
+
+const topTechnologies = cimManifest.stats.top_technologies.slice(0, 6);
+const topWorkloads = cimManifest.stats.top_workloads.slice(0, 6);
+const clusterStats = cimManifest.cluster_layer?.stats;
+const publicViews = cimManifest.views;
+---
+
+<BaseLayout
+  title={`${project.title} | ${profile.name}`}
+  description={project.summary}
+>
+  <CimLibraryNav />
+  <main class="wrap page-shell project-landing">
+    <header class="page-header project-hero">
+      <p class="eyebrow eyebrow--dark">{project.kind} / {project.status}</p>
+      <h1>{project.title}</h1>
+      <p>A static research atlas for reading CIM compiler and IR papers by the objects they make explicit: the things a stack names, types, rewrites, verifies, serializes, and hands to a backend.</p>
+    </header>
+
+    <section class="landing-grid" aria-label="CIM Library overview">
+      <article class="landing-panel landing-panel--wide">
+        <p class="eyebrow eyebrow--dark">Central question</p>
+        <h2>What is the compiler object, not just what accelerator is targeted?</h2>
+        <p class="overview-lede">The corpus is organized around the representation boundary in each CIM stack. A paper may describe a macro generator, simulator, mapper, runtime, or ISA; the atlas asks which object becomes first-class enough to be named, transformed, checked, serialized, or handed to a backend.</p>
+        <dl class="principle-list">
+          <div>
+            <dt>Descriptive, not scored</dt>
+            <dd>Metadata captures stack role, abstraction style, first-class objects, rewrite objects, artifacts, and source status without coverage, quality, or ranking scores.</dd>
+          </div>
+          <div>
+            <dt>Static and inspectable</dt>
+            <dd>Paper notes live in Markdown frontmatter and corpus notes; generated summaries come from a static manifest rather than a database.</dd>
+          </div>
+        </dl>
+      </article>
+      <aside class="stat-board stat-board--landing">
+        <div>
+          <strong>{cimManifest.stats.paper_count}</strong>
+          <span>papers</span>
+        </div>
+        <div>
+          <strong>{clusterStats?.cluster_count ?? 0}</strong>
+          <span>clusters</span>
+        </div>
+        <div>
+          <strong>{clusterStats?.linked_paper_count ?? 0}</strong>
+          <span>cluster-linked papers</span>
+        </div>
+        <div>
+          <strong>{cimManifest.stats.year_min}-{cimManifest.stats.year_max}</strong>
+          <span>year range</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="landing-panel project-surface-panel" aria-label="Public CIM Library surfaces">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow eyebrow--dark">Public surfaces</p>
+          <h2>Four static ways into the same corpus</h2>
+        </div>
+        <span class="subtle">Generated from the project manifest</span>
+      </div>
+      <div class="surface-list">
+        {publicViews.map((view) => (
+          <article>
+            <h3>{view.label}</h3>
+            <p>{view.description}</p>
+            <code>{view.route}</code>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="landing-grid" aria-label="Corpus shape">
+      <article class="landing-panel">
+        <p class="eyebrow eyebrow--dark">Corpus shape</p>
+        <h2>Technology terms show where the papers spend their evidence</h2>
+        <p class="facet-essay">The technology vocabulary is metadata, not the atlas axis. It helps expose whether a note is grounded in SRAM-CIM, RRAM/analog arrays, DRAM-PIM, UPMEM, or broader PIM compiler and runtime work.</p>
+        <ul class="rank-list">
+          {topTechnologies.map((item) => <li><span>{item.label}</span><b>{item.count}</b></li>)}
+        </ul>
+      </article>
+      <article class="landing-panel">
+        <p class="eyebrow eyebrow--dark">Workloads</p>
+        <h2>Workload terms keep comparisons grounded</h2>
+        <p class="facet-essay">Workload tags are kept separate from the taxonomy so an accelerator family, compiler layer, or runtime idea can be compared without mistaking benchmark coverage for representation quality.</p>
+        <ul class="rank-list">
+          {topWorkloads.map((item) => <li><span>{item.label}</span><b>{item.count}</b></li>)}
+        </ul>
+      </article>
+    </section>
+  </main>
+</BaseLayout>

@@ -5,50 +5,44 @@ Use this prompt to start the next Codex session.
 ```text
 We are in /Users/xiongzijian/coding/CIM-library.
 
-This is a static Astro CIM compiler/IR paper library. Read AGENTS.md first, then docs/future-development-plan.md, docs/corpus-note-harness.md, and docs/metadata-template.md.
+Read AGENTS.md and docs/active-context.md first. Then use docs/README.md to choose task-specific context. Do not bulk-read archives, legacy docs, website-integration docs, or paper-note harnesses unless the task needs them.
 
-Current state:
-- src/content/papers contains 62 schema-valid Markdown paper entries; no raw corpus notes remain.
-- / is the primary public atlas entry; /library/ renders the same atlas for compatibility.
-- /papers/[slug]/ renders individual long-form corpus notes.
-- The public metadata contract is descriptive. Do not add coverage scores, ranking scores, or trajectory_IR_relevance.
-- Axis C/D normalization is render-time only through src/lib/axisNormalization.ts and src/data/taxonomy.json; do not weaken src/content.config.ts.
-- Detail pages include provenance/source affordances, normalized Axis C/D chips, context chips, note outline, scan metadata, and Markdown math display cleanup through src/lib/rehypeMathDelimiters.mjs.
-- The current atlas/detail-page base is stable enough. Future work should shift toward cluster analysis and visualization rather than more minor refinements to completed views.
-- npm run qa, npm run validate, npm run check, and npm run build are currently green.
+Project status:
+- Static Astro CIM compiler/IR paper library.
+- 62 schema-valid paper entries.
+- Stable routes: /, /projects/, /projects/cim-library/, /library/, /clusters/, /papers/, /papers/[slug]/.
+- src/data/clusters.json is the hand-authored cluster/working-group source and stays separate from paper frontmatter.
+- /clusters/ is the active cluster and working-group route.
 
-Progress from the latest iteration:
-- Completed the Axis C/D audit pass and tightened instruction-stream normalization so bit-stream terms no longer false-match instruction streams.
-- Rechecked pim-eda provenance; no standalone canonical suite paper was found, so links.paper remains intentionally blank.
-- Preserved links.artifact and artifact.url alignment; artifact URL-only entries and link/url disagreements remain at zero.
-- Added dependency-free rehype formatting for TeX-style inline/display formulas.
-- Audited raw technology/workload terms and deferred controlled vocabularies because the terms are useful but noisy.
-- Removed stale handoff references and redundant math-formatting scaffolding.
-- Updated docs/README/AGENTS context to reflect the completed migration and the next cluster-analysis direction.
+Active focus:
+- Cluster analysis and working-group content.
+- Focus doc: docs/focus/cluster-analysis-working-groups.md.
+- Current shape: 7 cluster hypotheses, 13 working-group investigation articles, 7 checked cluster analysis paragraphs.
+- Current goal: deepen existing cluster/group notes with real paper/artifact analysis before adding new notes.
+- Next priority: deepen the weakest existing working-group investigations and refine cluster object-flow/evidence only where new source checks sharpen the argument.
 
-New future goal:
-- Build a cluster-analysis and visualization layer, likely as a new static page rather than more atlas polish.
-- Explain clusters of works by shared stack objects, rewrite styles, technologies, workloads, artifacts, and source/provenance patterns.
-- Add a coarse academic working-group layer where evidence supports it: repeated author groups, lab/project names, repository owners, or visible publication families.
-- Do not build a detailed affiliation graph, author social network, or fine-grained collaboration map. The goal is vague orientation about working groups and occasional cooperation, not bibliometric authority.
+Method:
+- Metadata is only a seed; final claims must come from paper notes, papers, official artifacts, docs, code, or visible execution/file boundaries.
+- Cluster articles and working-group investigations are parallel lenses.
+- Write prose-first article paragraphs, not metadata cards, tag clouds, folded blocks, duplicated investigation/article pairs, or list-heavy subsections.
+- Keep group labels coarse and evidence-based.
+- Do not add coverage scores, ranking scores, quality scores, trajectory_IR_relevance, backend services, databases, PDF hosting, or fine-grained collaboration graphs.
+- Keep /library/ and /papers/[slug]/ stable.
 
-Good next steps:
-1. Discuss and choose the first cluster-page shape: card list, graph, or hybrid.
-2. Decide where cluster metadata should live: new src/data/clusters.json, derived data, or optional annotations.
-3. Decide whether academic working groups should be manually curated labels or inferred cautiously from authors_or_group and source/project evidence.
-4. Prototype one or two high-confidence clusters before generalizing the visualization.
-5. Keep existing atlas/detail-page maintenance incremental and secondary.
+For cluster work:
+1. Read docs/focus/cluster-analysis-working-groups.md.
+2. Choose one coherent evidence batch.
+3. Read the relevant paper notes and official artifacts as needed.
+4. Update src/data/clusters.json and any necessary focus/status docs.
+5. Run verification.
 
-Implementation guidance:
-- Use current frontmatter and src/data/taxonomy.json as source of truth.
-- Keep the site static and schema-compatible unless there is a clear reason to change the schema.
-- Keep cluster/group claims descriptive and evidence-based; mark uncertain groupings as tentative.
-- Keep legacy files intact unless explicitly asked to archive or rewrite them.
-- Re-run npm run qa, npm run validate, npm run check, and npm run build after edits.
+After substantial edits, run:
+npm run qa
+npm run validate
+npm run export:atlas
+npm run contract:website
+npm run check
+npm run build
 
-Report:
-- What cluster, visualization, provenance, or content changes were made;
-- Browser viewport checks if UI changed;
-- qa/validate/check/build results;
-- Remaining follow-up items.
+Report changed files, context decisions, evidence limits, and verification results.
 ```

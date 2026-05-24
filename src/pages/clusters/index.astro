@@ -1,0 +1,273 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CimLibraryNav from '../../components/CimLibraryNav.astro';
+import clustersData from '../../data/clusters.json';
+import profile from '../../data/profile.json';
+import taxonomy from '../../data/taxonomy.json';
+
+type PaperSummary = {
+  slug: string;
+  title: string;
+  year?: number | null;
+  venue?: string | null;
+  authors_or_group?: string | null;
+  summary: string;
+  route: string;
+  axis_A: {
+    primary: keyof typeof taxonomy.families;
+    secondary?: Array<keyof typeof taxonomy.families>;
+  };
+  axis_B: Array<keyof typeof taxonomy.middles>;
+  technology: string[];
+  workloads: string[];
+};
+
+const entries = await getCollection('papers');
+const papersBySlug = new Map<string, PaperSummary>(
+  entries.map((entry) => [
+    entry.data.slug,
+    {
+      ...entry.data,
+      route: `/papers/${entry.data.slug}/`
+    }
+  ])
+);
+
+const missingSlugs = clustersData.clusters.flatMap((cluster) => [
+  ...cluster.representative_papers,
+  ...cluster.supporting_papers,
+  ...cluster.working_groups.flatMap((group) => group.representative_papers)
+]).filter((slug) => !papersBySlug.has(slug));
+
+if (missingSlugs.length) {
+  throw new Error(`Cluster data references missing paper slug(s): ${[...new Set(missingSlugs)].join(', ')}`);
+}
+
+const uniqueClusterPapers = new Set(
+  clustersData.clusters.flatMap((cluster) => [...cluster.representative_papers, ...cluster.supporting_papers])
+);
+const workingGroupCount = clustersData.clusters.reduce((sum, cluster) => sum + cluster.working_groups.length, 0);
+const investigationCount = clustersData.clusters.reduce((sum, cluster) => sum + investigationNotes(cluster).length, 0);
+const clusterById = new Map(clustersData.clusters.map((cluster) => [cluster.id, cluster]));
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+const workingGroupInvestigationArticles = clustersData.clusters.flatMap((cluster) =>
+  cluster.working_groups.map((group, index) => ({
+    cluster,
+    group,
+    note: investigationNotes(cluster)[index],
+    id: `working-group-${slugify(group.label)}`
+  }))
+);
+
+function paper(slug: string) {
+  const found = papersBySlug.get(slug);
+  if (!found) throw new Error(`Missing paper for slug ${slug}`);
+  return found;
+}
+
+function allClusterPapers(cluster: typeof clustersData.clusters[number]) {
+  return [...new Set([...cluster.representative_papers, ...cluster.supporting_papers])].map(paper);
+}
+
+function relatedClusters(cluster: typeof clustersData.clusters[number]) {
+  return cluster.related_cluster_ids
+    .map((id) => clusterById.get(id))
+    .filter((item): item is typeof clustersData.clusters[number] => Boolean(item));
+}
+
+function investigationNotes(cluster: typeof clustersData.clusters[number]) {
+  return ('working_group_investigations' in cluster ? cluster.working_group_investigations : []) ?? [];
+}
+
+function proseList(items: string[]) {
+  if (items.length <= 1) return items.join('');
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+
+---
+
+<BaseLayout
+  title={`CIM Library Clusters | ${profile.name}`}
+  description="A cautious static cluster and working-group layer over the CIM compiler/IR paper corpus."
+>
+  <CimLibraryNav />
+  <main class="wrap page-shell cluster-route">
+    <header class="page-header">
+      <p class="eyebrow eyebrow--dark">CIM compiler/IR corpus</p>
+      <h1>Cluster and Working-Group Notes</h1>
+      <p>Two parallel research lenses over the paper corpus: cluster articles track first-class stack objects, while working-group investigations track artifact continuity and research-lineage evidence.</p>
+    </header>
+
+    <section class="cluster-overview" aria-label="Cluster layer overview">
+      <article class="cluster-method">
+        <p class="eyebrow eyebrow--dark">Reading frame</p>
+        <div class="cluster-lens-list">
+          <p><b>Cluster articles</b> ask what stack object becomes first-class: what gets named, rewritten, serialized, verified, or handed to the backend.</p>
+          <p><b>Working-group investigations</b> ask where artifact continuity, repository lineage, authorship context, or institutional practice is visible.</p>
+        </div>
+      </article>
+      <aside class="stat-board stat-board--landing">
+        <div>
+          <strong>{clustersData.clusters.length}</strong>
+          <span>cluster hypotheses</span>
+        </div>
+        <div>
+          <strong>{uniqueClusterPapers.size}</strong>
+          <span>linked papers</span>
+        </div>
+        <div>
+          <strong>{workingGroupCount}</strong>
+          <span>working groups</span>
+        </div>
+        <div>
+          <strong>{investigationCount}</strong>
+          <span>investigation articles</span>
+        </div>
+        <div>
+          <strong>0</strong>
+          <span>scores added</span>
+        </div>
+      </aside>
+    </section>
+
+    <div class="cluster-page-layout">
+      <nav class="note-outline section-nav cluster-shared-nav" aria-label="Cluster and working-group navigator">
+        <div class="section-nav-title">Research lenses</div>
+        <div class="outline-stack">
+          <details class="outline-section" open>
+            <summary>
+              <a class="outline-summary-link" href="#cluster-articles">Cluster articles</a>
+            </summary>
+            <ol>
+              {clustersData.clusters.map((cluster) => (
+                <li><a href={`#${cluster.id}`}>{cluster.short_label}</a></li>
+              ))}
+            </ol>
+          </details>
+          <details class="outline-section" open>
+            <summary>
+              <a class="outline-summary-link" href="#working-group-investigations">Working-group investigations</a>
+            </summary>
+            <ol>
+              {workingGroupInvestigationArticles.map(({ group, id }) => (
+                <li><a href={`#${id}`}>{group.label}</a></li>
+              ))}
+            </ol>
+          </details>
+        </div>
+      </nav>
+
+      <div class="cluster-page-content">
+        <section class="cluster-list" id="cluster-articles" aria-label="CIM Library clusters">
+          {clustersData.clusters.map((cluster) => {
+            const papers = allClusterPapers(cluster);
+            return (
+              <article class="cluster-panel" id={cluster.id}>
+                <p class="eyebrow eyebrow--dark">{cluster.status}</p>
+                <h2>{cluster.label}</h2>
+                <div class="article-prose">
+                  <p>{cluster.summary}</p>
+                  {cluster.analysis ? <p>{cluster.analysis}</p> : null}
+                  <p><b>Binding theme.</b> {cluster.binding_theme}</p>
+                  <p><b>Object flow.</b> {cluster.object_flow.join(' ')}</p>
+                  <p><b>Object vocabulary.</b> First-class objects: {proseList(cluster.shared_first_class_objects)}. Rewrite objects: {proseList(cluster.shared_rewrite_objects)}.</p>
+                  {relatedClusters(cluster).length ? (
+                    <p>
+                      <b>Related cluster notes.</b>{' '}
+                  {relatedClusters(cluster).map((related, index) => (
+                    <>
+                      {index > 0 ? ', ' : ''}
+                      <a href={`#${related.id}`}>{related.short_label}</a>
+                    </>
+                  ))}
+                    </p>
+                  ) : null}
+                  <p>
+                    <b>Representative and supporting papers.</b>{' '}
+                    {papers.map((item, index) => (
+                      <>
+                        {index > 0 ? ', ' : ''}
+                        <a href={item.route}>{item.title}</a>
+                        {cluster.representative_papers.includes(item.slug) ? ' (representative)' : ' (supporting)'}
+                      </>
+                    ))}
+                    .
+                  </p>
+                  <p><b>Uncertainty.</b> {cluster.uncertainty}</p>
+                  {cluster.evidence.map((item, index) => (
+                    <p><b>{index === 0 ? 'Evidence.' : 'Additional evidence.'}</b> {item}</p>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+
+        <section class="working-group-article-list" id="working-group-investigations" aria-label="Independent working-group investigation articles">
+          <div class="working-group-intro">
+            <p class="eyebrow eyebrow--dark">Working-group lens</p>
+            <h2>Working-group investigations are independent from cluster articles</h2>
+            <p>Clusters ask what stack object becomes first-class. Each working-group investigation asks a different question: where artifact continuity, authorship context, repository lineage, or institutional practice appears in the corpus. The relationship is deliberately parallel, like the relationship between Axis A/B and Axis C/D in the atlas: a working group can cross a cluster boundary, and a cluster can contain papers from multiple groups.</p>
+          </div>
+
+          {workingGroupInvestigationArticles.map(({ cluster, group, note, id }) => (
+            <article class="working-group-panel working-group-investigation-article" id={id}>
+              <p class="eyebrow eyebrow--dark">Working-group investigation</p>
+              <h3>{group.label}</h3>
+              <div class="article-prose">
+                <p class="working-group-context">
+                  {note ? <>Status: {note.status}. </> : null}
+                  Related cluster seed: <a href={`#${cluster.id}`}>{cluster.short_label}</a>. This relation is a navigation aid, not a claim that the group is subordinate to the cluster.
+                </p>
+                <p><b>{group.relationship}.</b> {group.evidence}</p>
+                <p><b>Uncertainty.</b> {group.uncertainty}</p>
+                {note && note.label !== group.label ? <p><b>Investigation focus.</b> {note.label}.</p> : null}
+                {note ? (
+                  <>
+                    <p><b>Scope.</b> {note.scope}</p>
+                    <p><b>Why coherent.</b> {note.why_coherent}</p>
+                    <p><b>Boundary.</b> {note.boundary}</p>
+                    {note.continuity_evidence.map((item, index) => (
+                      <p><b>{index === 0 ? 'Continuity evidence.' : 'Additional continuity evidence.'}</b> {item}</p>
+                    ))}
+                    {note.next_checks.map((item, index) => (
+                      <p><b>{index === 0 ? 'Next checks.' : 'Additional next check.'}</b> {item}</p>
+                    ))}
+                  </>
+                ) : null}
+                <p class="inline-source-list">
+                  <b>Representative papers.</b>{' '}
+                  {group.representative_papers.map((slug, index) => (
+                    <>
+                      {index > 0 ? ', ' : ''}
+                      <a href={paper(slug).route}>{paper(slug).title}</a>
+                    </>
+                  ))}
+                  .
+                </p>
+                {note && note.source_links.length ? (
+                  <p class="inline-source-list">
+                    <b>Sources.</b>{' '}
+                    {note.source_links.map((source, index) => (
+                      <>
+                        {index > 0 ? ', ' : ''}
+                        <a href={source.url}>{source.label}</a>
+                      </>
+                    ))}
+                    .
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </section>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

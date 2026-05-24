@@ -1,10 +1,31 @@
 ---
 import '../styles/global.css';
+import cimManifest from '../../public/cim-library.manifest.json';
 
 const {
-  title = 'CIM Compiler/IR Paper Library',
-  description = 'A small public corpus for taxonomy-centered CIM compiler/IR papers.'
+  title = 'Zijian Xiong',
+  description = 'Research projects and Compute-in-Memory compiler/IR paper atlas.'
 } = Astro.props;
+
+const currentPath = Astro.url.pathname;
+const cimRoutes = cimManifest.routes;
+const cimLibraryPrefixes = [cimRoutes.project, cimRoutes.atlas, cimRoutes.clusters, '/papers/'];
+const navLinks = [
+  { href: '/', label: 'Home', section: 'home' },
+  { href: '/projects/', label: 'Projects', section: 'projects' },
+  { href: cimRoutes.atlas, label: 'CIM Library', section: 'cim-library' }
+];
+
+function inCimLibrary() {
+  return cimLibraryPrefixes.some((prefix) => currentPath.startsWith(prefix));
+}
+
+function isCurrent(section: string) {
+  if (section === 'home') return currentPath === '/';
+  if (section === 'cim-library') return inCimLibrary();
+  if (section === 'projects') return currentPath.startsWith('/projects/') && !inCimLibrary();
+  return false;
+}
 ---
 <!doctype html>
 <html lang="en">
@@ -17,7 +38,12 @@ const {
   <body>
     <nav class="site-nav" aria-label="Primary navigation">
       <div class="site-nav-inner wrap">
-        <a class="site-brand" href="/">CIM Library</a>
+        <a class="site-brand" href="/">Zijian Xiong</a>
+        <div class="site-links">
+          {navLinks.map((link) => (
+            <a href={link.href} aria-current={isCurrent(link.section) ? 'page' : undefined}>{link.label}</a>
+          ))}
+        </div>
       </div>
     </nav>
     <slot />

@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/atlas-manifest.schema.json",
+  "title": "Static Atlas Manifest",
+  "type": "object",
+  "required": ["schema_version", "id", "title", "kind", "route", "generated_at", "source", "routes", "views", "stats", "papers"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "title": { "type": "string" },
+    "kind": { "type": "string" },
+    "route": {
+      "type": "string",
+      "pattern": "^/"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "object",
+      "required": ["content_root", "taxonomy_path", "paper_count"],
+      "properties": {
+        "content_root": { "type": "string" },
+        "taxonomy_path": { "type": "string" },
+        "clusters_path": { "type": ["string", "null"] },
+        "paper_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "routes": {
+      "type": "object",
+      "required": ["home", "project_index", "project", "atlas", "clusters", "paper_index", "paper_detail_pattern"],
+      "properties": {
+        "home": { "type": "string", "pattern": "^/" },
+        "project_index": { "type": "string", "pattern": "^/" },
+        "project": { "type": "string", "pattern": "^/" },
+        "atlas": { "type": "string", "pattern": "^/" },
+        "clusters": { "type": "string", "pattern": "^/" },
+        "paper_index": { "type": "string", "pattern": "^/" },
+        "paper_detail_pattern": { "type": "string", "pattern": "^/" }
+      }
+    },
+    "views": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "route", "label", "description"],
+        "properties": {
+          "id": { "type": "string" },
+          "route": { "type": "string", "pattern": "^/" },
+          "label": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "required": ["paper_count", "axis_A_counts", "axis_B_counts"],
+      "properties": {
+        "paper_count": { "type": "integer", "minimum": 0 },
+        "year_min": { "type": ["integer", "null"] },
+        "year_max": { "type": ["integer", "null"] },
+        "axis_A_counts": { "type": "object" },
+        "axis_B_counts": { "type": "object" },
+        "axis_C_object_vocab_counts": { "type": "object" },
+        "axis_D_rewrite_type_counts": { "type": "object" }
+      }
+    },
+    "cluster_layer": {
+      "type": ["object", "null"],
+      "required": ["route", "source_path", "stats", "clusters"],
+      "properties": {
+        "route": { "type": "string", "pattern": "^/" },
+        "source_path": { "type": "string" },
+        "methodology": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "stats": {
+          "type": "object",
+          "required": ["cluster_count", "linked_paper_count", "working_group_count", "investigation_count"],
+          "properties": {
+            "cluster_count": { "type": "integer", "minimum": 0 },
+            "linked_paper_count": { "type": "integer", "minimum": 0 },
+            "working_group_count": { "type": "integer", "minimum": 0 },
+            "investigation_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "clusters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "short_label", "status", "route"],
+            "additionalProperties": true,
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "short_label": { "type": "string" },
+              "status": { "type": "string" },
+              "route": { "type": "string", "pattern": "^/" },
+              "analysis": {
+                "type": ["string", "null"]
+              },
+              "representative_papers": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "supporting_papers": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "object_flow": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "papers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "title", "route", "summary", "axis_A", "axis_B"],
+        "additionalProperties": true,
+        "properties": {
+          "slug": { "type": "string" },
+          "title": { "type": "string" },
+          "route": { "type": "string" },
+          "summary": { "type": "string" },
+          "axis_A": { "type": "object" },
+          "axis_B": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

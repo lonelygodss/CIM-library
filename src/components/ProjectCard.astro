@@ -1,0 +1,39 @@
+---
+type ProjectEntry = {
+  id: string;
+  title: string;
+  kind?: string;
+  status?: string;
+  summary: string;
+  route: string;
+  landing_route?: string;
+  repo?: string;
+  source_manifest?: string;
+  tags?: string[];
+  featured?: boolean;
+};
+
+interface Props {
+  project: ProjectEntry;
+}
+
+const { project } = Astro.props;
+const landingHref = project.landing_route || project.route;
+const routeLabel = project.id === 'cim-library' ? 'Open atlas' : 'Open project';
+const hasSeparateRoute = project.route && project.route !== landingHref;
+---
+
+<article class="project-card project-entry">
+  <h2><a href={landingHref}>{project.title}</a></h2>
+  <p class="project-card__eyebrow">{project.kind}{project.status ? ` / ${project.status}` : ''}</p>
+  <p>{project.summary}</p>
+  {project.tags?.length ? (
+    <ul class="project-card__tags" aria-label={`${project.title} tags`}>
+      {project.tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+  ) : null}
+  <div class="project-card__actions">
+    <a href={landingHref}>Project page</a>
+    {hasSeparateRoute ? <a href={project.route}>{routeLabel}</a> : null}
+  </div>
+</article>

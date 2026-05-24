@@ -1,0 +1,74 @@
+{
+  "name": "Zijian Xiong",
+  "native_name": "熊子健",
+  "email": "xzj@hust.edu.cn",
+  "location": "Wuhan, China",
+  "current_role": "Ph.D. student in Microelectronics",
+  "institution": "Huazhong University of Science and Technology",
+  "profile_summary": "Researcher focused on hardware-software co-design for Compute-in-Memory architecture, memristor devices, and the tooling needed to reason about CIM compiler and IR stacks.",
+  "research_focus": [
+    "Compute-in-Memory architecture and compiler/IR stack analysis",
+    "Hardware-software co-design for efficient AI acceleration",
+    "Memristor and 2D-material device behavior for brain-inspired computing",
+    "Static research tooling for paper corpora, taxonomies, and project atlases"
+  ],
+  "education": [
+    {
+      "school": "Huazhong University of Science and Technology",
+      "location": "Wuhan, China",
+      "degree": "Ph.D. student in Microelectronics",
+      "period": "2022-now"
+    },
+    {
+      "school": "University of Science and Technology of China",
+      "location": "Hefei, China",
+      "degree": "B.Sc. in Applied Physics",
+      "period": "2018-2022"
+    }
+  ],
+  "publications": [
+    {
+      "title": "ASMA: An Anisotropy Scaling Memristor-Based Accelerator for LLM Inference",
+      "venue": "IEEE International Conference on Computer Design",
+      "year": 2025,
+      "pages": "562-565",
+      "role": "first author",
+      "url": "https://doi.org/10.1109/ICCD65941.2025.00086"
+    },
+    {
+      "title": "Detection of Biomolecules Using Solid-State Nanopores Fabricated by Controlled Dielectric Breakdown",
+      "authors": [
+        "Peng Cheng",
+        "Candong Zhao",
+        "Qinjie Pan",
+        "Zijian Xiong",
+        "Qi Chen",
+        "Xiangshui Miao",
+        "Yuhui He"
+      ],
+      "venue": "Sensors",
+      "year": 2024,
+      "details": "24(8), Article 2420",
+      "url": "https://doi.org/10.3390/s24082420"
+    },
+    {
+      "title": "Advances in nano-channel energy harvesting and computing system",
+      "venue": "IEEE Asia Conference on Power and Electrical Engineering",
+      "year": 2024,
+      "role": "first author",
+      "url": "https://ieeexplore.ieee.org/document/10532757"
+    },
+    {
+      "title": "Simulation and optimization of a miniaturized ion source for a neutron tube",
+      "venue": "Physical Review Accelerators and Beams",
+      "year": 2022,
+      "url": "https://doi.org/10.1103/PhysRevAccelBeams.25.103501"
+    },
+    {
+      "title": "Thermal research of a single crystal tungsten target positron source for the STCF project in China",
+      "venue": "Nuclear Instruments and Methods in Physics Research, Section A",
+      "year": 2022,
+      "url": "https://doi.org/10.1016/j.nima.2022.167107"
+    }
+  ]
+}
