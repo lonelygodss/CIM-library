@@ -13,7 +13,7 @@ Use this directory to preserve retrievable project focus state when `docs/active
 
 | Focus file | Status | Use when |
 |---|---|---|
-| `cluster-analysis-working-groups.md` | active | Resuming cluster investigation, working-group comparison cards, `/clusters/` evidence notes, or merged cluster content/manifest text-graph work. |
+| `cluster-analysis-working-groups.md` | active | Resuming cluster investigation, working-group investigation articles, `/clusters/` evidence notes, or cluster content/object-flow work. |
 | `paper-metadata-maintenance.md` | paused / retrievable | Improving paper source metadata, especially arXiv-only entries that may now have formal publication records. |
 
 Completed focus history is indexed in `docs/archive/README.md`; the manifest/visualization refinement focus was archived as `docs/archive/2026-05-manifest-visualization-refinement-iteration.md`.

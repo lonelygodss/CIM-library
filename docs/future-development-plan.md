@@ -61,26 +61,9 @@ The brief archive for this iteration is `docs/archive/2026-05-personal-website-i
 
 Status: active. Resume from `docs/focus/cluster-analysis-working-groups.md`.
 
-The first-pass cluster-analysis and academic-working-group layer has been reactivated from `docs/archive/2026-05-cluster-analysis-working-groups-seed.md`. The manifest and visualization refinement iteration is complete and archived at `docs/archive/2026-05-manifest-visualization-refinement-iteration.md`.
+The focus source of truth is `docs/focus/cluster-analysis-working-groups.md`. Keep detailed methodology, current counts, and next steps there so this roadmap does not become a duplicated session log.
 
-Implemented first pass:
-
-- route: `/clusters/`, as a sibling research view to `/library/`;
-- data: `src/data/clusters.json`, hand-authored and inspectable;
-- UI: article-like cluster sections with analysis, object flow, binding theme, representative/supporting papers, shared objects, rewrite objects, evidence, uncertainty, coarse working-group notes, and scoped atlas links;
-- analysis paragraphs: `analysis` is the preferred public synthesis field and currently exists for the crossbar DNN toolchain, DRAM-PIM API/compiler, LLM memory-hierarchy, and full-stack IR/ISA boundary clusters after focused note-level investigation;
-- deeper group investigations: selected clusters now carry working-group investigation notes with scope, coherence rationale, continuity evidence, boundaries, next checks, and source links;
-- draft display scaffold: each cluster has an `object_flow` field rendered on `/clusters/`, exported in the atlas manifest, and validated by the manifest schema;
-- links: `/projects/cim-library/` and `/library/` now point to the cluster route.
-
-Current methodology direction:
-
-- Metadata is a seed for candidate neighborhoods, not the basis of the final claim.
-- Cluster conclusions should be argued from paper notes, paper text where needed, official artifacts, and source-visible file or execution boundaries.
-- Public cluster and working-group content should move toward small article-like entries with analytical paragraphs and prose graphs rather than metadata-card summaries, non-link tag clouds, folded data blocks, repeated internal subtitles, list-heavy metadata sections, or duplicated working-group article/investigation pairs. Working-group analysis is a parallel lens over artifact lineage, authorship context, repositories, and institutional practice; it should cross-reference cluster seeds without being nested inside cluster analysis. The `/clusters/` route should keep one left navigator shared by cluster articles and one clear working-group investigation article per group so neither lens reads as an appendix to the other.
-- Subagent investigations can be scoped by cluster, boundary question, or artifact lineage; their useful output is checked claims, source links/paths, uncertainty, and candidate analytical prose.
-
-Current cluster hypotheses:
+Current cluster set:
 
 1. Crossbar DNN compiler and simulator toolchain line.
 2. Digital SRAM-CIM macro generation and precision specialization.
@@ -90,35 +73,13 @@ Current cluster hypotheses:
 6. LLM-oriented PIM memory-hierarchy mapping and runtime-state modeling.
 7. Full-stack IR, ISA, and serialized backend boundaries.
 
-The PIMeval/PIMsynth cluster is intentionally narrow. HARMONI is related through UVA LavaLab and DRAM-PIM modeling, but it now belongs to the LLM memory-hierarchy cluster because its central object is a Transformer DFG plus tensor placement and hierarchy mapping, not the PIM API / bit-serial compiler boundary.
+Current roadmap direction:
 
-Working-group investigation depth has started for:
-
-- Xiaoming Chen / Yinhe Han crossbar-PIM compiler/simulator toolchain artifacts;
-- HKUST / digital-CIM macro compiler and physical-backend artifacts;
-- OpenACM / approximate-DCIM optimization boundary;
-- NeuroSim-centered analog CIM modeling artifacts;
-- CiMLoop as a Timeloop/Accelergy CIM modeling extension;
-- GENIEx/NAX nonideality-aware co-design thread;
-- SAFARI / UPMEM real-hardware runtime and benchmark artifacts;
-- UVA LavaLab PIMeval-to-PIMsynth API/compiler artifacts;
-- HARMONI as the public LLM memory-hierarchy modeling anchor;
-- LLM serving and near-memory runtime-state comparison set;
-- CIMFlow/OpenCIMTC serialized compiler-contract comparison;
-- PUMA/CIM-MLC hidden graph-to-backend state comparison;
-- public full-stack artifact boundary comparison set.
-
-These are intentionally coarse groups or comparison sets with deeper evidence notes, not collaboration graphs.
-
-Good next moves:
-
-1. Continue adding in-depth investigation notes cluster-by-cluster, prioritizing groups where official artifacts expose file formats or execution flows.
-2. Strengthen each investigation by checking representative paper notes against official artifacts where the current evidence is thin.
-3. Develop the long-term display direction alongside the evidence: evidence-grounded analytical paragraphs and prose graphs should explain object flow, lineage or boundary, and artifact relationships without overclaiming.
-4. Refine the current `object_flow` scaffold only when the underlying evidence is strong enough, and keep `src/data/clusters.json`, `/clusters/`, the manifest exporter, and the manifest schema aligned.
-5. Keep the single `/clusters/` page unless a cluster accumulates enough checked evidence to justify a separate detail page.
-6. Keep using scoped `/library/` links rather than duplicating the atlas.
-7. Avoid deriving clusters automatically until the hand-authored layer has been reviewed.
+1. Improve existing cluster/group notes for depth and evidence quality before adding new notes.
+2. Strengthen working-group investigations with source-visible artifact or lineage evidence while keeping labels coarse and uncertainty explicit.
+3. Refine cluster object-flow and evidence paragraphs only when source checks sharpen the argument.
+4. Keep the single `/clusters/` page unless a cluster accumulates enough checked evidence to justify a separate detail page.
+5. Avoid deriving clusters automatically until the hand-authored layer has been reviewed.
 
 Guardrails:
 

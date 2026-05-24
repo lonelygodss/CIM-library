@@ -4,7 +4,7 @@
   "title": "CIM Compiler/IR Paper Library",
   "kind": "research-atlas",
   "route": "/library/",
-  "generated_at": "2026-05-24T16:15:12.891Z",
+  "generated_at": "2026-05-24T16:48:30.704Z",
   "source": {
     "content_root": "src/content/papers",
     "taxonomy_path": "src/data/taxonomy.json",
@@ -436,7 +436,7 @@
         "short_label": "Analog modeling baselines",
         "status": "high-confidence descriptive cluster",
         "route": "/clusters/#analog-nonideality-modeling",
-        "analysis": null,
+        "analysis": "This cluster is best read as a set of backend modeling contracts rather than as one compiler stack. NeuroSim makes the device-to-architecture hierarchy first-class: memory-cell parameters, subarray dimensions, ADC/sensing choices, buffers, interconnect, traces, and layer/component reports become the surface that a future compiler would need to target. CiMLoop exposes a different but compatible boundary by turning Timeloop/Accelergy-style YAML/Jinja configs, container hierarchy, per-component reuse, encoding and bit slicing, operand distributions, plug-in cost models, and calibration scales into editable modeling state. GENIEx narrows the contract to analog fidelity: a voltage vector and conductance matrix produce a learned current-ratio correction that can be injected into PyTorch MVM layers, while NAX uses that nonideality feedback together with per-operation crossbar-size and cost-table choices during architecture search. NS-Cache is adjacent rather than central: it extends the NeuroSim-style device/circuit/cache cost stack toward cache hierarchy, refresh, and Gem5/Ruby timing contracts. The shared object is therefore not an IR dialect or application runtime, but a calibrated description of what happens when values pass through analog or memory-centric backend resources.",
         "representative_papers": [
           "neurosim",
           "cimloop",
@@ -447,10 +447,10 @@
           "ns-cache"
         ],
         "object_flow": [
-          "Entry object: a model, workload, or mapping problem is projected onto device, circuit, array, tile, chip, or Timeloop-style hierarchy descriptions.",
-          "Binding/rewrite: the modeling layer makes ADC/DAC precision, sensing, bit slicing, operand distributions, nonidealities, and calibration reusable state.",
-          "Backend handoff: the durable object is a cost, accuracy, mapping, or calibration report that feeds architecture search or backend comparison.",
-          "Boundary: the cluster is methodological; NeuroSim, CiMLoop, GENIEx, and NAX share modeling objects, not one compiler stack."
+          "Entry object: a model, workload trace, mapping candidate, or hardware configuration is projected onto device, circuit, array, tile, chip, Timeloop-style container, or cache hierarchy descriptions.",
+          "Binding/rewrite: the modeling layer makes subarray binding, ADC/DAC precision, sensing, bit slicing, operand distributions, crossbar size, nonideality transfer functions, calibration scales, and refresh or timing assumptions reusable state.",
+          "Backend handoff: the durable object is an accuracy, cost, mapping, timing, calibration, or simulator-parameter report that feeds architecture search, compiler comparison, or system simulation.",
+          "Boundary: the cluster is methodological; NeuroSim, CiMLoop, GENIEx/NAX, and NS-Cache share backend modeling objects, but they do not form one compiler lineage or one collaboration graph."
         ],
         "working_group_count": 3,
         "investigation_count": 3,
@@ -466,7 +466,7 @@
         "short_label": "UPMEM runtime layer",
         "status": "high-confidence descriptive cluster",
         "route": "/clusters/#upmem-real-hardware-runtime",
-        "analysis": null,
+        "analysis": "This cluster is the real-hardware counterpart to the simulator and API clusters: its durable object is host-DPU execution state on commercial UPMEM systems. PrIM establishes the low-level contract by making DPU allocation, tasklet count, MRAM/WRAM staging, transfer size, host-mediated barriers, workload partitioning, and timing categories visible through benchmark implementations and profiling outputs. SimplePIM raises that contract into a programmer-facing runtime object, the PIM-resident array, where symbolic array IDs, per-DPU lengths, placement metadata, lazy zip provenance, function handles, map/reduce iterators, and host-emulated collectives carry the state that a compiler would otherwise need to synthesize. PIM-Opt and PIM-TC then show how workload-specific algorithms deepen the same boundary: distributed optimization becomes a synchronization trajectory over host parameter-server state, fixed-point arithmetic, LUTs, DPU/tasklet execution, and timing logs; triangle counting becomes color-triplet graph placement, host-built edge batches, DPU-local MRAM samples, approximate sampling policies, and CLI/Makefile knobs. The shared object is therefore not a simulator command API or a formal IR dialect, but a reproducible host/DPU runtime record that names where data lives, when it moves, what executes on each DPU, and where global state is merged.",
         "representative_papers": [
           "prim",
           "simplepim",
@@ -476,10 +476,10 @@
           "pim-tc"
         ],
         "object_flow": [
-          "Entry object: a benchmark, array program, graph kernel, or optimization workload is divided between host code and UPMEM DPU execution.",
-          "Binding/rewrite: runtime state names DPU sets, tasklets, MRAM/WRAM placement, host-DPU transfers, partitions, collectives, and merge points.",
-          "Backend handoff: the durable object is runnable host code, DPU kernels, Makefile or CLI parameters, datasets, and profiling output.",
-          "Boundary: the binding object is real-hardware execution state, not an explicit compiler IR or simulator-only API."
+          "Entry object: a benchmark, array program, distributed optimization workload, or graph kernel is divided between host code and UPMEM DPU execution.",
+          "Binding/rewrite: runtime state names DPU sets, tasklets, MRAM/WRAM placement, transfer granularity, array IDs, per-DPU partitions, host-mediated collectives, synchronization frequency, graph color triplets, and merge points.",
+          "Backend handoff: the durable object is runnable host code, DPU kernels, Makefile or CLI parameters, datasets, timing/energy logs, correctness checks, and profiling output.",
+          "Boundary: the binding object is real-hardware execution state; keep it distinct from simulator-only PIM APIs and from papers whose central object is a compiler IR rather than a host/DPU runtime record."
         ],
         "working_group_count": 1,
         "investigation_count": 1,
