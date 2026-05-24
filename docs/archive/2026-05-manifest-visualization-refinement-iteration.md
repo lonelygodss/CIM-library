@@ -15,14 +15,14 @@ This iteration refined the public manifest and visualization layer before resumi
 - `/library/` uses an in-page section sidebar and a compact selected-paper reading bridge rather than a long metadata cloud.
 - `/papers/` is a plain note index; `/papers/[slug]/` keeps the long-form note first, retains a right-side metadata/source/context panel, and moves detailed atlas frontmatter into a compact footnote.
 - `/clusters/` is focus-first: a top focus map names each cluster binding object, and cluster panels group representative/supporting papers, evidence, working-group notes, and investigation notes.
-- `/projects/cim-library/` now orients readers with the central corpus question, static public surfaces, corpus-shape summaries, and representative paper-note explanations.
+- `/projects/cim-library/` now orients readers with the central corpus question, static public surfaces, and corpus-shape summaries.
 
 ## Decisions
 
 - Keep cluster prose, uncertainty, and investigation details in `src/data/clusters.json`, not paper frontmatter.
 - Keep the paper metadata contract descriptive. Do not add coverage scores, ranking scores, quality scores, or `trajectory_IR_relevance`.
 - Extend the main CIM Library manifest rather than creating a separate cluster manifest for now.
-- Treat future cluster text/prose graphs as cluster-focus work. If those graph fields become structured, update `src/data/clusters.json`, the manifest exporter, the manifest schema, and `/clusters/` together.
+- Treat cluster text/prose graphs as cluster-focus work. Current `object_flow` graph fields are structured public data; update `src/data/clusters.json`, the manifest exporter, the manifest schema, and `/clusters/` together when that field changes.
 - Keep route-level navigation centralized in `CimLibraryNav`; page-specific anchors and contextual paper/source links remain local to pages.
 
 ## Handoff

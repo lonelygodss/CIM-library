@@ -20,7 +20,7 @@ This is the compact default context for current project state. Keep it short; mo
 
 ## Active Focus
 
-The active focus is cluster analysis and working-group content for the CIM Library. The manifest/visualization refinement focus is completed and archived.
+The active focus is cluster analysis and working-group content for the CIM Library. This includes the long-term display direction for the cluster area: evidence-grounded text/prose graphs that explain object flow, lineage or boundary, and artifact relationships. The manifest/visualization refinement focus is completed and archived.
 
 Current focus doc:
 
@@ -39,12 +39,12 @@ Main implementation surfaces:
 - `src/data/clusters.json`
 - `src/pages/clusters/index.astro`
 - Representative paper notes and official paper/artifact sources for the cluster being revised.
-- Cluster `object_flow` is structured data in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned.
+- Current `object_flow` fields are a draft display scaffold, structured in `src/data/clusters.json`, exported by `scripts/export-atlas-manifest.mjs`, validated by `docs/website-integration/schemas/atlas-manifest.schema.json`, and rendered on `/clusters/`; keep these surfaces aligned if the field changes.
 
 Current cluster/content question:
 
 - The cluster layer currently has 7 cluster hypotheses and 13 deeper investigation cards.
-- Each cluster has a compact `object_flow` prose graph. Next cluster work should refine evidence/investigation content against sources and keep object-flow text aligned.
+- The cluster display direction is not complete. Cluster work should improve evidence/investigation content and use that evidence to refine the draft object-flow prose graphs.
 - Working-group labels must remain coarse and evidence-based.
 - LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims unless source evidence supports lineage.
 - Preserve the descriptive paper metadata contract and keep clusters separate from paper frontmatter unless the contract is intentionally changed.
@@ -54,8 +54,8 @@ Current cluster/content question:
 
 When asked to continue or proceed, prefer a complete coherent batch instead of a very small edit.
 
-- Manifest/visualization sessions can audit the current manifest and visual route consumers, update generated manifest/contract/docs, and refine one coherent route or summary slice.
 - Cluster sessions should start by reading `docs/focus/cluster-analysis-working-groups.md`; a coherent batch can include 2-4 related investigation updates, necessary source checks, data edits, docs count/status updates, and route smoke checks.
+- Manifest/visualization rationale is archived; revisit it only if the user explicitly asks for manifest or atlas-route contract work.
 - Website, docs, or paper sessions can touch all files needed for one complete user-visible slice.
 - Keep the batch bounded by evidence quality: stop before making speculative lineage, affiliation, scoring, or ranking claims.
 

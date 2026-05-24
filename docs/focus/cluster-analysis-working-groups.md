@@ -11,7 +11,8 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 - Source data: `src/data/clusters.json`.
 - Route: `src/pages/clusters/index.astro` at `/clusters/`.
 - Current shape: 7 cluster hypotheses and 13 deeper investigation cards.
-- Display shape: each cluster now has a compact `object_flow` prose graph rendered on `/clusters/`, with deeper evidence and investigation notes still grouped inside the cluster panel.
+- Display direction: develop evidence-grounded text/prose graphs that explain object flow, lineage or boundary, and artifact relationships. This is a long-term design goal that accompanies the cluster investigation and determines the overall style of this part of the library.
+- Current display scaffold: each cluster has a draft `object_flow` field rendered on `/clusters/`. Treat it as a first-pass scaffold, not as completion of the display direction.
 - `/library/` and `/projects/cim-library/` link to `/clusters/`.
 - Cluster data is separate from paper frontmatter so the public paper metadata contract stays descriptive.
 
@@ -44,8 +45,9 @@ The cluster-analysis layer is a static, hand-authored research view over the exi
 ## Resume Guidance
 
 - Continue evidence checking and add/update investigation notes in `src/data/clusters.json`.
-- `object_flow` is exported through `scripts/export-atlas-manifest.mjs` and validated by `docs/website-integration/schemas/atlas-manifest.schema.json`; keep those surfaces aligned if the field changes.
-- When revising each cluster, keep the prose graph focused on stack object, transformations or handoff path, evidence papers/artifacts, and uncertainty boundary.
+- Keep the display direction and the investigation work together: prose graphs should improve only as the evidence for object flow, lineage or boundary, and artifact relationships improves.
+- `object_flow` is currently structured public data exported through `scripts/export-atlas-manifest.mjs`, rendered on `/clusters/`, and validated by `docs/website-integration/schemas/atlas-manifest.schema.json`; keep those surfaces aligned if the field changes.
+- When revising each draft prose graph, keep it focused on stack object, transformations or handoff path, evidence papers/artifacts, and uncertainty boundary.
 - A reasonable session batch can cover 2-4 related investigation updates plus source checks, docs count/status updates, and route smoke checks.
 - Keep group labels coarse and evidence-based.
 - Mark comparison sets explicitly where evidence does not support lineage.

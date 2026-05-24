@@ -22,7 +22,7 @@ Current default state:
 - /projects/cim-library/ now explains the central corpus question, static public surfaces, and corpus-shape summaries.
 - /library/ uses the same top spacing as the other CIM Library pages, a left in-page section sidebar, and a compact selected-paper reading bridge; detailed source/frontmatter metadata stays on /papers/[slug]/.
 - /clusters/ is focus-first: the top cluster map names each binding object and links to detail/atlas slices; long evidence, working-group, and investigation material is grouped inside each cluster card.
-- Cluster object-flow prose graphs are structured as object_flow in src/data/clusters.json, rendered on /clusters/, exported in public/cim-library.manifest.json, and validated by the manifest schema. Keep those surfaces aligned when revising them.
+- Cluster display direction is the active long-term focus: develop evidence-grounded text/prose graphs that explain object flow, lineage or boundary, and artifact relationships. Current object_flow fields are a draft scaffold in src/data/clusters.json, rendered on /clusters/, exported in public/cim-library.manifest.json, and validated by the manifest schema; keep those surfaces aligned when revising them.
 - Working-group labels must remain coarse and evidence-based; LLM-serving and full-stack-boundary cards are comparison sets, not lineage claims.
 - Do not add coverage scores, ranking scores, quality scores, or trajectory_IR_relevance.
 
@@ -33,7 +33,7 @@ Session scope:
 - Stop early only when evidence is missing, a claim would become too speculative, or the next step needs a new product/research decision.
 
 Good next steps depend on the requested focus:
-- Cluster work: resume from docs/focus/cluster-analysis-working-groups.md before editing src/data/clusters.json.
+- Cluster work: resume from docs/focus/cluster-analysis-working-groups.md before editing src/data/clusters.json; keep display-style changes tied to evidence improvements.
 - Paper work: read docs/corpus-note-harness.md and docs/metadata-template.md only then.
 - Website work: read docs/website-integration/README.md only then.
 - Docs work: read docs/iteration-docs-playbook.md and docs/focus/README.md.

@@ -12,7 +12,7 @@ This is a static Astro paper library for CIM compiler/IR-stack research.
 - `/` is the merged personal homepage/profile page.
 - `/projects/` and `/projects/cim-library/` form the static project shell around the atlas.
 - `/library/` is the stable full atlas route.
-- `/clusters/` is the first-pass static cluster and coarse working-group route.
+- `/clusters/` is the active static cluster and coarse working-group route.
 - `/papers/[slug]/` renders individual long-form corpus notes.
 - `src/data/clusters.json` is the hand-authored cluster source. It is deliberately separate from paper frontmatter so the public paper metadata contract stays descriptive and unchanged.
 - Axis C/D normalization is render-time only through `src/lib/axisNormalization.ts` and `src/data/taxonomy.json`.
@@ -36,7 +36,7 @@ Latest known good baseline:
 - `npm run qa`: 62 files, 62 structured, 0 raw files; source/provenance coverage is informational audit output.
 - `npm run contract:website`: OK.
 - `npm run check`: `0 errors, 0 warnings, 0 hints`.
-- `npm run build`: 67 static pages.
+- `npm run build`: 68 static pages.
 
 ## Completed Website-Shell Iteration
 
@@ -57,11 +57,11 @@ Implemented:
 
 The brief archive for this iteration is `docs/archive/2026-05-personal-website-integration-iteration.md`.
 
-## Paused Focus -- Cluster Analysis and Working Groups
+## Active Focus -- Cluster Analysis and Working Groups
 
-Status: paused / retrievable while manifest and visualization refinement is active. Resume from `docs/focus/cluster-analysis-working-groups.md`.
+Status: active. Resume from `docs/focus/cluster-analysis-working-groups.md`.
 
-The first-pass cluster-analysis and academic-working-group layer has been reactivated from `docs/archive/2026-05-cluster-analysis-working-groups-seed.md`.
+The first-pass cluster-analysis and academic-working-group layer has been reactivated from `docs/archive/2026-05-cluster-analysis-working-groups-seed.md`. The manifest and visualization refinement iteration is complete and archived at `docs/archive/2026-05-manifest-visualization-refinement-iteration.md`.
 
 Implemented first pass:
 
@@ -69,6 +69,7 @@ Implemented first pass:
 - data: `src/data/clusters.json`, hand-authored and inspectable;
 - UI: static cluster panels with binding theme, representative/supporting papers, shared objects, rewrite objects, evidence, uncertainty, coarse working-group notes, and scoped atlas links;
 - deeper group investigations: selected clusters now carry working-group investigation notes with scope, coherence rationale, continuity evidence, boundaries, next checks, and source links;
+- draft display scaffold: each cluster has an `object_flow` field rendered on `/clusters/`, exported in the atlas manifest, and validated by the manifest schema;
 - links: `/projects/cim-library/` and `/library/` now point to the cluster route.
 
 Current cluster hypotheses:
@@ -105,9 +106,11 @@ Good next moves:
 
 1. Continue adding in-depth investigation notes cluster-by-cluster, prioritizing groups where official artifacts expose file formats or execution flows.
 2. Strengthen each investigation by checking representative paper notes against official artifacts where the current evidence is thin.
-3. Keep the single `/clusters/` page unless a cluster accumulates enough checked evidence to justify a separate detail page.
-4. Keep using scoped `/library/` links rather than duplicating the atlas.
-5. Avoid deriving clusters automatically until the hand-authored layer has been reviewed.
+3. Develop the long-term display direction alongside the evidence: evidence-grounded text/prose graphs should explain object flow, lineage or boundary, and artifact relationships without overclaiming.
+4. Refine the current `object_flow` scaffold only when the underlying evidence is strong enough, and keep `src/data/clusters.json`, `/clusters/`, the manifest exporter, and the manifest schema aligned.
+5. Keep the single `/clusters/` page unless a cluster accumulates enough checked evidence to justify a separate detail page.
+6. Keep using scoped `/library/` links rather than duplicating the atlas.
+7. Avoid deriving clusters automatically until the hand-authored layer has been reviewed.
 
 Guardrails:
 
@@ -126,15 +129,3 @@ Guardrails:
 - Do not weaken `src/content.config.ts` to accommodate malformed notes.
 - Do not automatically rewrite scholarly prose unless explicitly requested.
 - Keep legacy source files intact unless explicitly asked to archive or rewrite them.
-
-## Active Focus -- Cluster Analysis and Working Groups
-
-Status: active. Use `docs/focus/cluster-analysis-working-groups.md` as the focused working doc.
-
-The manifest and visualization refinement iteration is complete and archived at `docs/archive/2026-05-manifest-visualization-refinement-iteration.md`. Cluster work can now resume:
-
-- improve evidence-grounded cluster and working-group content in `src/data/clusters.json`;
-- refine per-cluster `object_flow` prose graphs and evidence notes so they explain object flow, lineage or boundary, and artifact relationships without overclaiming;
-- keep cluster conclusions separate from paper frontmatter unless the public metadata contract is intentionally changed;
-- update the manifest exporter, manifest schema, generated manifest, and `/clusters/` together if cluster prose graphs become structured public data;
-- keep all changes static, inspectable, and compatible with the descriptive paper metadata contract.
