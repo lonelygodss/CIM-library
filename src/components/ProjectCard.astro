@@ -1,4 +1,6 @@
 ---
+import { sitePath } from '../lib/sitePath';
+
 type ProjectEntry = {
   id: string;
   title: string;
@@ -18,9 +20,11 @@ interface Props {
 }
 
 const { project } = Astro.props;
-const landingHref = project.landing_route || project.route;
+const landingRoute = project.landing_route || project.route;
+const landingHref = sitePath(landingRoute);
+const routeHref = sitePath(project.route);
 const routeLabel = project.id === 'cim-library' ? 'Open atlas' : 'Open project';
-const hasSeparateRoute = project.route && project.route !== landingHref;
+const hasSeparateRoute = project.route && project.route !== landingRoute;
 ---
 
 <article class="project-card project-entry">
@@ -34,6 +38,6 @@ const hasSeparateRoute = project.route && project.route !== landingHref;
   ) : null}
   <div class="project-card__actions">
     <a href={landingHref}>Project page</a>
-    {hasSeparateRoute ? <a href={project.route}>{routeLabel}</a> : null}
+    {hasSeparateRoute ? <a href={routeHref}>{routeLabel}</a> : null}
   </div>
 </article>

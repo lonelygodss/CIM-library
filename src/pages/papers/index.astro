@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CimLibraryNav from '../../components/CimLibraryNav.astro';
 import profile from '../../data/profile.json';
+import { sitePath } from '../../lib/sitePath';
 
 const entries = await getCollection('papers');
 const papers = entries
@@ -30,7 +31,7 @@ const papers = entries
       <ol class="paper-index-list">
         {papers.map((paper) => (
           <li>
-            <a href={`/papers/${paper.slug}/`}>{paper.title}</a>
+            <a href={sitePath(`/papers/${paper.slug}/`)}>{paper.title}</a>
             <span>{[paper.year, paper.venue, paper.authors_or_group].filter(Boolean).join(' / ') || 'Year, venue, or group not specified'}</span>
           </li>
         ))}

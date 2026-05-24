@@ -1,7 +1,8 @@
 ---
 import cimManifest from '../../public/cim-library.manifest.json';
+import { routePath, sitePath } from '../lib/sitePath';
 
-const currentPath = Astro.url.pathname;
+const currentPath = routePath(Astro.url.pathname);
 const routes = cimManifest.routes;
 const links = [
   { href: routes.project, label: 'Overview', section: 'overview' },
@@ -23,10 +24,10 @@ const activeSection = currentSection();
 
 <nav class="project-nav" aria-label="CIM Library navigation">
   <div class="project-nav-inner wrap">
-    <a class="project-nav-brand" href={routes.project}>CIM Library</a>
+    <a class="project-nav-brand" href={sitePath(routes.project)}>CIM Library</a>
     <div class="project-nav-links">
       {links.map((link) => (
-        <a href={link.href} aria-current={activeSection === link.section ? 'page' : undefined}>{link.label}</a>
+        <a href={sitePath(link.href)} aria-current={activeSection === link.section ? 'page' : undefined}>{link.label}</a>
       ))}
     </div>
   </div>

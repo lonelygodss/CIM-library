@@ -5,6 +5,7 @@ import CimLibraryNav from '../../components/CimLibraryNav.astro';
 import clustersData from '../../data/clusters.json';
 import profile from '../../data/profile.json';
 import taxonomy from '../../data/taxonomy.json';
+import { sitePath } from '../../lib/sitePath';
 
 type PaperSummary = {
   slug: string;
@@ -29,7 +30,7 @@ const papersBySlug = new Map<string, PaperSummary>(
     entry.data.slug,
     {
       ...entry.data,
-      route: `/papers/${entry.data.slug}/`
+      route: sitePath(`/papers/${entry.data.slug}/`)
     }
   ])
 );

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import profile from '../data/profile.json';
+import { sitePath } from '../lib/sitePath';
 
 function publicationMeta(publication: {
   venue: string;
@@ -69,7 +70,7 @@ function publicationAuthors(publication: { authors?: string[] }) {
           <p class="eyebrow eyebrow--dark">Projects</p>
           <h2 id="home-projects">Research projects live on the project index</h2>
         </div>
-        <a class="inline-link" href="/projects/">Open projects</a>
+        <a class="inline-link" href={sitePath('/projects/')}>Open projects</a>
       </div>
     </section>
 

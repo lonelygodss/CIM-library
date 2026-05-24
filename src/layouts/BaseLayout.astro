@@ -1,13 +1,14 @@
 ---
 import '../styles/global.css';
 import cimManifest from '../../public/cim-library.manifest.json';
+import { routePath, sitePath } from '../lib/sitePath';
 
 const {
   title = 'Zijian Xiong',
   description = 'Research projects and Compute-in-Memory compiler/IR paper atlas.'
 } = Astro.props;
 
-const currentPath = Astro.url.pathname;
+const currentPath = routePath(Astro.url.pathname);
 const cimRoutes = cimManifest.routes;
 const cimLibraryPrefixes = [cimRoutes.project, cimRoutes.atlas, cimRoutes.clusters, '/papers/'];
 const navLinks = [
@@ -38,10 +39,10 @@ function isCurrent(section: string) {
   <body>
     <nav class="site-nav" aria-label="Primary navigation">
       <div class="site-nav-inner wrap">
-        <a class="site-brand" href="/">Zijian Xiong</a>
+        <a class="site-brand" href={sitePath('/')}>Zijian Xiong</a>
         <div class="site-links">
           {navLinks.map((link) => (
-            <a href={link.href} aria-current={isCurrent(link.section) ? 'page' : undefined}>{link.label}</a>
+            <a href={sitePath(link.href)} aria-current={isCurrent(link.section) ? 'page' : undefined}>{link.label}</a>
           ))}
         </div>
       </div>

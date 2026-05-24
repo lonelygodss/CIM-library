@@ -58,6 +58,18 @@ npm run contract:website
 npm run build
 ```
 
+## Deploy to GitHub Pages
+
+The repository includes a GitHub Actions Pages workflow at `.github/workflows/deploy-pages.yml`. It deploys pushes to `main` as a GitHub Pages project site:
+
+```text
+https://bearxiong2k.github.io/homepage/
+```
+
+In GitHub, set **Settings -> Pages -> Build and deployment -> Source** to **GitHub Actions**. The workflow keeps local development at `/`, but builds production with `ASTRO_BASE=/homepage` so static assets resolve under the project-site path.
+
+If this repository later moves to a root Pages site, such as `bearxiong2k.github.io`, or uses a custom domain at the domain root, change the workflow build environment to `ASTRO_BASE=/` and set `ASTRO_SITE` to the final domain.
+
 ## Add papers
 
 1. Put one `.md` file in `src/content/papers/`.

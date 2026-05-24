@@ -1,5 +1,6 @@
 ---
 import { axisCategorySets, normalizePaperAxes } from '../lib/axisNormalization';
+import { basePath } from '../lib/sitePath';
 
 type AxisA = 'A1' | 'A2' | 'A3' | 'A4' | 'A5' | 'A6';
 type AxisB = 'B1' | 'B2' | 'B3' | 'B4' | 'B5' | 'B6' | 'B7';
@@ -159,11 +160,13 @@ const axisCategories = axisCategorySets(taxonomy);
 <script is:inline type="application/json" id="paper-data" set:html={JSON.stringify(normalizedPapers)}></script>
 <script is:inline type="application/json" id="taxonomy-data" set:html={JSON.stringify(taxonomy)}></script>
 <script is:inline type="application/json" id="axis-category-data" set:html={JSON.stringify(axisCategories)}></script>
+<script is:inline type="application/json" id="site-base-path" set:html={JSON.stringify(basePath)}></script>
 <script is:inline>
 (() => {
   const papers = JSON.parse(document.getElementById('paper-data').textContent);
   const taxonomy = JSON.parse(document.getElementById('taxonomy-data').textContent);
   const axisCategories = JSON.parse(document.getElementById('axis-category-data').textContent);
+  const siteBasePath = JSON.parse(document.getElementById('site-base-path').textContent);
   const families = taxonomy.families;
   const middles = taxonomy.middles;
   const familyCodes = Object.keys(families);
@@ -229,7 +232,8 @@ const axisCategories = axisCategorySets(taxonomy);
   const roles = (paper) => [paper.axis_A.primary, ...(paper.axis_A.secondary ?? [])];
   const metadataLine = (paper) => [paper.year, paper.venue].filter(Boolean).join(' · ');
   const currentAtlasUrl = () => `${window.location.pathname}${window.location.search}`;
-  const detailHref = (paper) => `/papers/${esc(paper.slug)}/?from=${encodeURIComponent(currentAtlasUrl())}`;
+  const sitePath = (path) => `${siteBasePath}${path.startsWith('/') ? path : `/${path}`}` || '/';
+  const detailHref = (paper) => `${sitePath(`/papers/${paper.slug}/`)}?from=${encodeURIComponent(currentAtlasUrl())}`;
   const paperLabel = (paper) => paper.subtitle?.replace(/^Scoped CIM stack note( seed)?$/i, '')?.trim() || paper.title;
   const shortTitle = (paper) => paper.title
     .replace(/^([^:—-]{2,42})[:—-].*$/, '$1')

@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CimLibraryNav from '../../components/CimLibraryNav.astro';
 import taxonomy from '../../data/taxonomy.json';
 import { normalizePaperAxes } from '../../lib/axisNormalization';
+import { sitePath } from '../../lib/sitePath';
 
 export async function getStaticPaths() {
   const papers = await getCollection('papers');
@@ -69,7 +70,7 @@ if (data.artifact?.url && !linkEntries.some((entry) => entry.url === data.artifa
 const normalizedAxes = normalizePaperAxes(data, taxonomy);
 const atlasFacetHref = (params: Record<string, string>) => {
   const search = new URLSearchParams({ paper: data.slug, ...params });
-  return `/library/?${search.toString()}#atlas-section`;
+  return sitePath(`/library/?${search.toString()}#atlas-section`);
 };
 const noteOutline = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 type NoteHeading = typeof noteOutline[number];
