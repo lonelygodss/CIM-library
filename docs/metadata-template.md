@@ -6,10 +6,22 @@ Copy this frontmatter to a new paper note and then paste the full note below it.
 ---
 slug: example-paper
 title: Example Paper
+short_title: Example
 subtitle: Scoped CIM stack note
 year: 2026
-venue: arXiv
-authors_or_group:
+publication:
+  venue: arXiv
+  type: preprint
+  doi:
+  url:
+authors: []
+bibtex: |
+  @misc{example-paper,
+    title = {Example Paper},
+    year = {2026},
+    howpublished = {arXiv}
+  }
+citation_source:
 summary: >-
   One public-facing paragraph.
 links:

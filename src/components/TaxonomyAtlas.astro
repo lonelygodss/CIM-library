@@ -21,9 +21,15 @@ type Middle = {
 type Paper = {
   slug: string;
   title: string;
+  short_title: string;
   subtitle?: string | null;
   year?: number | null;
-  venue?: string | null;
+  publication?: {
+    venue?: string | null;
+    type?: string | null;
+    doi?: string | null;
+    url?: string | null;
+  };
   summary: string;
   tags?: string[];
   technology?: string[];
@@ -228,23 +234,30 @@ const axisCategories = axisCategorySets(taxonomy);
 
   const $ = (id) => document.getElementById(id);
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+  const inlineMarkdown = (value) => esc(value)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
   const firstMiddle = (paper) => paper.axis_B?.[0] ?? 'B1';
   const roles = (paper) => [paper.axis_A.primary, ...(paper.axis_A.secondary ?? [])];
-  const metadataLine = (paper) => [paper.year, paper.venue].filter(Boolean).join(' · ');
+  const metadataLine = (paper) => [paper.year, paper.publication?.venue].filter(Boolean).join(' · ');
   const currentAtlasUrl = () => `${window.location.pathname}${window.location.search}`;
   const sitePath = (path) => `${siteBasePath}${path.startsWith('/') ? path : `/${path}`}` || '/';
   const detailHref = (paper) => `${sitePath(`/papers/${paper.slug}/`)}?from=${encodeURIComponent(currentAtlasUrl())}`;
-  const paperLabel = (paper) => paper.subtitle?.replace(/^Scoped CIM stack note( seed)?$/i, '')?.trim() || paper.title;
-  const shortTitle = (paper) => paper.title
-    .replace(/^([^:—-]{2,42})[:—-].*$/, '$1')
-    .replace(/\b(a|an|the|for|with|and|of|to|in)\b/gi, '')
-    .trim()
+  const paperLabel = (paper) => paper.title;
+  const shortTitle = (paper) => paper.short_title || paper.title;
+  const initials = (paper) => shortTitle(paper)
+    .replace(/[^A-Za-z0-9+]+/g, ' ')
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 3)
-    .join(' ') || paper.title.slice(0, 18);
-  const initials = (paper) => shortTitle(paper).split(/[\s/-]+/).filter(Boolean).slice(0, 3).map((x) => x[0]).join('').toUpperCase();
+    .map((x) => x[0])
+    .join('')
+    .toUpperCase();
   const textBlob = (paper) => [
     paper.title,
+    paper.short_title,
     paper.subtitle,
     paper.summary,
     ...(paper.tags ?? []),
@@ -720,7 +733,7 @@ const axisCategories = axisCategorySets(taxonomy);
       <span>${atlasLayout === 'cd'
         ? `${esc(paper.axis_C_object_vocab?.[0] ?? '')} · ${esc(paper.axis_D_rewrite_types?.[0] ?? '')}`
         : `${esc(paper.axis_A.primary)} ${esc(families[paper.axis_A.primary]?.short ?? '')} · ${esc(firstMiddle(paper))} ${esc(middles[firstMiddle(paper)]?.short ?? '')}`}</span>
-      <p>${esc(paper.summary)}</p>
+      <p>${inlineMarkdown(paper.summary)}</p>
     `;
   }
 
@@ -909,7 +922,7 @@ const axisCategories = axisCategorySets(taxonomy);
           <div class="subtle">${esc(metadataLine(paper) || paper.subtitle || 'No venue/year in metadata')}</div>
         </div>
       </div>
-      <p class="subtle" style="margin:0">${esc(paper.summary)}</p>
+      <p class="subtle atlas-summary" style="margin:0">${inlineMarkdown(paper.summary)}</p>
       <div class="atlas-fact-list">
         <div><span>Stack view</span><strong>${esc(axisLabel(paper))}</strong></div>
         <div><span>Object view</span><strong>${esc(objectRewriteLabel(paper))}</strong></div>
@@ -929,7 +942,7 @@ const axisCategories = axisCategorySets(taxonomy);
         <section class="bridge-section">
           <h4>Read for</h4>
           <ul>
-            ${bridgeBullets(paper).map((item) => `<li>${esc(item)}</li>`).join('')}
+            ${bridgeBullets(paper).map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}
           </ul>
         </section>
         <section class="bridge-section">
