@@ -5,12 +5,12 @@
   "location": "Wuhan, China",
   "current_role": "Ph.D. student in Microelectronics",
   "institution": "Huazhong University of Science and Technology",
-  "profile_summary": "Researcher focused on hardware-software co-design for Compute-in-Memory architecture, memristor devices, and the tooling needed to reason about CIM compiler and IR stacks.",
+  "profile_summary": "Researcher working across Compute-in-Memory compiler abstractions, accelerator architecture, and AI inference infrastructure, with recent work on memristor-based LLM acceleration and regular execution strategies for quantized models.",
   "research_focus": [
-    "Compute-in-Memory architecture and compiler/IR stack analysis",
-    "Hardware-software co-design for efficient AI acceleration",
-    "Memristor and 2D-material device behavior for brain-inspired computing",
-    "Static research tooling for paper corpora, taxonomies, and project atlases"
+    "Compiler abstractions for CIM stacks: dataflow, placement contracts, precision/residency constraints, and backend legality",
+    "CIM accelerator architecture for LLM inference, including memristor-based compute paths and quantized FFN execution",
+    "AI inference infrastructure for memory-centric accelerators: scheduling, batching, runtime resource pressure, and serving-oriented evaluation",
+    "Hardware-software co-design methods that connect models, mappings, simulators, and backend control for inspectable CIM systems"
   ],
   "education": [
     {
