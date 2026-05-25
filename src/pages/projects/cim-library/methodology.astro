@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import CimLibraryNav from '../../../components/CimLibraryNav.astro';
+import ContentTag from '../../../components/ContentTag.astro';
 import projects from '../../../data/project-registry.json';
 import profile from '../../../data/profile.json';
 import { sitePath } from '../../../lib/sitePath';
@@ -17,6 +18,7 @@ const routes = cimManifest.routes;
   description="Under-construction methodology notes for how AI cooperation is used to generate a controllable scoped CIM compiler/IR corpus."
 >
   <CimLibraryNav />
+  <ContentTag />
   <main class="wrap page-shell project-landing methodology-page">
     <header class="page-header project-hero">
       <p class="eyebrow eyebrow--dark">Methodology / under construction</p>
