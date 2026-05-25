@@ -8,6 +8,7 @@ const {
   description = 'Research projects and Compute-in-Memory compiler/IR paper atlas.'
 } = Astro.props;
 
+const cloudflareAnalyticsToken = import.meta.env.PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
 const currentPath = routePath(Astro.url.pathname);
 const cimRoutes = cimManifest.routes;
 const cimLibraryPrefixes = [cimRoutes.project, cimRoutes.atlas, cimRoutes.clusters, '/papers/'];
@@ -35,6 +36,14 @@ function isCurrent(section: string) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    {cloudflareAnalyticsToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cloudflareAnalyticsToken })}
+      ></script>
+    )}
   </head>
   <body>
     <nav class="site-nav" aria-label="Primary navigation">

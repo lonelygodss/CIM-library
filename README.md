@@ -70,6 +70,16 @@ In GitHub, set **Settings -> Pages -> Build and deployment -> Source** to **GitH
 
 If this repository later moves to a root Pages site, such as `bearxiong2k.github.io`, or uses a custom domain at the domain root, change the workflow build environment to `ASTRO_BASE=/` and set `ASTRO_SITE` to the final domain.
 
+## Cloudflare Web Analytics
+
+Cloudflare Web Analytics requires the JavaScript snippet when the hostname is not managed as a website in the same Cloudflare account. This site reads the beacon token from:
+
+```bash
+PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN=your-token
+```
+
+For GitHub Pages deployment, add a repository variable named `CLOUDFLARE_WEB_ANALYTICS_TOKEN` under **Settings -> Secrets and variables -> Actions -> Variables**. The Pages workflow passes it to Astro at build time and the shared layout emits Cloudflare's beacon script on every page.
+
 ## Add papers
 
 1. Put one `.md` file in `src/content/papers/`.

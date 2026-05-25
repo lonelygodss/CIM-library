@@ -48,6 +48,7 @@ jobs:
         env:
           ASTRO_SITE: https://bearxiong2k.github.io
           ASTRO_BASE: /homepage
+          PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN: ${{ vars.CLOUDFLARE_WEB_ANALYTICS_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
