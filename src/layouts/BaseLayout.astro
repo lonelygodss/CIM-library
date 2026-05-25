@@ -8,7 +8,8 @@ const {
   description = 'Research projects and Compute-in-Memory compiler/IR paper atlas.'
 } = Astro.props;
 
-const cloudflareAnalyticsToken = import.meta.env.PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
+const cloudflareAnalyticsToken =
+  import.meta.env.PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN ?? '0e9af448db834b24a2b5629ecbf804c9';
 const currentPath = routePath(Astro.url.pathname);
 const cimRoutes = cimManifest.routes;
 const cimLibraryPrefixes = [cimRoutes.project, cimRoutes.atlas, cimRoutes.clusters, '/papers/'];

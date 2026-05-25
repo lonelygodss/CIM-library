@@ -72,13 +72,13 @@ If this repository later moves to a root Pages site, such as `bearxiong2k.github
 
 ## Cloudflare Web Analytics
 
-Cloudflare Web Analytics requires the JavaScript snippet when the hostname is not managed as a website in the same Cloudflare account. This site reads the beacon token from:
+Cloudflare Web Analytics requires the JavaScript snippet when the hostname is not managed as a website in the same Cloudflare account. This site has the public beacon token installed in the shared Astro layout. To rotate or override it locally, set:
 
 ```bash
 PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN=your-token
 ```
 
-For GitHub Pages deployment, add a repository variable named `CLOUDFLARE_WEB_ANALYTICS_TOKEN` under **Settings -> Secrets and variables -> Actions -> Variables**. The Pages workflow passes it to Astro at build time and the shared layout emits Cloudflare's beacon script on every page.
+For GitHub Pages deployment, the checked-in default token is enough. If the token changes, either update the layout or add a repository variable named `CLOUDFLARE_WEB_ANALYTICS_TOKEN` under **Settings -> Secrets and variables -> Actions -> Variables**. The Pages workflow passes it to Astro at build time and the shared layout emits Cloudflare's beacon script on every page.
 
 ## Add papers
 
